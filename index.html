@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Auditoría de Tiempo · Contigo Emprendedor</title>
+<style>
+  /* ---------- Design tokens ----------
+     Subject: microempresarias de Arequipa calculando el costo de su tiempo.
+     Palette — "sillar y ladrillo": warm stone + Arequipa clay, not the generic cream/terracotta AI default.
+  */
+  :root{
+    --stone:#EFE9E1;      /* sillar (volcanic stone) background */
+    --stone-2:#E4DCD0;
+    --ink:#241E1A;        /* near-black warm */
+    --clay:#C8542B;       /* Arequipa clay / brick — primary accent */
+    --clay-d:#A8431F;
+    --teal:#12655E;       /* contrast cool for "verde/valor" */
+    --amber:#E0A100;
+    --red:#C0392B;
+    --green:#2E7D46;
+    --paper:#FBF8F4;
+    --line:#D8CEBF;
+    --muted:#7A6E62;
+    --shadow:0 8px 30px rgba(60,40,25,.12);
+    --r:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--stone);color:var(--ink);font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{max-width:520px;margin:0 auto;padding:0 0 40px;min-height:100vh;position:relative}
+  h1,h2,.display{font-family:'Georgia','Times New Roman',serif}
+
+  /* header */
+  .top{background:var(--ink);color:var(--paper);padding:18px 20px 22px;border-radius:0 0 22px 22px;position:relative;overflow:hidden}
+  .top:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;background:var(--clay);border-radius:50%;opacity:.9}
+  .eyebrow{font-size:11px;letter-spacing:2.5px;font-weight:bold;color:var(--amber);text-transform:uppercase;position:relative;z-index:2}
+  .top h1{font-size:26px;margin-top:6px;line-height:1.1;position:relative;z-index:2}
+  .top p{font-size:13.5px;color:#D8CFC6;margin-top:8px;position:relative;z-index:2;max-width:80%}
+
+  /* steps container */
+  .wrap{padding:20px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+  .step-label{display:inline-block;font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:var(--clay);margin-bottom:4px}
+  .card h2{font-size:19px;margin-bottom:4px}
+  .hint{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+
+  label{display:block;font-size:13.5px;font-weight:bold;margin:12px 0 5px}
+  input[type=number],input[type=text]{width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--clay)}
+
+  .rate{margin-top:14px;background:var(--stone-2);border-radius:12px;padding:14px;text-align:center}
+  .rate .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:bold}
+  .rate .val{font-family:Georgia,serif;font-size:32px;font-weight:bold;color:var(--clay);margin-top:2px}
+
+  /* hour rows */
+  .hours{margin-top:6px}
+  .hrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .hrow:last-child{border-bottom:none}
+  .htime{font-size:13px;font-weight:bold;color:var(--ink);width:64px;flex:none}
+  .htask{flex:1;padding:9px 10px;font-size:14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;min-width:0}
+  .dots{display:flex;gap:6px;flex:none}
+  .dot{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;opacity:.35;transition:.15s;position:relative}
+  .dot.r{background:var(--red)} .dot.y{background:var(--amber)} .dot.g{background:var(--green)}
+  .dot.on{opacity:1;border-color:var(--ink);transform:scale(1.12)}
+
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:16px;font-size:12.5px}
+  .legend div{display:flex;align-items:center;gap:9px}
+  .lg{width:16px;height:16px;border-radius:50%;flex:none}
+
+  .cta{width:100%;padding:16px;font-size:16px;font-weight:bold;color:#fff;background:var(--clay);border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(200,84,43,.35);transition:.15s}
+  .cta:active{transform:translateY(1px)}
+  .cta:disabled{background:var(--muted);box-shadow:none}
+
+  /* personal result */
+  .myresult{background:linear-gradient(160deg,var(--clay),var(--clay-d));color:#fff;text-align:center;padding:26px 20px}
+  .myresult .lbl{font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold}
+  .myresult .big{font-family:Georgia,serif;font-size:52px;font-weight:bold;line-height:1;margin:8px 0}
+  .myresult .sub{font-size:13.5px;opacity:.92;line-height:1.4}
+
+  /* shared dashboard */
+  .dash{background:var(--ink);color:var(--paper)}
+  .dash .step-label{color:var(--amber)}
+  .dash h2{color:#fff}
+  .stat{text-align:center;padding:14px 0}
+  .stat .n{font-family:Georgia,serif;font-size:44px;font-weight:bold;color:var(--amber);line-height:1}
+  .stat .n.clay{color:#F0916A}
+  .stat .c{font-size:12.5px;color:#C8BEB2;margin-top:4px;text-transform:uppercase;letter-spacing:1px;font-weight:bold}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .box{background:rgba(255,255,255,.06);border-radius:12px;padding:12px 6px}
+  .barwrap{margin-top:18px}
+  .barrow{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:12.5px}
+  .barrow .bl{width:70px;flex:none;font-weight:bold}
+  .bartrack{flex:1;height:14px;background:rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+  .bar{height:100%;border-radius:8px;transition:width .6s ease}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#C8BEB2;margin-top:14px;justify-content:center;width:100%}
+  .live .pulse{width:8px;height:8px;border-radius:50%;background:#57C77E;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:10px 20px;line-height:1.5}
+  .hidden{display:none}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:var(--shadow);z-index:99;opacity:0;transition:.3s;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="eyebrow">Contigo Emprendedor · Sesión 1</div>
+  <h1>¿Cuánto cuesta tu tiempo?</h1>
+  <p>Vamos a calcular, en soles, cuánto tiempo regalas cada mes. Toma 5 minutos.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1: tu hora -->
+  <div class="card" id="cardRate">
+    <span class="step-label">Paso 1 de 3</span>
+    <h2>¿Cuánto vale tu hora?</h2>
+    <p class="hint">Si contrataras a alguien para hacer tu trabajo, ¿cuánto le pagarías?</p>
+    <label for="name">Tu nombre o tu negocio</label>
+    <input type="text" id="name" placeholder="Ej. Dulce Aroma" autocomplete="off">
+    <label for="salary">Sueldo que te pagarías al mes (S/)</label>
+    <input type="number" id="salary" inputmode="numeric" placeholder="1500" min="0">
+    <label for="hours">Horas que trabajas al mes (ej. 8 × 26 = 208)</label>
+    <input type="number" id="hours" inputmode="numeric" placeholder="208" min="1">
+    <div class="rate">
+      <div class="lbl">Tu hora vale</div>
+      <div class="val" id="rateVal">S/ —</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: bitácora -->
+  <div class="card" id="cardHours">
+    <span class="step-label">Paso 2 de 3</span>
+    <h2>Tu día, hora por hora</h2>
+    <p class="hint">Marca cada hora con un color según lo que hiciste. No tienes que llenar todas.</p>
+    <div class="hours" id="hoursList"></div>
+    <div class="legend">
+      <div><span class="lg" style="background:var(--red)"></span> <b>Rojo:</b>&nbsp;apagar incendios (urgente, no planeado)</div>
+      <div><span class="lg" style="background:var(--amber)"></span> <b>Amarillo:</b>&nbsp;repetitivo — otra persona podría hacerlo</div>
+      <div><span class="lg" style="background:var(--green)"></span> <b>Verde:</b>&nbsp;solo tú puedes hacerlo (tu valor)</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: dias + enviar -->
+  <div class="card" id="cardDays">
+    <span class="step-label">Paso 3 de 3</span>
+    <h2>Un último dato</h2>
+    <label for="days">¿Cuántos días al mes trabajas así?</label>
+    <input type="number" id="days" inputmode="numeric" placeholder="26" min="1" max="31" value="26">
+    <button class="cta" id="calcBtn" style="margin-top:18px">Ver mi resultado</button>
+  </div>
+
+  <!-- personal result (hidden until submit) -->
+  <div class="card hidden" id="cardResult" style="padding:0;overflow:hidden">
+    <div class="myresult">
+      <div class="lbl">Le regalas a tu negocio cada mes</div>
+      <div class="big" id="myBig">S/ 0</div>
+      <div class="sub" id="mySub"></div>
+    </div>
+  </div>
+
+  <!-- shared dashboard -->
+  <div class="card dash" id="cardDash">
+    <span class="step-label">El aula en vivo</span>
+    <h2>Lo que estamos regalando juntas</h2>
+    <p class="hint" style="color:#C8BEB2">Se actualiza a medida que cada compañera responde.</p>
+    <div class="grid2">
+      <div class="box stat"><div class="n" id="dCount">0</div><div class="c">respuestas</div></div>
+      <div class="box stat"><div class="n clay" id="dAvg">S/ 0</div><div class="c">promedio por negocio</div></div>
+    </div>
+    <div class="box stat" style="margin-top:10px"><div class="n" id="dTotal">S/ 0</div><div class="c">total del aula al mes</div></div>
+    <div class="barwrap">
+      <div class="barrow"><span class="bl" style="color:#F07E5A">Incendios</span><div class="bartrack"><div class="bar" id="barR" style="background:var(--red);width:0%"></div></div></div>
+      <div class="barrow"><span class="bl" style="color:var(--amber)">Repetitivo</span><div class="bartrack"><div class="bar" id="barY" style="background:var(--amber);width:0%"></div></div></div>
+      <div class="barrow"><span class="bl" style="color:#57C77E">Tu valor</span><div class="bartrack"><div class="bar" id="barG" style="background:var(--green);width:0%"></div></div></div>
+    </div>
+    <div class="live"><span class="pulse"></span> Actualizando en vivo</div>
+  </div>
+
+  <p class="foot">Guarda tu número. En la Sesión 8 lo volveremos a medir — ya recuperado.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — almacenamiento compartido (JSONBin.io, gratis)
+   Reemplaza estos dos valores con los tuyos (ver instrucciones).
+   Si los dejas vacíos, la app funciona igual pero SIN tablero
+   compartido (cada quien ve solo su número).
+   ============================================================ */
+const BIN_ID  = "6a69d494f5f4af5e29d0c297";
+const BIN_KEY = "$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm";
+const API = "https://api.jsonbin.io/v3/b/" + BIN_ID;
+const sharedEnabled = BIN_ID && !BIN_ID.startsWith("REEMPLAZA");
+
+/* ---------- build hour rows ---------- */
+const HOURS = ["6:00","7:00","8:00","9:00","10:00","11:00","12:00",
+               "1:00 pm","2:00 pm","3:00 pm","4:00 pm","5:00 pm","6:00 pm","7:00 pm","8:00 pm","9:00 pm","10:00 pm"];
+const state = {}; // hourIndex -> 'r'|'y'|'g'
+const list = document.getElementById("hoursList");
+HOURS.forEach((h,i)=>{
+  const row=document.createElement("div"); row.className="hrow";
+  row.innerHTML =
+    '<span class="htime">'+h+'</span>'+
+    '<input class="htask" placeholder="¿qué hiciste?" data-i="'+i+'">'+
+    '<div class="dots">'+
+      '<span class="dot r" data-i="'+i+'" data-c="r"></span>'+
+      '<span class="dot y" data-i="'+i+'" data-c="y"></span>'+
+      '<span class="dot g" data-i="'+i+'" data-c="g"></span>'+
+    '</div>';
+  list.appendChild(row);
+});
+list.addEventListener("click", e=>{
+  const dot=e.target.closest(".dot"); if(!dot) return;
+  const i=dot.dataset.i, c=dot.dataset.c;
+  // toggle: if same color on, turn off
+  const rowDots=list.querySelectorAll('.dot[data-i="'+i+'"]');
+  if(state[i]===c){ delete state[i]; rowDots.forEach(d=>d.classList.remove("on")); }
+  else{ state[i]=c; rowDots.forEach(d=>d.classList.toggle("on", d.dataset.c===c)); }
+});
+
+/* ---------- live rate ---------- */
+const $=id=>document.getElementById(id);
+function rate(){ const s=+$("salary").value, h=+$("hours").value; return (s>0&&h>0)? s/h : 0; }
+function refreshRate(){ const r=rate(); $("rateVal").textContent = r>0 ? "S/ "+r.toFixed(2) : "S/ —"; }
+["salary","hours"].forEach(id=>$(id).addEventListener("input",refreshRate));
+
+/* ---------- toast ---------- */
+let tT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(tT); tT=setTimeout(()=>t.classList.remove("show"),2600); }
+
+/* ---------- submit ---------- */
+$("calcBtn").addEventListener("click", async ()=>{
+  const name=$("name").value.trim(), r=rate(), days=+$("days").value||26;
+  if(!name){ toast("Escribe tu nombre o negocio"); return; }
+  if(r<=0){ toast("Completa tu sueldo y horas del Paso 1"); return; }
+  let red=0,yel=0,grn=0;
+  Object.values(state).forEach(c=>{ if(c==="r")red++; else if(c==="y")yel++; else if(c==="g")grn++; });
+  if(red+yel+grn===0){ toast("Marca al menos una hora con color"); return; }
+  const lostPerDay = red+yel;                 // horas perdidas al día
+  const costMonth = Math.round(lostPerDay*days*r);
+  // show personal result
+  $("myBig").textContent = "S/ "+costMonth.toLocaleString("es-PE");
+  $("mySub").innerHTML = lostPerDay+" horas al día en tareas que no hacen crecer tu negocio,<br>por "+days+" días, a S/ "+r.toFixed(2)+" tu hora.";
+  $("cardResult").classList.remove("hidden");
+  $("calcBtn").disabled=true; $("calcBtn").textContent="¡Enviado!";
+  $("cardResult").scrollIntoView({behavior:"smooth",block:"center"});
+
+  const entry={ name, costMonth, red, yel, grn, ts:Date.now() };
+  if(sharedEnabled){ await pushEntry(entry); }
+  else { localBucket.push(entry); renderDash(localBucket); }
+});
+
+/* ---------- shared storage (JSONBin) ---------- */
+let localBucket=[]; // fallback if no bin configured
+async function readAll(){
+  if(!sharedEnabled) return localBucket;
+  try{
+    const res=await fetch(API+"/latest",{headers:{"X-Master-Key":BIN_KEY}});
+    const j=await res.json();
+    return Array.isArray(j.record)? j.record : (j.record.entries||[]);
+  }catch(e){ return localBucket; }
+}
+async function pushEntry(entry){
+  try{
+    const all=await readAll(); all.push(entry);
+    await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":BIN_KEY},body:JSON.stringify(all)});
+    renderDash(all);
+  }catch(e){ toast("Guardado local (sin conexión al aula)"); localBucket.push(entry); renderDash(localBucket); }
+}
+
+/* ---------- render dashboard ---------- */
+function renderDash(all){
+  const count=all.length;
+  const total=all.reduce((s,e)=>s+(e.costMonth||0),0);
+  const avg= count? Math.round(total/count):0;
+  $("dCount").textContent=count;
+  $("dTotal").textContent="S/ "+total.toLocaleString("es-PE");
+  $("dAvg").textContent="S/ "+avg.toLocaleString("es-PE");
+  let R=0,Y=0,G=0; all.forEach(e=>{R+=e.red||0;Y+=e.yel||0;G+=e.grn||0;});
+  const tot=R+Y+G||1;
+  $("barR").style.width=(100*R/tot)+"%";
+  $("barY").style.width=(100*Y/tot)+"%";
+  $("barG").style.width=(100*G/tot)+"%";
+}
+
+/* ---------- live polling ---------- */
+async function poll(){ const all=await readAll(); renderDash(all); }
+if(sharedEnabled){ poll(); setInterval(poll, 5000); }
+</script>
+</body>
+</html>

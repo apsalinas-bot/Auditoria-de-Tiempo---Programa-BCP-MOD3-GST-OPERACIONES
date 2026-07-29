@@ -97,6 +97,18 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:99;opacity:0;transition:.3s;max-width:90%;text-align:center}
   .toast.show{opacity:1}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  /* ---- print / PDF ---- */
+  @media print{
+    body{max-width:100%!important}
+    .screen{display:none!important}
+    .screen.printing{display:block!important}
+    .cta,.ghost,.live,.rolebtn,.step-label,#hoursList,.legend,.rate{display:none!important}
+    .card{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
+    .top{border-radius:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .myresult,.kpi,.chartcard,.summary{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .printing .card:not(.printcard){display:none}
+    @page{margin:1.2cm}
+  }
 </style>
 </head>
 <body>
@@ -190,6 +202,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
         <div class="i" id="ePieI"></div>
       </div>
       <div class="summary" id="eSummary"></div>
+      <button class="cta navy" id="empPdf" style="margin-top:14px">Descargar mi resultado (PDF)</button>
       <p class="foot">Guarda tu número. En la Sesión 8 lo volveremos a medir — ya recuperado.</p>
     </div>
   </div>
@@ -223,6 +236,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
       <div class="i" id="dRadarI"></div>
     </div>
     <div class="summary" id="dSummary"></div>
+    <button class="cta navy" id="docPdf" style="margin-top:14px">Descargar resumen del aula (PDF)</button>
     <div class="live"><span class="pulse"></span> Actualizando en vivo cada 5 segundos</div>
     <button class="ghost" id="docExit" style="margin-top:10px">Salir del tablero</button>
   </div>
@@ -382,6 +396,19 @@ function renderDoc(all){
 async function pollDoc(){renderDoc(await readAll());}
 function startDoc(){if(!dPie)initDocCharts();pollDoc();docTimer=setInterval(pollDoc,5000);}
 function stopDoc(){clearInterval(docTimer);}
+
+/* ---------- PDF (vía impresión del navegador) ---------- */
+function printScreen(screenId){
+  const sc=$(screenId);
+  const wasActive=sc.classList.contains("active");
+  sc.classList.add("printing");
+  document.querySelectorAll('.screen').forEach(s=>{ if(s!==sc) s.dataset._act=s.classList.contains("active")?"1":"", s.classList.remove("active"); });
+  window.print();
+  // restaurar tras el diálogo
+  setTimeout(()=>{ sc.classList.remove("printing"); document.querySelectorAll('.screen').forEach(s=>{ if(s.dataset._act==="1") s.classList.add("active"); }); if(wasActive) sc.classList.add("active"); }, 400);
+}
+$("empPdf").onclick=()=>printScreen("scEmp");
+$("docPdf").onclick=()=>printScreen("scDoc");
 </script>
 </body>
 </html>

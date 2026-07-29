@@ -6,7 +6,7 @@
 
    var BIN_ID   = "6a69d494f5f4af5e29d0c297";        // ← pega tu BIN ID de JSONBin
    var BIN_KEY  = "$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm";    // ← pega tu Master Key de JSONBin
-   var DOCENTE_PW = "70003700";             // ← contraseña del acceso Docente (solo tú)
+   var DOCENTE_PW = "Abc123456";             // ← contraseña del acceso Docente (solo tú)
 
 /* =====================================================================
    ▲▲▲  NO TOQUES NADA MÁS ABAJO  ▲▲▲
@@ -97,6 +97,33 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:99;opacity:0;transition:.3s;max-width:90%;text-align:center}
   .toast.show{opacity:1}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  /* ---- Eisenhower ---- */
+  .eis-intro{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+  .taskpool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--line);background:#fff;transition:.15s;font-family:inherit}
+  .chip .cdot{width:11px;height:11px;border-radius:50%;flex:none}
+  .chip.r .cdot{background:var(--red)}.chip.y .cdot{background:var(--amber)}
+  .chip.done{opacity:.4;text-decoration:line-through}
+  .chip:active{transform:scale(.96)}
+  .eis-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 14px}
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .qcell{border-radius:12px;padding:11px;min-height:96px;border:1.5px solid var(--line);background:#fff}
+  .qcell h4{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1.15}
+  .qcell .qd{font-size:10.5px;color:var(--muted);margin-bottom:7px;line-height:1.2}
+  .qcell.q1{border-top:4px solid var(--red)}
+  .qcell.q2{border-top:4px solid var(--green)}
+  .qcell.q3{border-top:4px solid var(--amber)}
+  .qcell.q4{border-top:4px solid var(--muted)}
+  .qtask{font-size:11.5px;background:#F2F5F9;border-radius:7px;padding:5px 8px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .qtask .x{color:var(--muted);cursor:pointer;font-weight:700;font-size:14px;line-height:1}
+  .picker{position:fixed;inset:0;background:rgba(20,30,55,.55);display:none;align-items:flex-end;justify-content:center;z-index:200}
+  .picker.on{display:flex}
+  .picksheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 18px 26px}
+  .picksheet h3{font-size:15px;margin-bottom:3px}
+  .picksheet .pt{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .pickopt{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#F7F9FC;border:1.5px solid var(--line);border-radius:12px;padding:13px;margin-bottom:9px;cursor:pointer;font-family:inherit}
+  .pickopt .pi{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700}
+  .pickopt .pl{font-size:14px;font-weight:600}.pickopt .pdd{font-size:11.5px;color:var(--muted)}
   /* ---- print / PDF ---- */
   @media print{
     body{max-width:100%!important}
@@ -115,7 +142,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
 <!-- ===== SCREEN 0: ROLE GATE ===== -->
 <div class="screen active" id="scRole">
   <div class="top">
-    <div class="eyebrow">RADIOGRAFIA DEL CAOS · BCP · Sesión 1 | MOD 3-GESTIÓN DE OPERACIONES</div>
+    <div class="eyebrow">Contigo Emprendedor · BCP · Sesión 1</div>
     <h1>Auditoría de Tiempo</h1>
     <p>¿Cuánto cuesta el tiempo que hoy regalas?</p>
   </div>
@@ -202,6 +229,23 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
         <div class="i" id="ePieI"></div>
       </div>
       <div class="summary" id="eSummary"></div>
+
+      <!-- ===== PASO 4: EISENHOWER ===== -->
+      <div class="card" id="eisCard" style="margin-top:16px;display:none">
+        <span class="step-label">Paso 4 de 4</span>
+        <h2>Ahora ordena tus tareas</h2>
+        <p class="eis-intro">Estas son las tareas donde se te va el tiempo (rojas y amarillas). Toca cada una y dime dónde va: ¿es urgente? ¿es importante para hacer crecer tu negocio?</p>
+        <div class="taskpool" id="taskPool"></div>
+        <div class="eis-hint" id="eisPending"></div>
+        <div class="quad">
+          <div class="qcell q1"><h4>Hazlo ya</h4><div class="qd">Urgente + importante</div><div id="q1"></div></div>
+          <div class="qcell q2"><h4>Agéndalo</h4><div class="qd">Importante, no urgente</div><div id="q2"></div></div>
+          <div class="qcell q3"><h4>Delégalo</h4><div class="qd">Urgente, no importante</div><div id="q3"></div></div>
+          <div class="qcell q4"><h4>Elimínalo</h4><div class="qd">Ni urgente ni importante</div><div id="q4"></div></div>
+        </div>
+        <div class="summary" id="eisPlan" style="display:none"></div>
+      </div>
+
       <button class="cta navy" id="empPdf" style="margin-top:14px">Descargar mi resultado (PDF)</button>
       <p class="foot">Guarda tu número. En la Sesión 8 lo volveremos a medir — ya recuperado.</p>
     </div>
@@ -235,10 +279,28 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
       <canvas id="dRadar" height="210"></canvas>
       <div class="i" id="dRadarI"></div>
     </div>
+    <div class="chartcard">
+      <h3>Plan de acción del aula (Eisenhower)</h3>
+      <div class="csub">Cómo clasificaron sus tareas: qué toca hacer con cada una.</div>
+      <canvas id="dEis" height="200"></canvas>
+      <div class="i" id="dEisI"></div>
+    </div>
     <div class="summary" id="dSummary"></div>
     <button class="cta navy" id="docPdf" style="margin-top:14px">Descargar resumen del aula (PDF)</button>
     <div class="live"><span class="pulse"></span> Actualizando en vivo cada 5 segundos</div>
     <button class="ghost" id="docExit" style="margin-top:10px">Salir del tablero</button>
+  </div>
+</div>
+
+<div class="picker" id="picker">
+  <div class="picksheet">
+    <h3 id="pickTask">Tarea</h3>
+    <div class="pt">¿Dónde va esta tarea?</div>
+    <button class="pickopt" data-q="1"><span class="pi" style="background:var(--red)">!</span><span><span class="pl">Hazlo ya</span><br><span class="pdd">Urgente e importante</span></span></button>
+    <button class="pickopt" data-q="2"><span class="pi" style="background:var(--green)">★</span><span><span class="pl">Agéndalo</span><br><span class="pdd">Importante, pero no urgente</span></span></button>
+    <button class="pickopt" data-q="3"><span class="pi" style="background:var(--amber)">→</span><span><span class="pl">Delégalo</span><br><span class="pdd">Urgente, pero otra persona puede</span></span></button>
+    <button class="pickopt" data-q="4"><span class="pi" style="background:var(--muted)">×</span><span><span class="pl">Elimínalo</span><br><span class="pdd">Ni urgente ni importante</span></span></button>
+    <button class="ghost" id="pickCancel">Cancelar</button>
   </div>
 </div>
 
@@ -297,11 +359,16 @@ function lockForm(){$("calcBtn").disabled=true;$("calcBtn").textContent="Ya envi
 $("calcBtn").onclick=async()=>{
   const r=rate(),days=+$("days").value||26;
   if(r<=0){toast("Completa tu sueldo y horas del Paso 1");return;}
-  let red=0,yel=0,grn=0;const byHour={};
+  let red=0,yel=0,grn=0;const byHour={};const tasks={};
   Object.entries(state).forEach(([i,c])=>{byHour[i]=c;if(c==="r")red++;else if(c==="y")yel++;else if(c==="g")grn++;});
   if(red+yel+grn===0){toast("Marca al menos una hora con color");return;}
+  // capturar el texto de las tareas rojas/amarillas (las que se clasifican en Eisenhower)
+  $("hoursList").querySelectorAll(".htask").forEach(inp=>{
+    const i=inp.dataset.i, c=state[i];
+    if(c==="r"||c==="y"){ tasks[i]={txt:(inp.value.trim()||("Tarea de las "+HOURS[i])),color:c}; }
+  });
   const lost=red+yel,costMonth=Math.round(lost*days*r);
-  const entry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,rate:+r.toFixed(2),byHour,ts:Date.now()};
+  const entry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,rate:+r.toFixed(2),byHour,tasks,eis:{},ts:Date.now()};
   if(sharedEnabled)await pushEntry(entry);else localBucket.push(entry);
   renderEmpDash(entry);lockForm();
 };
@@ -354,15 +421,85 @@ function renderEmpDash(e){
     "Si recuperas aunque sea la mitad de esas horas, ese dinero vuelve a tu bolsillo. Como "+hint+", ahí está tu oportunidad más clara para las próximas semanas.";
   $("empDash").style.display="block";
   $("empDash").scrollIntoView({behavior:"smooth",block:"start"});
+  renderEis(e);
+}
+
+/* ---------- EISENHOWER ---------- */
+let eisEntry=null, eisState={}; // taskIndex -> quadrant(1..4)
+const QLABEL={1:"Hazlo ya",2:"Agéndalo",3:"Delégalo",4:"Elimínalo"};
+function renderEis(e){
+  eisEntry=e; eisState=Object.assign({}, e.eis||{});
+  const tasks=e.tasks||{};
+  if(Object.keys(tasks).length===0){ $("eisCard").style.display="none"; return; }
+  $("eisCard").style.display="block";
+  // build pool
+  const pool=$("taskPool"); pool.innerHTML="";
+  Object.entries(tasks).forEach(([i,t])=>{
+    const chip=document.createElement("button");
+    chip.className="chip "+t.color+(eisState[i]?" done":"");
+    chip.dataset.i=i;
+    chip.innerHTML='<span class="cdot"></span>'+t.txt;
+    chip.onclick=()=>openPicker(i,t.txt);
+    pool.appendChild(chip);
+  });
+  ["q1","q2","q3","q4"].forEach(q=>$(q).innerHTML="");
+  Object.entries(eisState).forEach(([i,q])=>addToQuad(i,q));
+  updateEisPending();
+}
+function openPicker(i,txt){ $("picker").dataset.i=i; $("pickTask").textContent=txt; $("picker").classList.add("on"); }
+$("pickCancel").onclick=()=>$("picker").classList.remove("on");
+document.querySelectorAll(".pickopt").forEach(btn=>{
+  btn.onclick=()=>{
+    const i=$("picker").dataset.i, q=btn.dataset.q;
+    eisState[i]=q;
+    // mark chip done
+    const chip=$("taskPool").querySelector('.chip[data-i="'+i+'"]'); if(chip)chip.classList.add("done");
+    // remove from any quad then add
+    ["q1","q2","q3","q4"].forEach(qq=>{const el=$(qq).querySelector('[data-i="'+i+'"]'); if(el)el.remove();});
+    addToQuad(i,q);
+    $("picker").classList.remove("on");
+    updateEisPending(); saveEis();
+  };
+});
+function addToQuad(i,q){
+  const t=(eisEntry.tasks||{})[i]; if(!t)return;
+  const row=document.createElement("div"); row.className="qtask"; row.dataset.i=i;
+  row.innerHTML='<span>'+t.txt+'</span><span class="x">×</span>';
+  row.querySelector(".x").onclick=()=>{ delete eisState[i]; row.remove(); const chip=$("taskPool").querySelector('.chip[data-i="'+i+'"]'); if(chip)chip.classList.remove("done"); updateEisPending(); saveEis(); };
+  $("q"+q).appendChild(row);
+}
+function updateEisPending(){
+  const total=Object.keys(eisEntry.tasks||{}).length;
+  const done=Object.keys(eisState).length;
+  const pend=total-done;
+  $("eisPending").textContent = pend>0 ? ("Faltan "+pend+" tarea(s) por clasificar") : "¡Listo! Clasificaste todas tus tareas.";
+  if(pend===0 && total>0) showEisPlan();
+}
+function showEisPlan(){
+  const counts={1:0,2:0,3:0,4:0};
+  Object.values(eisState).forEach(q=>counts[q]++);
+  const el=$("eisPlan"); el.style.display="block";
+  el.innerHTML="<b>Tu plan:</b> de tus "+Object.keys(eisEntry.tasks).length+" tareas que consumen tiempo, "+
+    "<b>"+counts[3]+"</b> puedes <b>delegar</b> y <b>"+counts[4]+"</b> podrías <b>eliminar</b> — ahí está el tiempo que recuperas primero. "+
+    "Las <b>"+counts[1]+"</b> urgentes e importantes hazlas tú ya, y agenda las <b>"+counts[2]+"</b> importantes para que no se vuelvan incendios. "+
+    "Empieza por delegar una sola esta semana: es tu primer paso concreto.";
+}
+async function saveEis(){
+  if(!eisEntry)return;
+  eisEntry.eis=Object.assign({},eisState);
+  if(sharedEnabled){ try{ await pushEntry(eisEntry); }catch(e){} }
 }
 
 /* ---------- DOCENTE dashboard ---------- */
-let dPie,dRadar,docTimer;
+let dPie,dRadar,dEis,docTimer;
 function initDocCharts(){
   dPie=makePie($("dPie").getContext("2d"),0,0,0);
   dRadar=new Chart($("dRadar").getContext("2d"),{type:"radar",
     data:{labels:HOURS,datasets:[{label:"Horas perdidas",data:HOURS.map(()=>0),borderColor:"#EC6607",backgroundColor:"rgba(236,102,7,.18)",borderWidth:2,pointBackgroundColor:"#002A8D",pointRadius:2.5}]},
     options:{plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,ticks:{display:false,stepSize:1},pointLabels:{font:{size:8}},grid:{color:"#E2E7F0"}}},responsive:true,maintainAspectRatio:true}});
+  dEis=new Chart($("dEis").getContext("2d"),{type:"bar",
+    data:{labels:["Hazlo ya","Agéndalo","Delégalo","Elimínalo"],datasets:[{data:[0,0,0,0],backgroundColor:["#D64545","#2F9E5F","#E8A800","#6B7688"],borderRadius:6}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false},ticks:{font:{size:10}}}},responsive:true,maintainAspectRatio:true}});
 }
 function renderDoc(all){
   const count=all.length,total=all.reduce((s,e)=>s+(e.costMonth||0),0),avg=count?Math.round(total/count):0;
@@ -384,6 +521,12 @@ function renderDoc(all){
   $("dPieI").innerHTML=count?("El aula: <b>"+pr+"%</b> incendios, <b>"+py+"%</b> repetitivo, <b>"+pg+"%</b> valor. El objetivo del módulo es subir ese último porcentaje."):"Aún sin datos.";
   const worst=hourCount.indexOf(Math.max(...hourCount));
   $("dRadarI").innerHTML=count?("La hora más crítica del aula es alrededor de las <b>"+HOURS[worst]+"</b> — ahí conviene enfocar la conversación."):"Aún sin datos.";
+  // Eisenhower consolidado
+  const ec={1:0,2:0,3:0,4:0}; let eisRespondents=0;
+  all.forEach(e=>{ if(e.eis&&Object.keys(e.eis).length){eisRespondents++; Object.values(e.eis).forEach(q=>{ec[q]=(ec[q]||0)+1;});} });
+  if(dEis){dEis.data.datasets[0].data=[ec[1],ec[2],ec[3],ec[4]];dEis.update();}
+  const eisTotal=ec[1]+ec[2]+ec[3]+ec[4];
+  $("dEisI").innerHTML = eisTotal? ("De todas las tareas clasificadas, <b>"+ec[3]+"</b> son para <b>delegar</b> y <b>"+ec[4]+"</b> para <b>eliminar</b>: ese es el tiempo recuperable más inmediato del aula. Las de <b>agendar</b> ("+ec[2]+") son la prevención para que no se vuelvan incendios.") : "Aún nadie ha clasificado sus tareas en la matriz.";
   // summary paragraph
   if(!count){ $("dSummary").innerHTML="<b>Aún no hay respuestas.</b> Cuando las emprendedoras completen su auditoría, aquí aparecerá el análisis global del aula."; }
   else{

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>El Esqueleto del Negocio · S2 · BCP</title>
+<title>El Esqueleto del Negocio &middot; S2 &middot; BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
-  --ink:#1C2536;--bg:#F4F6FA;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --ink:#1C2536;--bg:#F0F2F7;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
   --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--teal:#0891B2;
   --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
   --font:'Rubik',system-ui,'Segoe UI',sans-serif;
@@ -37,34 +37,55 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
 .field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
 
-/* gate */
-.gate-title{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:3px;text-align:center}
-.gate-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.45;text-align:center}
-.role-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
-.role-btn{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--line);
-  border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;
-  transition:.15s;width:100%;box-shadow:0 2px 8px rgba(0,20,80,.06)}
-.role-btn:hover{border-color:var(--navy);box-shadow:0 4px 14px rgba(0,20,80,.1)}
-.role-btn.active{border-color:var(--navy);background:#F0F4FF;box-shadow:0 4px 14px rgba(0,42,141,.12)}
-.role-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;
-  justify-content:center;font-size:22px;flex-shrink:0}
-.role-icon.emp{background:var(--orange)}
-.role-icon.doc{background:var(--navy)}
-.role-text{flex:1}
-.role-btn .rb-label{font-size:15px;font-weight:700;color:var(--ink);display:block;margin-bottom:2px}
-.role-btn .rb-sub{font-size:12px;color:var(--muted)}
-.role-btn.active .rb-label{color:var(--navy)}
-.gate-divider{height:1px;background:var(--line);margin:4px 0 16px}
-.gate-input{width:100%;padding:13px 14px;font-size:18px;border:1.5px solid var(--line);
-  border-radius:11px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:2px;text-align:center}
-.gate-input:focus{outline:none;border-color:var(--navy);background:#fafcff}
-.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:20px;margin-top:6px;text-align:center}
+/* ═══════════════════════════════
+   GATE SCREEN — identico a S1
+═══════════════════════════════ */
+.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
+.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
+
+.role-list{display:flex;flex-direction:column;gap:10px}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;
+  border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;
+  box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
+.role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.rc-icon.emp{background:var(--orange)}
+.rc-icon.doc{background:var(--navy-d)}
+.rc-texts{flex:1}
+.rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
+.rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
+.role-card.selected .rc-label{color:var(--navy)}
+
+/* Panel de entrada (paso 2 del gate) */
+.gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.gate-panel.on{display:block}
+.gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
+.gate-dni-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);
+  border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);
+  letter-spacing:4px}
+.gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.gate-dni-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);
+  border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:3px}
+.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;
+  border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px;transition:.15s}
+.gate-btn:active{transform:translateY(1px)}
+.gate-btn.emp{background:var(--orange);box-shadow:0 5px 18px rgba(236,102,7,.32)}
+.gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
+.gate-back{display:block;text-align:center;margin-top:14px;font-size:13.5px;
+  color:var(--muted);text-decoration:underline;background:none;border:none;
+  font-family:inherit;cursor:pointer}
+.gate-back:hover{color:var(--navy)}
 
 /* buttons */
 .cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--orange);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(236,102,7,.28);transition:.15s;white-space:nowrap}
 .cta:active{transform:translateY(1px)}
 .cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
-.cta.teal-btn{background:var(--teal);box-shadow:0 5px 16px rgba(8,145,178,.25)}
 .cta.full{width:100%;text-align:center}
 .ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;transition:.15s;width:100%;text-align:center}
 .ghost:hover{border-color:var(--navy);color:var(--navy)}
@@ -105,7 +126,7 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .option-row input:focus{outline:none;border-color:var(--navy)}
 .empty-hint{color:var(--muted);font-style:italic;font-size:13.5px;text-align:center;padding:18px 8px}
 
-/* flow nodes */
+/* flow */
 #flowWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center}
 .node{position:relative;max-width:92%;font-size:14px;line-height:1.35}
 .node.oval{background:var(--navy);color:#fff;border-radius:50px;padding:12px 24px;font-weight:700;text-align:center;min-width:120px}
@@ -122,8 +143,6 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .connector .lbl{margin-top:2px;font-size:11px;font-weight:600;color:var(--navy);background:#EEF2FB;border-radius:20px;padding:3px 10px;min-width:20px;text-align:center;outline:none}
 .connector .lbl:empty:before{content:'+ etiqueta';color:var(--muted);font-weight:500;opacity:.6}
 .connector .lbl:focus{background:#fff;border:1px solid var(--navy)}
-
-/* branches */
 .fork-wrap{width:100%;max-width:460px}
 .fork{position:relative;height:42px}
 .fork-line{position:absolute;top:0;left:50%;width:2px;height:42px;background:#C7CFDE;margin-left:-1px;transform-origin:top center}
@@ -145,8 +164,6 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .merge-line{position:absolute;bottom:0;left:50%;width:2px;height:34px;background:#C7CFDE;margin-left:-1px;transform-origin:bottom center}
 .merge-line.l{transform:rotate(36deg)}
 .merge-line.r{transform:rotate(-36deg)}
-
-/* save */
 .autosave{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-top:12px;justify-content:center;opacity:0;transition:opacity .3s}
 .autosave.on{opacity:1}
 .autosave .dot2{width:6px;height:6px;border-radius:50%;background:var(--green)}
@@ -155,7 +172,7 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .save-status.err{color:var(--red)}
 .save-status.loading{color:var(--muted)}
 
-/* docente - KPIs */
+/* docente */
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
 .kpi-val{font-size:32px;font-weight:700;color:var(--navy);line-height:1}
@@ -163,33 +180,23 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .kpi-box.orange .kpi-val{color:var(--orange)}
 .kpi-box.green .kpi-val{color:var(--green)}
 .kpi-box.teal .kpi-val{color:var(--teal)}
-
-/* docente - progreso */
 .progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
 .progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--teal));transition:width .6s ease}
-
-/* docente - tabla emprendedoras */
 .emp-table{width:100%;border-collapse:collapse;font-size:13px}
 .emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
 .emp-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 .emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
 .emp-name-cell{font-weight:600;color:var(--navy);font-size:13px}
-.emp-business{font-size:11.5px;color:var(--muted);margin-top:2px}
-.emp-steps-badge{display:inline-block;background:#EEF2FB;color:var(--navy);font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
 .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
 .tag.green{background:#E6F8EE;color:var(--green)}
 .tag.amber{background:#FFF8E1;color:#B45309}
 .tag.red{background:#FEF2F2;color:var(--red)}
 .tag.gray{background:#F1F5F9;color:var(--muted)}
-
-/* docente - highlight */
 .section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
 .alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
 .alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
 .alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
 .alert-box.navy{background:#EEF2FB;border-left:3px solid var(--navy);color:var(--navy-d)}
-
-/* modal */
 #flowModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px;-webkit-overflow-scrolling:touch}
 #flowModal.on{display:flex;align-items:flex-start;justify-content:center}
 .modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
@@ -198,28 +205,24 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
 .modal-flow-wrap{display:flex;flex-direction:column;align-items:center}
 .modal-flow-wrap .node{max-width:95%}
-
-/* misc */
-.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0}
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
 .logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
-.divider{height:1px;background:var(--line);margin:16px 0}
-.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
 .refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.15s}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
-
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
 @media print{body{max-width:none;padding-bottom:0}.top:after{display:none}.no-print{display:none !important}#flowModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
 <body>
 
-<!-- ▼▼▼ PEGA TUS CLAVES AQUI — solo edita las 3 lineas marcadas ▼▼▼ -->
+<!-- ▼▼▼ PEGA TUS CLAVES AQUI ▼▼▼ -->
 <script>
-const BIN_ID    = '6a6ab4a3f5f4af5e29d3bc50';            // ← BIN exclusivo para Sesion 2
-const BIN_KEY   = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm'; // ← tu Master Key
-const DOCENTE_PW = '70003700';                       // ← tu DNI (ya configurado)
+const BIN_ID     = '6a6ab4a3f5f4af5e29d3bc50';
+const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
+const DOCENTE_PW = '70003700';
 </script>
-<!-- ▲▲▲ FIN BLOQUE DE CLAVES ▲▲▲ -->
+<!-- ▲▲▲ FIN CLAVES ▲▲▲ -->
 
 <script>
 const ROSTER = {
@@ -251,56 +254,71 @@ const ROSTER = {
 };
 </script>
 
-<!-- PANTALLA GATE -->
+<!-- ════ PANTALLA GATE ════ -->
 <div id="gateScreen">
   <div class="top">
-    <div class="eyebrow">Modulo 3 &middot; Gestion de Operaciones &middot; Sesion 2</div>
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 2</div>
     <h1>El Esqueleto <span>del Negocio</span></h1>
-    <p>Dibuja como funciona realmente tu negocio, paso a paso.</p>
+    <p>Dibuja c&oacute;mo funciona realmente tu negocio, paso a paso.</p>
   </div>
   <div class="wrap">
-    <div class="card">
-      <div class="gate-title">&#191;Como vas a entrar?</div>
+    <div class="card" style="padding:24px 20px">
+
+      <div class="gate-title">&iquest;C&oacute;mo vas a entrar?</div>
       <div class="gate-sub">Elige tu perfil para empezar.</div>
 
       <div class="role-list">
-        <button class="role-btn active" id="roleEmp" onclick="setRole('emp')">
-          <div class="role-icon emp">&#9670;</div>
-          <div class="role-text">
-            <span class="rb-label">Soy emprendedora / duena de negocio</span>
-            <span class="rb-sub">Entra con tu DNI y construye tu flujograma</span>
+        <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
+          <div class="rc-icon emp">&#9670;</div>
+          <div class="rc-texts">
+            <span class="rc-label">Soy emprendedora / due&ntilde;a de negocio</span>
+            <span class="rc-sub">Entra con tu DNI y construye tu flujograma</span>
           </div>
         </button>
-        <button class="role-btn" id="roleDoc" onclick="setRole('doc')">
-          <div class="role-icon doc">&#9783;</div>
-          <div class="role-text">
-            <span class="rb-label">Docente</span>
-            <span class="rb-sub">Ver el panel de seguimiento del aula</span>
+        <button class="role-card" id="cardDoc" onclick="pickRole('doc')">
+          <div class="rc-icon doc">&#9783;</div>
+          <div class="rc-texts">
+            <span class="rc-label">Docente</span>
+            <span class="rc-sub">Ver el tablero global del aula</span>
           </div>
         </button>
       </div>
 
-      <div class="gate-divider"></div>
-      <label class="field-label" id="gateLabel">Tu DNI (8 digitos)</label>
-      <input class="gate-input" type="tel" id="gateInput" placeholder="00000000" maxlength="8" inputmode="numeric">
-      <div class="gate-err" id="gateErr"></div>
-      <button class="cta full" style="margin-top:14px" onclick="doLogin()">Ingresar &#8594;</button>
+      <!-- Panel emprendedora -->
+      <div class="gate-panel on" id="panelEmp">
+        <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp"
+          placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div class="gate-err" id="errEmp"></div>
+        <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
+        <button class="gate-back" onclick="resetRole()">Volver</button>
+      </div>
+
+      <!-- Panel docente (oculto por defecto) -->
+      <div class="gate-panel" id="panelDoc">
+        <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div class="gate-err" id="errDoc"></div>
+        <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+        <button class="gate-back" onclick="resetRole()">Volver</button>
+      </div>
+
     </div>
-    <div class="foot">Programa BCP &middot; UCSP-CENDES &middot; Modulo 3: Gestion de Operaciones</div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
   </div>
 </div>
 
-<!-- VISTA EMPRENDEDORA -->
+<!-- ════ VISTA EMPRENDEDORA ════ -->
 <div id="empView" style="display:none">
   <div class="top">
-    <div class="eyebrow">Modulo 3 · Sesion 2</div>
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Sesi&oacute;n 2</div>
     <h1>El Esqueleto <span>del Negocio</span></h1>
-    <p id="empWelcome">Hola — dibuja como opera tu negocio.</p>
+    <p id="empWelcome">Hola &mdash; dibuja c&oacute;mo opera tu negocio.</p>
   </div>
-  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesion</button></div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
   <div class="wrap">
     <div class="card">
-      <span class="step-label">Actividad · Sesion 2</span>
+      <span class="step-label">Actividad &middot; Sesi&oacute;n 2</span>
       <h2>Mapea tu proceso, paso a paso</h2>
       <p class="hint">Escribe cada paso desde que el cliente pide algo hasta que lo recibe. Un paso a la vez, en orden.</p>
       <label class="field-label">Nombre de tu proceso</label>
@@ -312,120 +330,137 @@ const ROSTER = {
       <div class="type-row" id="typeRow">
         <button class="type-chip" data-type="oval"><span class="ic">&#9679;</span><span class="tx">Inicio/Fin</span></button>
         <button class="type-chip active" data-type="rect"><span class="ic">&#9645;</span><span class="tx">Paso</span></button>
-        <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decision</span></button>
+        <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decisi&oacute;n</span></button>
       </div>
       <div class="builder-row">
         <input type="text" id="stepInput" placeholder="Ej: Recibo el pedido por WhatsApp" maxlength="90">
         <button class="cta" id="addStepBtn">+ Agregar</button>
       </div>
       <div class="option-row" id="optionRow">
-        <input type="text" id="optionAInput" placeholder="Opcion 1 (ej: Yape)" maxlength="20">
-        <input type="text" id="optionBInput" placeholder="Opcion 2 (ej: Efectivo)" maxlength="20">
+        <input type="text" id="optionAInput" placeholder="Opci&oacute;n 1 (ej: Yape)" maxlength="20">
+        <input type="text" id="optionBInput" placeholder="Opci&oacute;n 2 (ej: Efectivo)" maxlength="20">
       </div>
       <p class="type-hint" id="typeHint"></p>
       <div id="flowWrap"></div>
       <div class="autosave" id="autosaveTag"><span class="dot2"></span><span>Guardado localmente</span></div>
     </div>
-
     <div class="card no-print">
       <span class="step-label">Recordatorio</span>
-      <h2>Los 3 simbolos</h2>
+      <h2>Los 3 s&iacute;mbolos</h2>
       <div class="legend">
-        <div class="legend-item"><div class="legend-shape oval">&#9679;</div><p><b>Ovalo</b>inicio o fin</p></div>
-        <div class="legend-item"><div class="legend-shape rect">&#9645;</div><p><b>Rectangulo</b>un paso</p></div>
-        <div class="legend-item"><div class="legend-shape diamond">&#9670;</div><p><b>Rombo</b>una decision</p></div>
+        <div class="legend-item"><div class="legend-shape oval">&#9679;</div><p><b>&Oacute;valo</b>inicio o fin</p></div>
+        <div class="legend-item"><div class="legend-shape rect">&#9645;</div><p><b>Rect&aacute;ngulo</b>un paso</p></div>
+        <div class="legend-item"><div class="legend-shape diamond">&#9670;</div><p><b>Rombo</b>una decisi&oacute;n</p></div>
       </div>
     </div>
-
     <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi flujograma</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn">Vaciar y empezar de nuevo</button>
     <div class="save-status" id="saveStatus"></div>
-    <div class="foot">Programa BCP · UCSP-CENDES · Modulo 3 · S2 El Esqueleto del Negocio</div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S2</div>
   </div>
 </div>
 
-<!-- VISTA DOCENTE -->
+<!-- ════ VISTA DOCENTE ════ -->
 <div id="docView" style="display:none">
   <div class="top doc-top">
-    <div class="eyebrow">Docente · Modulo 3 · Sesion 2</div>
+    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 2</div>
     <h1>Panel de <span>Seguimiento</span></h1>
     <p id="docWelcome">Flujogramas registrados por las emprendedoras.</p>
   </div>
   <div class="logout-row no-print">
     <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
-    &nbsp;
-    <button class="logout-btn" onclick="doLogout()">Cerrar sesion</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
   </div>
   <div class="wrap">
-
-    <!-- KPIs -->
     <div class="kpi-grid">
       <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Flujos guardados</div></div>
       <div class="kpi-box orange"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
       <div class="kpi-box green"><div class="kpi-val" id="kAvgSteps">-</div><div class="kpi-lbl">Promedio de pasos</div></div>
-      <div class="kpi-box teal"><div class="kpi-val" id="kWithDec">-</div><div class="kpi-lbl">Con nodo decision</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kWithDec">-</div><div class="kpi-lbl">Con nodo decisi&oacute;n</div></div>
     </div>
-
-    <!-- Barra de progreso -->
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participacion del grupo</span>
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
         <span style="font-size:13px;font-weight:700;color:var(--orange)" id="kPctLbl">0 / 25</span>
       </div>
       <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
     </div>
-
-    <!-- Alertas pedagogicas -->
     <div id="docAlerts"></div>
-
-    <!-- Tabla emprendedoras -->
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div class="section-title" style="margin:0">Flujos registrados</div>
       <span style="font-size:11px;color:var(--muted)">Toca una fila para ver el flujo</span>
     </div>
     <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
-      <div id="docTableWrap" style="overflow-x:auto">
-        <table class="emp-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Emprendedora</th>
-              <th>Proceso</th>
-              <th>Pasos</th>
-              <th>Caracteristicas</th>
-            </tr>
-          </thead>
-          <tbody id="docTableBody">
-            <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <table class="emp-table">
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Proceso</th><th>Pasos</th><th>Tags</th></tr></thead>
+        <tbody id="docTableBody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+      </table>
     </div>
-
-    <!-- Quien falta -->
     <div class="section-title">Pendientes (sin guardar flujo)</div>
     <div id="docPending" class="card" style="padding:14px 18px"></div>
-
     <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
-    <div class="foot" style="margin-top:16px">Programa BCP · UCSP-CENDES · Modulo 3: Gestion de Operaciones</div>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
   </div>
 </div>
 
-<!-- MODAL DETALLE FLUJO -->
+<!-- ════ MODAL FLUJO ════ -->
 <div id="flowModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <div class="modal-empname" id="modalEmpName">-</div>
     <div class="modal-meta" id="modalMeta">-</div>
     <div class="modal-flow-wrap" id="modalFlow"></div>
-    <div style="margin-top:16px;text-align:center">
-      <button class="cta" onclick="closeModal()">Cerrar</button>
-    </div>
+    <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
   </div>
 </div>
 
+
 <script>
+
+// ── Gate (2 pasos: elegir rol → ingresar DNI) ────────────────────────────
+let _role = 'emp';
+
+function pickRole(role) {
+  _role = role;
+  document.getElementById('cardEmp').classList.toggle('selected', role === 'emp');
+  document.getElementById('cardDoc').classList.toggle('selected', role === 'doc');
+  document.getElementById('panelEmp').classList.toggle('on', role === 'emp');
+  document.getElementById('panelDoc').classList.toggle('on', role === 'doc');
+  const inp = role === 'emp' ? document.getElementById('inputEmp') : document.getElementById('inputDoc');
+  setTimeout(() => inp.focus(), 50);
+}
+
+function resetRole() {
+  // nada — simplemente el usuario puede hacer clic en la otra tarjeta
+}
+
+function doLoginEmp() {
+  const val = document.getElementById('inputEmp').value.trim();
+  document.getElementById('errEmp').textContent = '';
+  if (!val || val.length < 6) { document.getElementById('errEmp').textContent = 'Ingresa tu DNI completo (8 d\u00edgitos).'; return; }
+  if (!ROSTER[val]) { document.getElementById('errEmp').textContent = 'DNI no registrado en el programa. Verifica e intenta de nuevo.'; return; }
+  currentDNI  = val;
+  currentName = ROSTER[val];
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'emp', dni: val, name: currentName }));
+  showEmpView();
+}
+
+function doLoginDoc() {
+  const val = document.getElementById('inputDoc').value.trim();
+  document.getElementById('errDoc').textContent = '';
+  if (!val) { document.getElementById('errDoc').textContent = 'Ingresa la contrase\u00f1a.'; return; }
+  if (val !== DOCENTE_PW) { document.getElementById('errDoc').textContent = 'Contrase\u00f1a incorrecta.'; return; }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'doc', dni: val }));
+  showDocView();
+}
+
+// Enter key en ambos inputs
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('inputEmp').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginEmp(); });
+  document.getElementById('inputDoc').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginDoc(); });
+});
+
 // ── Config dinamica (usa las vars del primer script tag) ──────────────────
 const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const HEADERS_READ  = { 'X-Master-Key': BIN_KEY };

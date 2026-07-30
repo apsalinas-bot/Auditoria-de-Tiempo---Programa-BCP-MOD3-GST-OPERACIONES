@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>El Esqueleto del Negocio · S2 · BCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
+  --ink:#1C2536;--bg:#F4F6FA;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--teal:#0891B2;
+  --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
+  --font:'Rubik',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+h1,h2,h3{font-weight:600;letter-spacing:-.2px}
+
+/* top bar */
+.top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--orange);border-radius:50%;opacity:.16}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
+.top h1{font-size:24px;margin-top:7px;line-height:1.16;position:relative;z-index:2}
+.top h1 span{color:var(--orange)}
+.top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
+.top.doc-top{background:linear-gradient(135deg,var(--navy-d) 0%,#0a3d6b 100%)}
+.top.doc-top:after{background:var(--teal)}
+
+/* layout */
+.wrap{padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--orange);margin-bottom:3px}
+.card h2{font-size:18px;margin-bottom:3px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+.field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
+
+/* gate */
+.gate-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.gate-sub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.45}
+.role-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.role-btn{padding:14px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;text-align:center;transition:.15s}
+.role-btn .rb-icon{font-size:24px;display:block;margin-bottom:6px}
+.role-btn .rb-label{font-size:13px;font-weight:700;color:var(--navy)}
+.role-btn .rb-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.role-btn.active{border-color:var(--navy);background:#EEF2FB}
+.gate-input{width:100%;padding:13px 14px;font-size:18px;border:2px solid var(--line);border-radius:11px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:2px;text-align:center}
+.gate-input:focus{outline:none;border-color:var(--navy);background:#fafcff}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:20px;margin-top:6px;text-align:center}
+
+/* buttons */
+.cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--orange);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(236,102,7,.28);transition:.15s;white-space:nowrap}
+.cta:active{transform:translateY(1px)}
+.cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
+.cta.teal-btn{background:var(--teal);box-shadow:0 5px 16px rgba(8,145,178,.25)}
+.cta.full{width:100%;text-align:center}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;transition:.15s;width:100%;text-align:center}
+.ghost:hover{border-color:var(--navy);color:var(--navy)}
+.ghost.warn{border-color:var(--red);color:var(--red);background:#FDF0F0}
+
+/* legend */
+.legend{display:flex;gap:10px;margin-top:6px}
+.legend-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.legend-shape{width:100%;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700}
+.legend-shape.oval{background:var(--navy);color:#fff;border-radius:50px}
+.legend-shape.rect{background:#fff;border:1.5px solid var(--line);border-radius:10px;color:var(--navy)}
+.legend-shape.diamond{background:#FFF6EA;border:1.5px solid var(--amber);color:var(--orange-d);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
+.legend-item p{font-size:11px;color:var(--muted);line-height:1.3}
+.legend-item b{display:block;color:var(--ink);font-size:12px;margin-bottom:1px}
+
+/* type chips */
+.type-row{display:flex;gap:7px;margin:14px 0 10px}
+.type-chip{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:1.5px solid var(--line);border-radius:11px;background:#fff;cursor:pointer;font-family:inherit;transition:.15s}
+.type-chip .ic{font-size:16px}
+.type-chip .tx{font-size:10.5px;font-weight:600;color:var(--muted)}
+.type-chip.active{border-color:var(--navy);background:#EEF2FB}
+.type-chip.active .tx{color:var(--navy)}
+.type-hint{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4}
+
+/* builder */
+.process-name-input{width:100%;padding:12px 13px;font-size:15px;font-weight:600;border:1.5px solid var(--line);border-radius:11px;background:#EEF2FB;font-family:inherit;color:var(--navy)}
+.process-name-input:focus{outline:none;border-color:var(--navy);background:#fff}
+.process-name-input::placeholder{color:var(--muted);font-weight:500}
+.editing-bar{display:none;align-items:center;justify-content:space-between;background:#FFF6EA;border-left:3px solid var(--orange);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12.5px;color:var(--orange-d);font-weight:600}
+.editing-bar.on{display:flex}
+.editing-bar button{background:none;border:none;color:var(--orange-d);font-weight:700;font-family:inherit;cursor:pointer;font-size:12.5px}
+.builder-row{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;padding:12px 13px;font-size:15px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font-family:inherit;color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--navy)}
+.option-row{display:none;gap:8px;margin-top:8px}
+.option-row.on{display:flex}
+.option-row input{flex:1;min-width:0;padding:9px 11px;font-size:13px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;color:var(--ink)}
+.option-row input:focus{outline:none;border-color:var(--navy)}
+.empty-hint{color:var(--muted);font-style:italic;font-size:13.5px;text-align:center;padding:18px 8px}
+
+/* flow nodes */
+#flowWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center}
+.node{position:relative;max-width:92%;font-size:14px;line-height:1.35}
+.node.oval{background:var(--navy);color:#fff;border-radius:50px;padding:12px 24px;font-weight:700;text-align:center;min-width:120px}
+.node.rect{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;text-align:left;width:min(320px,88vw);box-shadow:0 2px 8px rgba(0,20,80,.05)}
+.node.decision{background:#FFF6EA;border:1.5px solid var(--amber);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:600;color:var(--orange-d);padding:clamp(22px,8vw,32px) clamp(38px,14vw,58px);min-height:96px;width:min(300px,88vw)}
+.node-controls{display:flex;gap:5px;justify-content:center;margin-top:7px}
+.node-controls button{background:#fff;border:1px solid var(--line);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--navy);font-family:inherit;display:flex;align-items:center;justify-content:center}
+.node-controls button:hover:not(:disabled){border-color:var(--navy)}
+.node-controls button:disabled{opacity:.25;cursor:not-allowed}
+.node-controls button.del{color:var(--red)}
+.connector{display:flex;flex-direction:column;align-items:center;padding:6px 0;min-height:34px}
+.connector .line{width:2px;height:16px;background:var(--line)}
+.connector .arrow{color:var(--muted);font-size:13px;line-height:1;margin-top:-2px}
+.connector .lbl{margin-top:2px;font-size:11px;font-weight:600;color:var(--navy);background:#EEF2FB;border-radius:20px;padding:3px 10px;min-width:20px;text-align:center;outline:none}
+.connector .lbl:empty:before{content:'+ etiqueta';color:var(--muted);font-weight:500;opacity:.6}
+.connector .lbl:focus{background:#fff;border:1px solid var(--navy)}
+
+/* branches */
+.fork-wrap{width:100%;max-width:460px}
+.fork{position:relative;height:42px}
+.fork-line{position:absolute;top:0;left:50%;width:2px;height:42px;background:#C7CFDE;margin-left:-1px;transform-origin:top center}
+.fork-line.l{transform:rotate(-36deg)}
+.fork-line.r{transform:rotate(36deg)}
+.fork-line .dot{position:absolute;bottom:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.branch-row{display:flex;gap:14px;width:100%;align-items:flex-start}
+.branch-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.branch-head{background:var(--navy);color:#fff;font-size:11.5px;font-weight:700;text-align:center;padding:6px 8px;border-radius:20px;word-break:break-word}
+.branch-step{display:flex;align-items:flex-start;gap:5px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px}
+.branch-step span{flex:1;font-size:12px;line-height:1.35;outline:none;word-break:break-word}
+.branch-step button{flex-shrink:0;background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;width:16px;height:16px;font-family:inherit}
+.branch-empty{font-size:11px;color:var(--muted);font-style:italic;text-align:center;padding:2px 0}
+.branch-add{display:flex;gap:4px}
+.branch-add input{flex:1;min-width:0;font-size:11.5px;padding:7px 8px;border:1.5px dashed var(--line);border-radius:9px;background:#FAFBFD;font-family:inherit;color:var(--ink)}
+.branch-add input:focus{outline:none;border-color:var(--navy);border-style:solid}
+.branch-add button{flex-shrink:0;background:var(--navy);color:#fff;border:none;border-radius:9px;width:26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.merge{position:relative;height:34px;width:100%;max-width:460px}
+.merge-line{position:absolute;bottom:0;left:50%;width:2px;height:34px;background:#C7CFDE;margin-left:-1px;transform-origin:bottom center}
+.merge-line.l{transform:rotate(36deg)}
+.merge-line.r{transform:rotate(-36deg)}
+
+/* save */
+.autosave{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-top:12px;justify-content:center;opacity:0;transition:opacity .3s}
+.autosave.on{opacity:1}
+.autosave .dot2{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
+.save-status.loading{color:var(--muted)}
+
+/* docente - KPIs */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
+.kpi-val{font-size:32px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.3}
+.kpi-box.orange .kpi-val{color:var(--orange)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.kpi-box.teal .kpi-val{color:var(--teal)}
+
+/* docente - progreso */
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--teal));transition:width .6s ease}
+
+/* docente - tabla emprendedoras */
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
+.emp-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
+.emp-name-cell{font-weight:600;color:var(--navy);font-size:13px}
+.emp-business{font-size:11.5px;color:var(--muted);margin-top:2px}
+.emp-steps-badge{display:inline-block;background:#EEF2FB;color:var(--navy);font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
+.tag.green{background:#E6F8EE;color:var(--green)}
+.tag.amber{background:#FFF8E1;color:#B45309}
+.tag.red{background:#FEF2F2;color:var(--red)}
+.tag.gray{background:#F1F5F9;color:var(--muted)}
+
+/* docente - highlight */
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.navy{background:#EEF2FB;border-left:3px solid var(--navy);color:var(--navy-d)}
+
+/* modal */
+#flowModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px;-webkit-overflow-scrolling:touch}
+#flowModal.on{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit;line-height:1;padding:0 4px;margin:-4px -4px 0 0}
+.modal-empname{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+.modal-flow-wrap{display:flex;flex-direction:column;align-items:center}
+.modal-flow-wrap .node{max-width:95%}
+
+/* misc */
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0}
+.logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.divider{height:1px;background:var(--line);margin:16px 0}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.15s}
+.refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
+
+@media print{body{max-width:none;padding-bottom:0}.top:after{display:none}.no-print{display:none !important}#flowModal{display:none !important}.card{box-shadow:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<!-- ▼▼▼ PEGA TUS CLAVES AQUI — solo edita las 3 lineas marcadas ▼▼▼ -->
+<script>
+const BIN_ID    = '6a6ab4a3f5f4af5e29d3bc50';            // ← BIN exclusivo para Sesion 2
+const BIN_KEY   = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm'; // ← tu Master Key
+const DOCENTE_PW = '70003700';                       // ← tu DNI (ya configurado)
+</script>
+<!-- ▲▲▲ FIN BLOQUE DE CLAVES ▲▲▲ -->
+
+<script>
+const ROSTER = {
+  "40165543":"KAREN PILAR AQUINO SALAS",
+  "73765671":"Nelida Lizbeth Ari Mamani",
+  "29722177":"Sandra Lourdes Calderon Cornejo",
+  "41623431":"Ana Maria Cane Garcia",
+  "45352138":"Marisabel Yesenia Casanova Quezada",
+  "70403483":"Yulisa Choquehuanca Huamani",
+  "46761514":"Maria Lucero Condori Rivera",
+  "75892740":"Andrea Cordova Juarez",
+  "43748147":"Luz Marina Cuello Cora",
+  "29651879":"Selene Gloria Esquia Becerra",
+  "45941843":"Isabel Lizbeth Fuentes Sucantaype",
+  "70571367":"Yomelly Bertha Gordillo Vilca",
+  "74486847":"Edith Ysabel Guzman Mamani",
+  "72891102":"Sol Maria Humpiri Pari",
+  "72942216":"Flor de Maria Hurtado Condorena",
+  "40013470":"Kathia Lucia Lizarraga Macedo",
+  "47685045":"Ruth Raquel Nunez Ccoscco",
+  "43668612":"Maria del Pilar Ochoa Velarde",
+  "29616486":"Monica Paola Pajuelo Macedo",
+  "40826509":"Jessica Jacqueline Palomino de la Cruz",
+  "72463147":"Jenyfer Steysi Pineda Zapana",
+  "41929947":"Silvana Angela Riveros Chavez",
+  "72772991":"Jessica Jenny Romero Torres",
+  "29646340":"Patricia del Pilar Tinta Chambi",
+  "74943408":"Dayana Vargas Arizaca"
+};
+</script>
+
+<!-- PANTALLA GATE -->
+<div id="gateScreen">
+  <div class="top">
+    <div class="eyebrow">Modulo 3 · Gestion de Operaciones · Sesion 2</div>
+    <h1>El Esqueleto <span>del Negocio</span></h1>
+    <p>Dibuja como funciona realmente tu negocio, paso a paso.</p>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <div class="gate-title">Quienes eres?</div>
+      <div class="gate-sub">Selecciona tu rol e ingresa tu DNI.</div>
+      <div class="role-btn-row">
+        <button class="role-btn active" id="roleEmp" onclick="setRole('emp')">
+          <span class="rb-icon">🌸</span>
+          <span class="rb-label">Emprendedora</span>
+          <span class="rb-sub">Construyo mi flujograma</span>
+        </button>
+        <button class="role-btn" id="roleDoc" onclick="setRole('doc')">
+          <span class="rb-icon">📊</span>
+          <span class="rb-label">Docente</span>
+          <span class="rb-sub">Panel de seguimiento</span>
+        </button>
+      </div>
+      <label class="field-label" id="gateLabel">Tu DNI (8 digitos)</label>
+      <input class="gate-input" type="tel" id="gateInput" placeholder="00000000" maxlength="8" inputmode="numeric">
+      <div class="gate-err" id="gateErr"></div>
+      <button class="cta full" style="margin-top:14px" onclick="doLogin()">Ingresar &rarr;</button>
+    </div>
+    <div class="foot">Programa BCP · UCSP-CENDES · Modulo 3: Gestion de Operaciones</div>
+  </div>
+</div>
+
+<!-- VISTA EMPRENDEDORA -->
+<div id="empView" style="display:none">
+  <div class="top">
+    <div class="eyebrow">Modulo 3 · Sesion 2</div>
+    <h1>El Esqueleto <span>del Negocio</span></h1>
+    <p id="empWelcome">Hola — dibuja como opera tu negocio.</p>
+  </div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesion</button></div>
+  <div class="wrap">
+    <div class="card">
+      <span class="step-label">Actividad · Sesion 2</span>
+      <h2>Mapea tu proceso, paso a paso</h2>
+      <p class="hint">Escribe cada paso desde que el cliente pide algo hasta que lo recibe. Un paso a la vez, en orden.</p>
+      <label class="field-label">Nombre de tu proceso</label>
+      <input type="text" id="processNameInput" class="process-name-input" placeholder="Ej: Venta y entrega de un pedido" maxlength="70">
+      <div class="editing-bar" id="editingBar">
+        <span>Editando paso #<span id="editingNum"></span></span>
+        <button id="cancelEditBtn">Cancelar</button>
+      </div>
+      <div class="type-row" id="typeRow">
+        <button class="type-chip" data-type="oval"><span class="ic">&#9679;</span><span class="tx">Inicio/Fin</span></button>
+        <button class="type-chip active" data-type="rect"><span class="ic">&#9645;</span><span class="tx">Paso</span></button>
+        <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decision</span></button>
+      </div>
+      <div class="builder-row">
+        <input type="text" id="stepInput" placeholder="Ej: Recibo el pedido por WhatsApp" maxlength="90">
+        <button class="cta" id="addStepBtn">+ Agregar</button>
+      </div>
+      <div class="option-row" id="optionRow">
+        <input type="text" id="optionAInput" placeholder="Opcion 1 (ej: Yape)" maxlength="20">
+        <input type="text" id="optionBInput" placeholder="Opcion 2 (ej: Efectivo)" maxlength="20">
+      </div>
+      <p class="type-hint" id="typeHint"></p>
+      <div id="flowWrap"></div>
+      <div class="autosave" id="autosaveTag"><span class="dot2"></span><span>Guardado localmente</span></div>
+    </div>
+
+    <div class="card no-print">
+      <span class="step-label">Recordatorio</span>
+      <h2>Los 3 simbolos</h2>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-shape oval">&#9679;</div><p><b>Ovalo</b>inicio o fin</p></div>
+        <div class="legend-item"><div class="legend-shape rect">&#9645;</div><p><b>Rectangulo</b>un paso</p></div>
+        <div class="legend-item"><div class="legend-shape diamond">&#9670;</div><p><b>Rombo</b>una decision</p></div>
+      </div>
+    </div>
+
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi flujograma</button>
+    <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
+    <button class="ghost no-print" id="clearBtn">Vaciar y empezar de nuevo</button>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Programa BCP · UCSP-CENDES · Modulo 3 · S2 El Esqueleto del Negocio</div>
+  </div>
+</div>
+
+<!-- VISTA DOCENTE -->
+<div id="docView" style="display:none">
+  <div class="top doc-top">
+    <div class="eyebrow">Docente · Modulo 3 · Sesion 2</div>
+    <h1>Panel de <span>Seguimiento</span></h1>
+    <p id="docWelcome">Flujogramas registrados por las emprendedoras.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
+    &nbsp;
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesion</button>
+  </div>
+  <div class="wrap">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Flujos guardados</div></div>
+      <div class="kpi-box orange"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kAvgSteps">-</div><div class="kpi-lbl">Promedio de pasos</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kWithDec">-</div><div class="kpi-lbl">Con nodo decision</div></div>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participacion del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--orange)" id="kPctLbl">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Alertas pedagogicas -->
+    <div id="docAlerts"></div>
+
+    <!-- Tabla emprendedoras -->
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="section-title" style="margin:0">Flujos registrados</div>
+      <span style="font-size:11px;color:var(--muted)">Toca una fila para ver el flujo</span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
+      <div id="docTableWrap" style="overflow-x:auto">
+        <table class="emp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Emprendedora</th>
+              <th>Proceso</th>
+              <th>Pasos</th>
+              <th>Caracteristicas</th>
+            </tr>
+          </thead>
+          <tbody id="docTableBody">
+            <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quien falta -->
+    <div class="section-title">Pendientes (sin guardar flujo)</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
+    <div class="foot" style="margin-top:16px">Programa BCP · UCSP-CENDES · Modulo 3: Gestion de Operaciones</div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE FLUJO -->
+<div id="flowModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <div class="modal-empname" id="modalEmpName">-</div>
+    <div class="modal-meta" id="modalMeta">-</div>
+    <div class="modal-flow-wrap" id="modalFlow"></div>
+    <div style="margin-top:16px;text-align:center">
+      <button class="cta" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config dinamica (usa las vars del primer script tag) ──────────────────
+const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const HEADERS_READ  = { 'X-Master-Key': BIN_KEY };
+const HEADERS_WRITE = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
+const STORAGE_KEY = 'bcp_s2_flujo_';
+const SESSION_KEY  = 'bcp_s2_session';
+
+const $  = id => document.getElementById(id);
+let currentRole = 'emp';
+let currentDNI  = null;
+let currentName = null;
+let steps  = [];
+let arrows = [];
+let editingIndex = null;
+let clearArmed   = false;
+let currentType  = 'rect';
+let docEntries   = [];
+
+// ── JSONBin ───────────────────────────────────────────────────────────────
+async function binRead() {
+  try {
+    const r = await fetch(BIN_URL, { method: 'GET', headers: HEADERS_READ });
+    if (!r.ok) {
+      console.error('binRead HTTP', r.status, await r.text());
+      return null;
+    }
+    const j = await r.json();
+    return j.record || null;
+  } catch(e) {
+    console.error('binRead error', e);
+    return null;
+  }
+}
+
+async function binWrite(data) {
+  try {
+    const r = await fetch(BIN_URL, {
+      method: 'PUT',
+      headers: HEADERS_WRITE,
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) {
+      console.error('binWrite HTTP', r.status, await r.text());
+      return false;
+    }
+    return true;
+  } catch(e) {
+    console.error('binWrite error', e);
+    return false;
+  }
+}
+
+// ── Gate ──────────────────────────────────────────────────────────────────
+function setRole(role) {
+  currentRole = role;
+  $('roleEmp').classList.toggle('active', role === 'emp');
+  $('roleDoc').classList.toggle('active', role === 'doc');
+  $('gateLabel').textContent = role === 'doc' ? 'Tu DNI de docente' : 'Tu DNI (8 digitos)';
+  $('gateErr').textContent = '';
+}
+
+function doLogin() {
+  const val = $('gateInput').value.trim();
+  $('gateErr').textContent = '';
+  if (!val || val.length < 6) { $('gateErr').textContent = 'Ingresa tu DNI completo.'; return; }
+
+  if (currentRole === 'doc') {
+    if (val !== DOCENTE_PW) { $('gateErr').textContent = 'DNI de docente incorrecto.'; return; }
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'doc', dni: val }));
+    showDocView();
+    return;
+  }
+
+  if (!ROSTER[val]) { $('gateErr').textContent = 'DNI no registrado en el programa.'; return; }
+  currentDNI  = val;
+  currentName = ROSTER[val];
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'emp', dni: val, name: currentName }));
+  showEmpView();
+}
+
+$('gateInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  currentDNI = null; currentName = null;
+  $('gateScreen').style.display = '';
+  $('empView').style.display = 'none';
+  $('docView').style.display = 'none';
+  $('gateInput').value = '';
+  $('gateErr').textContent = '';
+  setRole('emp');
+}
+
+function tryResume() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (!s) return;
+    if (s.role === 'doc') { currentRole = 'doc'; showDocView(); }
+    else if (s.role === 'emp' && ROSTER[s.dni]) {
+      currentRole = 'emp'; currentDNI = s.dni; currentName = s.name || ROSTER[s.dni];
+      showEmpView();
+    }
+  } catch(e) {}
+}
+
+// ── Views ─────────────────────────────────────────────────────────────────
+function showEmpView() {
+  $('gateScreen').style.display = 'none';
+  $('docView').style.display    = 'none';
+  $('empView').style.display    = '';
+  $('empWelcome').textContent   = 'Hola, ' + firstName(currentName) + ' — dibuja como opera tu negocio.';
+  loadLocal(); selectType('rect'); renderFlow();
+}
+
+function showDocView() {
+  $('gateScreen').style.display = 'none';
+  $('empView').style.display    = 'none';
+  $('docView').style.display    = '';
+  loadDocData();
+}
+
+function firstName(fullName) {
+  return fullName ? fullName.split(' ')[0] : 'emprendedora';
+}
+
+// ── Emprendedora — local storage ─────────────────────────────────────────
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + currentDNI);
+    if (raw) {
+      const d = JSON.parse(raw);
+      steps  = Array.isArray(d.steps)  ? d.steps  : [];
+      arrows = Array.isArray(d.arrows) ? d.arrows : [];
+      if (d.processName) $('processNameInput').value = d.processName;
+    } else { steps = []; arrows = []; }
+  } catch(e) { steps = []; arrows = []; }
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem(STORAGE_KEY + currentDNI, JSON.stringify({
+      steps, arrows, processName: $('processNameInput').value.trim()
+    }));
+    const t = $('autosaveTag');
+    t.classList.add('on');
+    clearTimeout(saveLocal._t);
+    saveLocal._t = setTimeout(() => t.classList.remove('on'), 1600);
+  } catch(e) {}
+}
+
+// ── Builder ───────────────────────────────────────────────────────────────
+const TYPE_META = {
+  oval:     { placeholder: 'Ej: Inicio del proceso', maxlength: 60, hint: 'Marca donde empieza o termina tu proceso.' },
+  rect:     { placeholder: 'Ej: Recibo el pedido por WhatsApp', maxlength: 90, hint: 'Una accion normal de tu proceso.' },
+  decision: { placeholder: 'Ej: Yape o efectivo?', maxlength: 55, hint: 'Una pregunta con dos respuestas posibles. Puedes agregar pasos en cada camino.' }
+};
+
+function selectType(type) {
+  currentType = type;
+  $('typeRow').querySelectorAll('.type-chip').forEach(c => c.classList.toggle('active', c.dataset.type === type));
+  const m = TYPE_META[type];
+  $('stepInput').placeholder = m.placeholder;
+  $('stepInput').maxLength   = m.maxlength;
+  $('typeHint').textContent  = m.hint;
+  $('optionRow').classList.toggle('on', type === 'decision');
+}
+
+$('typeRow').querySelectorAll('.type-chip').forEach(c => c.addEventListener('click', () => selectType(c.dataset.type)));
+
+function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+function renderBranchCol(bKey, di, label, list) {
+  let h = '<div class="branch-col"><div class="branch-head">' + esc(label) + '</div>';
+  if (!list.length) h += '<div class="branch-empty">Sin pasos</div>';
+  else list.forEach((txt, bi) => {
+    h += '<div class="branch-step"><span contenteditable="true" data-decision="'+di+'" data-branch="'+bKey+'" data-bi="'+bi+'">'+esc(txt)+'</span>' +
+         '<button data-action="delbranch" data-decision="'+di+'" data-branch="'+bKey+'" data-bi="'+bi+'">x</button></div>';
+  });
+  h += '<div class="branch-add"><input type="text" maxlength="80" placeholder="+ paso" data-decision="'+di+'" data-branch="'+bKey+'">' +
+       '<button data-action="addbranch" data-decision="'+di+'" data-branch="'+bKey+'">+</button></div>';
+  return h + '</div>';
+}
+
+function renderFlow() {
+  const fw = $('flowWrap');
+  fw.innerHTML = '';
+  if (!steps.length) { fw.innerHTML = '<p class="empty-hint">Empieza escribiendo el primer paso: que pasa apenas el cliente pide algo?</p>'; return; }
+  steps.forEach((step, i) => {
+    const node = document.createElement('div');
+    node.className = 'node ' + step.type;
+    node.textContent = step.text;
+    fw.appendChild(node);
+    const ctrl = document.createElement('div');
+    ctrl.className = 'node-controls';
+    ctrl.innerHTML = '<button data-action="up" data-i="'+i+'" '+(i===0?'disabled':'')+'>&#8593;</button>' +
+      '<button data-action="down" data-i="'+i+'" '+(i===steps.length-1?'disabled':'')+'>&#8595;</button>' +
+      '<button data-action="edit" data-i="'+i+'">&#9998;</button>' +
+      '<button class="del" data-action="del" data-i="'+i+'">&#x2715;</button>';
+    fw.appendChild(ctrl);
+    if (i < steps.length - 1) {
+      if (step.type === 'decision') {
+        const oA = step.optionA || 'Si', oB = step.optionB || 'No';
+        if (!Array.isArray(step.branchA)) step.branchA = [];
+        if (!Array.isArray(step.branchB)) step.branchB = [];
+        const fw2 = document.createElement('div'); fw2.className = 'fork-wrap';
+        fw2.innerHTML = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div><div class="fork-line r"><span class="dot"></span></div></div>' +
+          '<div class="branch-row">' + renderBranchCol('A', i, oA, step.branchA) + renderBranchCol('B', i, oB, step.branchB) + '</div>' +
+          '<div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
+        fw.appendChild(fw2);
+        const arr = document.createElement('div'); arr.className = 'connector';
+        arr.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>';
+        fw.appendChild(arr);
+      } else {
+        const conn = document.createElement('div'); conn.className = 'connector';
+        conn.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>' +
+          '<div class="lbl" contenteditable="true" data-i="'+i+'">' + esc(arrows[i] || '') + '</div>';
+        fw.appendChild(conn);
+      }
+    }
+  });
+}
+
+function curOpts() { return { optionA: $('optionAInput').value.trim() || 'Si', optionB: $('optionBInput').value.trim() || 'No' }; }
+
+function startAdd() {
+  const val = $('stepInput').value.trim(); if (!val) return;
+  const extra = currentType === 'decision' ? Object.assign(curOpts(), { branchA: [], branchB: [] }) : {};
+  if (editingIndex !== null) {
+    const prev = steps[editingIndex];
+    const keep = (prev.type === 'decision' && currentType === 'decision') ? { branchA: prev.branchA || [], branchB: prev.branchB || [] } : {};
+    steps[editingIndex] = { text: val, type: currentType, ...extra, ...keep };
+    stopEditing();
+  } else { steps.push({ text: val, type: currentType, ...extra }); }
+  $('stepInput').value = ''; $('optionAInput').value = ''; $('optionBInput').value = '';
+  $('stepInput').focus();
+  saveLocal(); renderFlow();
+}
+
+function stopEditing() {
+  editingIndex = null;
+  $('editingBar').classList.remove('on');
+  $('addStepBtn').textContent = '+ Agregar';
+  $('stepInput').value = ''; $('optionAInput').value = ''; $('optionBInput').value = '';
+  selectType('rect');
+}
+
+function editStep(i) {
+  editingIndex = i; const s = steps[i];
+  $('stepInput').value = s.text; selectType(s.type);
+  $('optionAInput').value = s.type === 'decision' ? (s.optionA || '') : '';
+  $('optionBInput').value = s.type === 'decision' ? (s.optionB || '') : '';
+  $('editingNum').textContent = i + 1;
+  $('editingBar').classList.add('on');
+  $('addStepBtn').textContent = 'Guardar cambios';
+  $('stepInput').focus();
+}
+
+$('addStepBtn').addEventListener('click', startAdd);
+$('stepInput').addEventListener('keydown', e => { if (e.key === 'Enter') startAdd(); });
+$('cancelEditBtn').addEventListener('click', stopEditing);
+
+$('flowWrap').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const action = btn.dataset.action;
+  if (action === 'addbranch') {
+    const di = parseInt(btn.dataset.decision, 10), bKey = btn.dataset.branch;
+    const inp = $('flowWrap').querySelector('input[data-decision="'+di+'"][data-branch="'+bKey+'"]');
+    const val = inp.value.trim(); if (!val) return;
+    const ak = bKey === 'A' ? 'branchA' : 'branchB';
+    if (!Array.isArray(steps[di][ak])) steps[di][ak] = [];
+    steps[di][ak].push(val); saveLocal(); renderFlow(); return;
+  }
+  if (action === 'delbranch') {
+    const di = parseInt(btn.dataset.decision, 10), bKey = btn.dataset.branch, bi = parseInt(btn.dataset.bi, 10);
+    const ak = bKey === 'A' ? 'branchA' : 'branchB';
+    steps[di][ak].splice(bi, 1); saveLocal(); renderFlow(); return;
+  }
+  const i = parseInt(btn.dataset.i, 10);
+  if (action === 'del') { steps.splice(i, 1); arrows.splice(Math.min(i, arrows.length-1), 1); if (editingIndex === i) stopEditing(); }
+  if (action === 'up'   && i > 0)                { [steps[i-1], steps[i]] = [steps[i], steps[i-1]]; }
+  if (action === 'down' && i < steps.length - 1) { [steps[i+1], steps[i]] = [steps[i], steps[i+1]]; }
+  if (action === 'edit') { editStep(i); }
+  saveLocal(); renderFlow();
+});
+
+$('flowWrap').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const inp = e.target.closest('.branch-add input'); if (!inp) return;
+  e.preventDefault();
+  const b = $('flowWrap').querySelector('button[data-action="addbranch"][data-decision="'+inp.dataset.decision+'"][data-branch="'+inp.dataset.branch+'"]');
+  if (b) b.click();
+});
+
+$('flowWrap').addEventListener('blur', e => {
+  const lbl = e.target.closest('.lbl');
+  if (lbl) { arrows[parseInt(lbl.dataset.i, 10)] = lbl.textContent.trim(); saveLocal(); return; }
+  const sp = e.target.closest('.branch-step span[contenteditable]');
+  if (sp) {
+    const di = parseInt(sp.dataset.decision,10), bKey = sp.dataset.branch, bi = parseInt(sp.dataset.bi,10);
+    const ak = bKey === 'A' ? 'branchA' : 'branchB';
+    const v = sp.textContent.trim();
+    if (v) { steps[di][ak][bi] = v; saveLocal(); } else renderFlow();
+  }
+}, true);
+
+$('printBtn').addEventListener('click', () => window.print());
+
+// Guardar en nube
+$('saveCloudBtn').addEventListener('click', async () => {
+  if (!steps.length) { showStatus('Agrega al menos un paso antes de guardar.', 'err'); return; }
+  showStatus('Guardando...', 'loading');
+  const rec = await binRead();
+  if (rec === null) { showStatus('Error de conexion. Verifica tu internet e intenta de nuevo.', 'err'); return; }
+  const entries = Array.isArray(rec.entries) ? rec.entries : [];
+  const payload = {
+    dni: currentDNI,
+    name: currentName,
+    processName: $('processNameInput').value.trim() || '(sin nombre)',
+    steps, arrows,
+    stepCount: steps.length,
+    hasDecision: steps.some(s => s.type === 'decision'),
+    hasOval: steps.some(s => s.type === 'oval'),
+    savedAt: new Date().toISOString()
+  };
+  const idx = entries.findIndex(e => e.dni === currentDNI);
+  if (idx >= 0) entries[idx] = payload; else entries.push(payload);
+  const ok = await binWrite({ entries });
+  showStatus(ok ? 'Flujograma guardado correctamente.' : 'Error al guardar. Intenta de nuevo.', ok ? 'ok' : 'err');
+  if (ok) setTimeout(() => { $('saveStatus').textContent = ''; $('saveStatus').className = 'save-status'; }, 4000);
+});
+
+function showStatus(msg, cls) {
+  $('saveStatus').textContent = msg;
+  $('saveStatus').className = 'save-status ' + (cls || '');
+}
+
+// Vaciar
+const clearBtn = $('clearBtn');
+clearBtn.addEventListener('click', () => {
+  if (!steps.length) return;
+  if (!clearArmed) {
+    clearArmed = true; clearBtn.textContent = 'Seguro? Toca de nuevo para vaciar'; clearBtn.classList.add('warn');
+    clearTimeout(clearBtn._t);
+    clearBtn._t = setTimeout(() => { clearArmed = false; clearBtn.textContent = 'Vaciar y empezar de nuevo'; clearBtn.classList.remove('warn'); }, 4000);
+    return;
+  }
+  steps = []; arrows = []; clearArmed = false;
+  clearBtn.textContent = 'Vaciar y empezar de nuevo'; clearBtn.classList.remove('warn');
+  stopEditing(); saveLocal(); renderFlow();
+});
+
+// ── DOCENTE ───────────────────────────────────────────────────────────────
+async function loadDocData() {
+  $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos del servidor...</td></tr>';
+  $('docAlerts').innerHTML = '';
+  $('docPending').innerHTML = '<p style="color:var(--muted);font-style:italic;font-size:13px">Cargando...</p>';
+
+  const rec = await binRead();
+
+  if (rec === null) {
+    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">' +
+      '<div class="alert-box amber" style="text-align:left"><b>Error de conexion al servidor</b><br>' +
+      'Posibles causas:<br>' +
+      '1. El BIN_ID aun dice REEMPLAZA_BIN_ID_S2 — debes crear el BIN en jsonbin.io primero.<br>' +
+      '2. La Master Key es incorrecta.<br>' +
+      '3. Sin conexion a internet.</div></td></tr>';
+    $('docPending').innerHTML = '';
+    return;
+  }
+
+  docEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  const total = docEntries.length;
+  const pct   = Math.round((total / 25) * 100);
+  const avgSteps = total > 0 ? (docEntries.reduce((s, e) => s + (e.stepCount || (e.steps ? e.steps.length : 0)), 0) / total).toFixed(1) : '-';
+  const withDec  = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'))).length;
+
+  // KPIs
+  $('kTotal').textContent    = total;
+  $('kPct').textContent      = pct + '%';
+  $('kAvgSteps').textContent = avgSteps;
+  $('kWithDec').textContent  = withDec;
+  $('kPctLbl').textContent   = total + ' / 25';
+  $('progressBar').style.width = pct + '%';
+  $('docWelcome').textContent = total + ' emprendedoras han guardado su flujograma.';
+
+  // Alertas pedagogicas
+  let alerts = '';
+  if (total === 0) {
+    alerts += '<div class="alert-box amber"><b>Aun no hay flujogramas guardados.</b> Comparte el QR con las emprendedoras para que accedan a la app.</div>';
+  } else {
+    if (pct < 50) alerts += '<div class="alert-box amber"><b>Participacion baja (' + pct + '%).</b> Menos de la mitad del grupo ha guardado su flujo. Considera dar 5 minutos extra para que las demas lo completen.</div>';
+    else if (pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participacion (' + pct + '%).</b> La mayoria del grupo tiene su flujograma guardado.</div>';
+    if (withDec === 0 && total > 0) alerts += '<div class="alert-box navy"><b>Ninguna emprendedora ha incluido un nodo de decision aun.</b> Puedes hacer una pausa para mostrar como usar el rombo.</div>';
+    const avgN = parseFloat(avgSteps);
+    if (!isNaN(avgN) && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgSteps + ').</b> Algunos flujos pueden estar incompletos. Revisa los que tienen 1-2 pasos.</div>';
+  }
+  $('docAlerts').innerHTML = alerts;
+
+  // Tabla
+  if (total === 0) {
+    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aun.</td></tr>';
+  } else {
+    let rows = '';
+    docEntries.forEach((e, idx) => {
+      const sc = e.stepCount || (e.steps ? e.steps.length : 0);
+      const hasDec = e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'));
+      const hasOv  = e.hasOval    || (e.steps && e.steps.some(s => s.type === 'oval'));
+      const tagDec = hasDec ? '<span class="tag green">Decision</span>' : '<span class="tag gray">Sin decision</span>';
+      const tagOv  = hasOv  ? '<span class="tag green">Inicio/Fin</span>' : '';
+      const scClass = sc < 3 ? 'red' : sc < 6 ? 'amber' : 'green';
+      rows += '<tr onclick="openModal(' + idx + ')">' +
+        '<td style="color:var(--muted);font-size:12px">' + (idx+1) + '</td>' +
+        '<td><div class="emp-name-cell">' + esc(firstName(e.name || e.dni)) + '</div>' +
+             '<div class="emp-business" style="font-size:11px">' + esc(e.name || '') + '</div></td>' +
+        '<td style="font-size:12px;color:var(--ink)">' + esc(e.processName || '(sin nombre)') + '</td>' +
+        '<td><span class="tag ' + scClass + '">' + sc + '</span></td>' +
+        '<td>' + tagDec + tagOv + '</td>' +
+        '</tr>';
+    });
+    $('docTableBody').innerHTML = rows;
+  }
+
+  // Pendientes
+  const registeredDNIs = new Set(docEntries.map(e => e.dni));
+  const pending = Object.entries(ROSTER).filter(([dni]) => !registeredDNIs.has(dni));
+  if (pending.length === 0) {
+    $('docPending').innerHTML = '<div class="alert-box green"><b>Todas las emprendedoras han guardado su flujograma.</b></div>';
+  } else {
+    let ph = '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + pending.length + ' emprendedoras sin flujo guardado:</p>';
+    ph += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pending.forEach(([, name]) => {
+      ph += '<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px;color:var(--ink)">' + esc(firstName(name)) + '</span>';
+    });
+    ph += '</div>';
+    $('docPending').innerHTML = ph;
+  }
+}
+
+// Modal
+function openModal(idx) {
+  const e = docEntries[idx]; if (!e) return;
+  $('modalEmpName').textContent = e.name || e.dni;
+  const sc = e.steps ? e.steps.length : 0;
+  const saved = e.savedAt ? e.savedAt.slice(0,16).replace('T',' ') : '-';
+  $('modalMeta').textContent = 'Proceso: ' + (e.processName || '(sin nombre)') + ' · ' + sc + ' pasos · ' + saved;
+  const mf = $('modalFlow'); mf.innerHTML = '';
+  if (!e.steps || !e.steps.length) { mf.innerHTML = '<p class="empty-hint">Sin pasos.</p>'; }
+  else {
+    e.steps.forEach((s, i) => {
+      const n = document.createElement('div'); n.className = 'node ' + s.type; n.textContent = s.text; mf.appendChild(n);
+      if (s.type === 'decision') {
+        const oA = s.optionA || 'Si', oB = s.optionB || 'No';
+        if (!Array.isArray(s.branchA)) s.branchA = [];
+        if (!Array.isArray(s.branchB)) s.branchB = [];
+        const fw = document.createElement('div'); fw.className = 'fork-wrap';
+        let bh = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div><div class="fork-line r"><span class="dot"></span></div></div><div class="branch-row">';
+        bh += '<div class="branch-col"><div class="branch-head">' + esc(oA) + '</div>';
+        if (s.branchA.length) s.branchA.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
+        else bh += '<div class="branch-empty">Sin pasos</div>';
+        bh += '</div><div class="branch-col"><div class="branch-head">' + esc(oB) + '</div>';
+        if (s.branchB.length) s.branchB.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
+        else bh += '<div class="branch-empty">Sin pasos</div>';
+        bh += '</div></div><div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
+        fw.innerHTML = bh; mf.appendChild(fw);
+      }
+      if (i < e.steps.length - 1) {
+        const c = document.createElement('div'); c.className = 'connector';
+        c.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>'; mf.appendChild(c);
+      }
+    });
+  }
+  $('flowModal').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  $('flowModal').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+$('flowModal').addEventListener('click', e => { if (e.target === $('flowModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click', () => window.print());
+
+// ── Init ──────────────────────────────────────────────────────────────────
+setRole('emp');
+tryResume();
+</script>
+</body>
+</html>

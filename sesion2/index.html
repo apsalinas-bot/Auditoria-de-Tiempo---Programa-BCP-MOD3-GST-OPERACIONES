@@ -417,29 +417,63 @@ const ROSTER = {
 
 
 <script>
+// ════════════════════════════════════════════════════════════
+//  CONFIG DINAMICA
+// ════════════════════════════════════════════════════════════
+const BIN_URL      = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const HEADERS_READ = { 'X-Master-Key': BIN_KEY };
+const HEADERS_WRITE= { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
+const STORAGE_KEY  = 'bcp_s2_flujo_';
+const SESSION_KEY  = 'bcp_s2_session';
+const $            = id => document.getElementById(id);
 
-// ── Gate (2 pasos: elegir rol → ingresar DNI) ────────────────────────────
-let _role = 'emp';
+// Estado global
+let currentDNI  = null;
+let currentName = null;
+let steps       = [];
+let arrows      = [];
+let editingIndex= null;
+let clearArmed  = false;
+let currentType = 'rect';
+let docEntries  = [];
 
-function pickRole(role) {
-  _role = role;
-  document.getElementById('cardEmp').classList.toggle('selected', role === 'emp');
-  document.getElementById('cardDoc').classList.toggle('selected', role === 'doc');
-  document.getElementById('panelEmp').classList.toggle('on', role === 'emp');
-  document.getElementById('panelDoc').classList.toggle('on', role === 'doc');
-  const inp = role === 'emp' ? document.getElementById('inputEmp') : document.getElementById('inputDoc');
-  setTimeout(() => inp.focus(), 50);
+// ════════════════════════════════════════════════════════════
+//  JSONBIN
+// ════════════════════════════════════════════════════════════
+async function binRead() {
+  try {
+    const r = await fetch(BIN_URL, { method: 'GET', headers: HEADERS_READ });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.record || null;
+  } catch(e) { return null; }
+}
+async function binWrite(data) {
+  try {
+    const r = await fetch(BIN_URL, { method: 'PUT', headers: HEADERS_WRITE, body: JSON.stringify(data) });
+    return r.ok;
+  } catch(e) { return false; }
 }
 
-function resetRole() {
-  // nada — simplemente el usuario puede hacer clic en la otra tarjeta
+// ════════════════════════════════════════════════════════════
+//  GATE — 2 pasos
+// ════════════════════════════════════════════════════════════
+function pickRole(role) {
+  $('cardEmp').classList.toggle('selected', role === 'emp');
+  $('cardDoc').classList.toggle('selected', role === 'doc');
+  $('panelEmp').classList.toggle('on', role === 'emp');
+  $('panelDoc').classList.toggle('on', role === 'doc');
+  setTimeout(() => {
+    const inp = role === 'emp' ? $('inputEmp') : $('inputDoc');
+    if (inp) inp.focus();
+  }, 50);
 }
 
 function doLoginEmp() {
-  const val = document.getElementById('inputEmp').value.trim();
-  document.getElementById('errEmp').textContent = '';
-  if (!val || val.length < 6) { document.getElementById('errEmp').textContent = 'Ingresa tu DNI completo (8 d\u00edgitos).'; return; }
-  if (!ROSTER[val]) { document.getElementById('errEmp').textContent = 'DNI no registrado en el programa. Verifica e intenta de nuevo.'; return; }
+  const val = $('inputEmp').value.trim();
+  $('errEmp').textContent = '';
+  if (!val || val.length < 6) { $('errEmp').textContent = 'Ingresa tu DNI completo (8 dígitos).'; return; }
+  if (!ROSTER[val]) { $('errEmp').textContent = 'DNI no registrado en el programa.'; return; }
   currentDNI  = val;
   currentName = ROSTER[val];
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'emp', dni: val, name: currentName }));
@@ -447,132 +481,49 @@ function doLoginEmp() {
 }
 
 function doLoginDoc() {
-  const val = document.getElementById('inputDoc').value.trim();
-  document.getElementById('errDoc').textContent = '';
-  if (!val) { document.getElementById('errDoc').textContent = 'Ingresa la contrase\u00f1a.'; return; }
-  if (val !== DOCENTE_PW) { document.getElementById('errDoc').textContent = 'Contrase\u00f1a incorrecta.'; return; }
+  const val = $('inputDoc').value.trim();
+  $('errDoc').textContent = '';
+  if (!val) { $('errDoc').textContent = 'Ingresa la contraseña.'; return; }
+  if (val !== DOCENTE_PW) { $('errDoc').textContent = 'Contraseña incorrecta.'; return; }
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'doc', dni: val }));
   showDocView();
 }
-
-// Enter key en ambos inputs
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('inputEmp').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginEmp(); });
-  document.getElementById('inputDoc').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginDoc(); });
-});
-
-// ── Config dinamica (usa las vars del primer script tag) ──────────────────
-const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const HEADERS_READ  = { 'X-Master-Key': BIN_KEY };
-const HEADERS_WRITE = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
-const STORAGE_KEY = 'bcp_s2_flujo_';
-const SESSION_KEY  = 'bcp_s2_session';
-
-const $  = id => document.getElementById(id);
-let currentRole = 'emp';
-let currentDNI  = null;
-let currentName = null;
-let steps  = [];
-let arrows = [];
-let editingIndex = null;
-let clearArmed   = false;
-let currentType  = 'rect';
-let docEntries   = [];
-
-// ── JSONBin ───────────────────────────────────────────────────────────────
-async function binRead() {
-  try {
-    const r = await fetch(BIN_URL, { method: 'GET', headers: HEADERS_READ });
-    if (!r.ok) {
-      console.error('binRead HTTP', r.status, await r.text());
-      return null;
-    }
-    const j = await r.json();
-    return j.record || null;
-  } catch(e) {
-    console.error('binRead error', e);
-    return null;
-  }
-}
-
-async function binWrite(data) {
-  try {
-    const r = await fetch(BIN_URL, {
-      method: 'PUT',
-      headers: HEADERS_WRITE,
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) {
-      console.error('binWrite HTTP', r.status, await r.text());
-      return false;
-    }
-    return true;
-  } catch(e) {
-    console.error('binWrite error', e);
-    return false;
-  }
-}
-
-// ── Gate ──────────────────────────────────────────────────────────────────
-function setRole(role) {
-  currentRole = role;
-  $('roleEmp').classList.toggle('active', role === 'emp');
-  $('roleDoc').classList.toggle('active', role === 'doc');
-  $('gateLabel').textContent = role === 'doc' ? 'Tu DNI de docente' : 'Tu DNI (8 digitos)';
-  $('gateErr').textContent = '';
-}
-
-function doLogin() {
-  const val = $('gateInput').value.trim();
-  $('gateErr').textContent = '';
-  if (!val || val.length < 6) { $('gateErr').textContent = 'Ingresa tu DNI completo.'; return; }
-
-  if (currentRole === 'doc') {
-    if (val !== DOCENTE_PW) { $('gateErr').textContent = 'DNI de docente incorrecto.'; return; }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'doc', dni: val }));
-    showDocView();
-    return;
-  }
-
-  if (!ROSTER[val]) { $('gateErr').textContent = 'DNI no registrado en el programa.'; return; }
-  currentDNI  = val;
-  currentName = ROSTER[val];
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'emp', dni: val, name: currentName }));
-  showEmpView();
-}
-
-$('gateInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 function doLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   currentDNI = null; currentName = null;
   $('gateScreen').style.display = '';
-  $('empView').style.display = 'none';
-  $('docView').style.display = 'none';
-  $('gateInput').value = '';
-  $('gateErr').textContent = '';
-  setRole('emp');
+  $('empView').style.display    = 'none';
+  $('docView').style.display    = 'none';
+  $('inputEmp').value = ''; $('inputDoc').value = '';
+  $('errEmp').textContent = ''; $('errDoc').textContent = '';
+  pickRole('emp');
 }
 
 function tryResume() {
   try {
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
     if (!s) return;
-    if (s.role === 'doc') { currentRole = 'doc'; showDocView(); }
+    if (s.role === 'doc') { showDocView(); }
     else if (s.role === 'emp' && ROSTER[s.dni]) {
-      currentRole = 'emp'; currentDNI = s.dni; currentName = s.name || ROSTER[s.dni];
+      currentDNI = s.dni; currentName = s.name || ROSTER[s.dni];
       showEmpView();
     }
   } catch(e) {}
 }
 
-// ── Views ─────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  VISTAS
+// ════════════════════════════════════════════════════════════
 function showEmpView() {
   $('gateScreen').style.display = 'none';
   $('docView').style.display    = 'none';
   $('empView').style.display    = '';
-  $('empWelcome').textContent   = 'Hola, ' + firstName(currentName) + ' — dibuja como opera tu negocio.';
-  loadLocal(); selectType('rect'); renderFlow();
+  const first = currentName ? currentName.split(' ')[0] : 'emprendedora';
+  $('empWelcome').textContent = 'Hola, ' + first + ' — dibuja cómo opera tu negocio.';
+  loadLocal();
+  selectType('rect');
+  renderFlow();
 }
 
 function showDocView() {
@@ -582,11 +533,9 @@ function showDocView() {
   loadDocData();
 }
 
-function firstName(fullName) {
-  return fullName ? fullName.split(' ')[0] : 'emprendedora';
-}
-
-// ── Emprendedora — local storage ─────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  EMPRENDEDORA — Local storage
+// ════════════════════════════════════════════════════════════
 function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY + currentDNI);
@@ -611,16 +560,22 @@ function saveLocal() {
   } catch(e) {}
 }
 
-// ── Builder ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  BUILDER — Tipos de paso
+// ════════════════════════════════════════════════════════════
 const TYPE_META = {
-  oval:     { placeholder: 'Ej: Inicio del proceso', maxlength: 60, hint: 'Marca donde empieza o termina tu proceso.' },
-  rect:     { placeholder: 'Ej: Recibo el pedido por WhatsApp', maxlength: 90, hint: 'Una accion normal de tu proceso.' },
-  decision: { placeholder: 'Ej: Yape o efectivo?', maxlength: 55, hint: 'Una pregunta con dos respuestas posibles. Puedes agregar pasos en cada camino.' }
+  oval:     { placeholder: 'Ej: Inicio del proceso',              maxlength: 60,
+              hint: 'Úsalo para marcar donde empieza o termina tu proceso.' },
+  rect:     { placeholder: 'Ej: Recibo el pedido por WhatsApp',   maxlength: 90,
+              hint: 'Úsalo para cualquier acción de tu proceso.' },
+  decision: { placeholder: 'Ej: ¿Yape o efectivo?',              maxlength: 55,
+              hint: 'Una pregunta con dos respuestas. Agrega los pasos de cada camino debajo.' }
 };
 
 function selectType(type) {
   currentType = type;
-  $('typeRow').querySelectorAll('.type-chip').forEach(c => c.classList.toggle('active', c.dataset.type === type));
+  $('typeRow').querySelectorAll('.type-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.type === type));
   const m = TYPE_META[type];
   $('stepInput').placeholder = m.placeholder;
   $('stepInput').maxLength   = m.maxlength;
@@ -628,88 +583,133 @@ function selectType(type) {
   $('optionRow').classList.toggle('on', type === 'decision');
 }
 
-$('typeRow').querySelectorAll('.type-chip').forEach(c => c.addEventListener('click', () => selectType(c.dataset.type)));
-
-function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+// ════════════════════════════════════════════════════════════
+//  BUILDER — Render flujo
+// ════════════════════════════════════════════════════════════
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
 
 function renderBranchCol(bKey, di, label, list) {
   let h = '<div class="branch-col"><div class="branch-head">' + esc(label) + '</div>';
-  if (!list.length) h += '<div class="branch-empty">Sin pasos</div>';
+  if (!list.length) h += '<div class="branch-empty">Sin pasos en este camino</div>';
   else list.forEach((txt, bi) => {
-    h += '<div class="branch-step"><span contenteditable="true" data-decision="'+di+'" data-branch="'+bKey+'" data-bi="'+bi+'">'+esc(txt)+'</span>' +
-         '<button data-action="delbranch" data-decision="'+di+'" data-branch="'+bKey+'" data-bi="'+bi+'">x</button></div>';
+    h += '<div class="branch-step"><span contenteditable="true" data-decision="' + di +
+         '" data-branch="' + bKey + '" data-bi="' + bi + '">' + esc(txt) + '</span>' +
+         '<button data-action="delbranch" data-decision="' + di +
+         '" data-branch="' + bKey + '" data-bi="' + bi + '">✕</button></div>';
   });
-  h += '<div class="branch-add"><input type="text" maxlength="80" placeholder="+ paso" data-decision="'+di+'" data-branch="'+bKey+'">' +
-       '<button data-action="addbranch" data-decision="'+di+'" data-branch="'+bKey+'">+</button></div>';
+  h += '<div class="branch-add"><input type="text" maxlength="80" placeholder="+ paso en este camino"' +
+       ' data-decision="' + di + '" data-branch="' + bKey + '">' +
+       '<button data-action="addbranch" data-decision="' + di + '" data-branch="' + bKey + '">+</button></div>';
   return h + '</div>';
 }
 
 function renderFlow() {
   const fw = $('flowWrap');
   fw.innerHTML = '';
-  if (!steps.length) { fw.innerHTML = '<p class="empty-hint">Empieza escribiendo el primer paso: que pasa apenas el cliente pide algo?</p>'; return; }
+  if (!steps.length) {
+    fw.innerHTML = '<p class="empty-hint">Empieza escribiendo el primer paso: ¿qué pasa apenas el cliente pide algo?</p>';
+    return;
+  }
   steps.forEach((step, i) => {
+    // Nodo
     const node = document.createElement('div');
     node.className = 'node ' + step.type;
     node.textContent = step.text;
     fw.appendChild(node);
+    // Controles
     const ctrl = document.createElement('div');
     ctrl.className = 'node-controls';
-    ctrl.innerHTML = '<button data-action="up" data-i="'+i+'" '+(i===0?'disabled':'')+'>&#8593;</button>' +
-      '<button data-action="down" data-i="'+i+'" '+(i===steps.length-1?'disabled':'')+'>&#8595;</button>' +
-      '<button data-action="edit" data-i="'+i+'">&#9998;</button>' +
-      '<button class="del" data-action="del" data-i="'+i+'">&#x2715;</button>';
+    ctrl.innerHTML =
+      '<button data-action="up"   data-i="' + i + '" ' + (i === 0 ? 'disabled' : '') + '>↑</button>' +
+      '<button data-action="down" data-i="' + i + '" ' + (i === steps.length - 1 ? 'disabled' : '') + '>↓</button>' +
+      '<button data-action="edit" data-i="' + i + '">✎</button>' +
+      '<button class="del" data-action="del" data-i="' + i + '">✕</button>';
     fw.appendChild(ctrl);
+    // Conector hacia el siguiente
     if (i < steps.length - 1) {
       if (step.type === 'decision') {
-        const oA = step.optionA || 'Si', oB = step.optionB || 'No';
         if (!Array.isArray(step.branchA)) step.branchA = [];
         if (!Array.isArray(step.branchB)) step.branchB = [];
-        const fw2 = document.createElement('div'); fw2.className = 'fork-wrap';
-        fw2.innerHTML = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div><div class="fork-line r"><span class="dot"></span></div></div>' +
-          '<div class="branch-row">' + renderBranchCol('A', i, oA, step.branchA) + renderBranchCol('B', i, oB, step.branchB) + '</div>' +
+        const oA = step.optionA || 'Sí', oB = step.optionB || 'No';
+        const fw2 = document.createElement('div');
+        fw2.className = 'fork-wrap';
+        fw2.innerHTML =
+          '<div class="fork"><div class="fork-line l"><span class="dot"></span></div>' +
+          '<div class="fork-line r"><span class="dot"></span></div></div>' +
+          '<div class="branch-row">' +
+            renderBranchCol('A', i, oA, step.branchA) +
+            renderBranchCol('B', i, oB, step.branchB) +
+          '</div>' +
           '<div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
         fw.appendChild(fw2);
-        const arr = document.createElement('div'); arr.className = 'connector';
-        arr.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>';
+        const arr = document.createElement('div');
+        arr.className = 'connector';
+        arr.innerHTML = '<div class="line"></div><div class="arrow">▼</div>';
         fw.appendChild(arr);
       } else {
-        const conn = document.createElement('div'); conn.className = 'connector';
-        conn.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>' +
-          '<div class="lbl" contenteditable="true" data-i="'+i+'">' + esc(arrows[i] || '') + '</div>';
+        const conn = document.createElement('div');
+        conn.className = 'connector';
+        conn.innerHTML =
+          '<div class="line"></div><div class="arrow">▼</div>' +
+          '<div class="lbl" contenteditable="true" data-i="' + i + '">' + esc(arrows[i] || '') + '</div>';
         fw.appendChild(conn);
       }
     }
   });
 }
 
-function curOpts() { return { optionA: $('optionAInput').value.trim() || 'Si', optionB: $('optionBInput').value.trim() || 'No' }; }
+// ════════════════════════════════════════════════════════════
+//  BUILDER — Agregar / editar pasos
+// ════════════════════════════════════════════════════════════
+function curOpts() {
+  return {
+    optionA: $('optionAInput').value.trim() || 'Sí',
+    optionB: $('optionBInput').value.trim() || 'No'
+  };
+}
 
 function startAdd() {
-  const val = $('stepInput').value.trim(); if (!val) return;
-  const extra = currentType === 'decision' ? Object.assign(curOpts(), { branchA: [], branchB: [] }) : {};
+  const val = $('stepInput').value.trim();
+  if (!val) return;
+  const extra = currentType === 'decision'
+    ? Object.assign(curOpts(), { branchA: [], branchB: [] })
+    : {};
   if (editingIndex !== null) {
     const prev = steps[editingIndex];
-    const keep = (prev.type === 'decision' && currentType === 'decision') ? { branchA: prev.branchA || [], branchB: prev.branchB || [] } : {};
+    const keep = (prev.type === 'decision' && currentType === 'decision')
+      ? { branchA: prev.branchA || [], branchB: prev.branchB || [] } : {};
     steps[editingIndex] = { text: val, type: currentType, ...extra, ...keep };
     stopEditing();
-  } else { steps.push({ text: val, type: currentType, ...extra }); }
-  $('stepInput').value = ''; $('optionAInput').value = ''; $('optionBInput').value = '';
+  } else {
+    steps.push({ text: val, type: currentType, ...extra });
+  }
+  $('stepInput').value = '';
+  $('optionAInput').value = '';
+  $('optionBInput').value = '';
   $('stepInput').focus();
-  saveLocal(); renderFlow();
+  saveLocal();
+  renderFlow();
 }
 
 function stopEditing() {
   editingIndex = null;
   $('editingBar').classList.remove('on');
   $('addStepBtn').textContent = '+ Agregar';
-  $('stepInput').value = ''; $('optionAInput').value = ''; $('optionBInput').value = '';
+  $('stepInput').value = '';
+  $('optionAInput').value = '';
+  $('optionBInput').value = '';
   selectType('rect');
 }
 
 function editStep(i) {
-  editingIndex = i; const s = steps[i];
-  $('stepInput').value = s.text; selectType(s.type);
+  editingIndex = i;
+  const s = steps[i];
+  $('stepInput').value = s.text;
+  selectType(s.type);
   $('optionAInput').value = s.type === 'decision' ? (s.optionA || '') : '';
   $('optionBInput').value = s.type === 'decision' ? (s.optionB || '') : '';
   $('editingNum').textContent = i + 1;
@@ -718,28 +718,42 @@ function editStep(i) {
   $('stepInput').focus();
 }
 
+// ════════════════════════════════════════════════════════════
+//  EVENT LISTENERS — Builder
+// ════════════════════════════════════════════════════════════
 $('addStepBtn').addEventListener('click', startAdd);
 $('stepInput').addEventListener('keydown', e => { if (e.key === 'Enter') startAdd(); });
 $('cancelEditBtn').addEventListener('click', stopEditing);
+$('typeRow').querySelectorAll('.type-chip').forEach(c =>
+  c.addEventListener('click', () => selectType(c.dataset.type)));
+$('inputEmp').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginDoc(); });
 
 $('flowWrap').addEventListener('click', e => {
-  const btn = e.target.closest('button'); if (!btn) return;
+  const btn = e.target.closest('button');
+  if (!btn) return;
   const action = btn.dataset.action;
   if (action === 'addbranch') {
-    const di = parseInt(btn.dataset.decision, 10), bKey = btn.dataset.branch;
-    const inp = $('flowWrap').querySelector('input[data-decision="'+di+'"][data-branch="'+bKey+'"]');
-    const val = inp.value.trim(); if (!val) return;
+    const di   = parseInt(btn.dataset.decision, 10);
+    const bKey = btn.dataset.branch;
+    const inp  = $('flowWrap').querySelector('input[data-decision="' + di + '"][data-branch="' + bKey + '"]');
+    const val  = inp.value.trim();
+    if (!val) return;
     const ak = bKey === 'A' ? 'branchA' : 'branchB';
     if (!Array.isArray(steps[di][ak])) steps[di][ak] = [];
-    steps[di][ak].push(val); saveLocal(); renderFlow(); return;
+    steps[di][ak].push(val);
+    saveLocal(); renderFlow(); return;
   }
   if (action === 'delbranch') {
-    const di = parseInt(btn.dataset.decision, 10), bKey = btn.dataset.branch, bi = parseInt(btn.dataset.bi, 10);
-    const ak = bKey === 'A' ? 'branchA' : 'branchB';
-    steps[di][ak].splice(bi, 1); saveLocal(); renderFlow(); return;
+    const di   = parseInt(btn.dataset.decision, 10);
+    const bKey = btn.dataset.branch;
+    const bi   = parseInt(btn.dataset.bi, 10);
+    const ak   = bKey === 'A' ? 'branchA' : 'branchB';
+    steps[di][ak].splice(bi, 1);
+    saveLocal(); renderFlow(); return;
   }
   const i = parseInt(btn.dataset.i, 10);
-  if (action === 'del') { steps.splice(i, 1); arrows.splice(Math.min(i, arrows.length-1), 1); if (editingIndex === i) stopEditing(); }
+  if (action === 'del')  { steps.splice(i, 1); arrows.splice(Math.min(i, arrows.length - 1), 1); if (editingIndex === i) stopEditing(); }
   if (action === 'up'   && i > 0)                { [steps[i-1], steps[i]] = [steps[i], steps[i-1]]; }
   if (action === 'down' && i < steps.length - 1) { [steps[i+1], steps[i]] = [steps[i], steps[i+1]]; }
   if (action === 'edit') { editStep(i); }
@@ -748,9 +762,12 @@ $('flowWrap').addEventListener('click', e => {
 
 $('flowWrap').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
-  const inp = e.target.closest('.branch-add input'); if (!inp) return;
+  const inp = e.target.closest('.branch-add input');
+  if (!inp) return;
   e.preventDefault();
-  const b = $('flowWrap').querySelector('button[data-action="addbranch"][data-decision="'+inp.dataset.decision+'"][data-branch="'+inp.dataset.branch+'"]');
+  const b = $('flowWrap').querySelector(
+    'button[data-action="addbranch"][data-decision="' + inp.dataset.decision +
+    '"][data-branch="' + inp.dataset.branch + '"]');
   if (b) b.click();
 });
 
@@ -759,36 +776,42 @@ $('flowWrap').addEventListener('blur', e => {
   if (lbl) { arrows[parseInt(lbl.dataset.i, 10)] = lbl.textContent.trim(); saveLocal(); return; }
   const sp = e.target.closest('.branch-step span[contenteditable]');
   if (sp) {
-    const di = parseInt(sp.dataset.decision,10), bKey = sp.dataset.branch, bi = parseInt(sp.dataset.bi,10);
-    const ak = bKey === 'A' ? 'branchA' : 'branchB';
-    const v = sp.textContent.trim();
+    const di   = parseInt(sp.dataset.decision, 10);
+    const bKey = sp.dataset.branch;
+    const bi   = parseInt(sp.dataset.bi, 10);
+    const ak   = bKey === 'A' ? 'branchA' : 'branchB';
+    const v    = sp.textContent.trim();
     if (v) { steps[di][ak][bi] = v; saveLocal(); } else renderFlow();
   }
 }, true);
 
 $('printBtn').addEventListener('click', () => window.print());
 
-// Guardar en nube
+// ════════════════════════════════════════════════════════════
+//  GUARDAR EN NUBE
+// ════════════════════════════════════════════════════════════
 $('saveCloudBtn').addEventListener('click', async () => {
   if (!steps.length) { showStatus('Agrega al menos un paso antes de guardar.', 'err'); return; }
   showStatus('Guardando...', 'loading');
   const rec = await binRead();
-  if (rec === null) { showStatus('Error de conexion. Verifica tu internet e intenta de nuevo.', 'err'); return; }
+  if (rec === null) { showStatus('Error de conexión. Verifica tu internet.', 'err'); return; }
   const entries = Array.isArray(rec.entries) ? rec.entries : [];
   const payload = {
-    dni: currentDNI,
-    name: currentName,
+    dni: currentDNI, name: currentName,
     processName: $('processNameInput').value.trim() || '(sin nombre)',
     steps, arrows,
-    stepCount: steps.length,
+    stepCount:   steps.length,
     hasDecision: steps.some(s => s.type === 'decision'),
-    hasOval: steps.some(s => s.type === 'oval'),
-    savedAt: new Date().toISOString()
+    hasOval:     steps.some(s => s.type === 'oval'),
+    savedAt:     new Date().toISOString()
   };
   const idx = entries.findIndex(e => e.dni === currentDNI);
   if (idx >= 0) entries[idx] = payload; else entries.push(payload);
   const ok = await binWrite({ entries });
-  showStatus(ok ? 'Flujograma guardado correctamente.' : 'Error al guardar. Intenta de nuevo.', ok ? 'ok' : 'err');
+  showStatus(
+    ok ? '✅ Flujograma guardado correctamente.' : '⚠️ Error al guardar. Intenta de nuevo.',
+    ok ? 'ok' : 'err'
+  );
   if (ok) setTimeout(() => { $('saveStatus').textContent = ''; $('saveStatus').className = 'save-status'; }, 4000);
 });
 
@@ -798,137 +821,158 @@ function showStatus(msg, cls) {
 }
 
 // Vaciar
-const clearBtn = $('clearBtn');
-clearBtn.addEventListener('click', () => {
+const _clearBtn = $('clearBtn');
+_clearBtn.addEventListener('click', () => {
   if (!steps.length) return;
   if (!clearArmed) {
-    clearArmed = true; clearBtn.textContent = 'Seguro? Toca de nuevo para vaciar'; clearBtn.classList.add('warn');
-    clearTimeout(clearBtn._t);
-    clearBtn._t = setTimeout(() => { clearArmed = false; clearBtn.textContent = 'Vaciar y empezar de nuevo'; clearBtn.classList.remove('warn'); }, 4000);
+    clearArmed = true;
+    _clearBtn.textContent = '¿Seguro? Toca de nuevo para vaciar';
+    _clearBtn.classList.add('warn');
+    clearTimeout(_clearBtn._t);
+    _clearBtn._t = setTimeout(() => {
+      clearArmed = false;
+      _clearBtn.textContent = 'Vaciar y empezar de nuevo';
+      _clearBtn.classList.remove('warn');
+    }, 4000);
     return;
   }
   steps = []; arrows = []; clearArmed = false;
-  clearBtn.textContent = 'Vaciar y empezar de nuevo'; clearBtn.classList.remove('warn');
+  _clearBtn.textContent = 'Vaciar y empezar de nuevo';
+  _clearBtn.classList.remove('warn');
   stopEditing(); saveLocal(); renderFlow();
 });
 
-// ── DOCENTE ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  DOCENTE — Dashboard
+// ════════════════════════════════════════════════════════════
 async function loadDocData() {
-  $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos del servidor...</td></tr>';
+  $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos...</td></tr>';
   $('docAlerts').innerHTML = '';
   $('docPending').innerHTML = '<p style="color:var(--muted);font-style:italic;font-size:13px">Cargando...</p>';
 
   const rec = await binRead();
-
   if (rec === null) {
-    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">' +
-      '<div class="alert-box amber" style="text-align:left"><b>Error de conexion al servidor</b><br>' +
-      'Posibles causas:<br>' +
-      '1. El BIN_ID aun dice REEMPLAZA_BIN_ID_S2 — debes crear el BIN en jsonbin.io primero.<br>' +
-      '2. La Master Key es incorrecta.<br>' +
-      '3. Sin conexion a internet.</div></td></tr>';
+    $('docTableBody').innerHTML =
+      '<tr><td colspan="5" style="padding:16px"><div class="alert-box amber">' +
+      '<b>Error de conexión al servidor.</b><br>' +
+      'Verifica que el BIN_ID esté configurado y tengas internet.</div></td></tr>';
     $('docPending').innerHTML = '';
     return;
   }
 
   docEntries = Array.isArray(rec.entries) ? rec.entries : [];
-  const total = docEntries.length;
-  const pct   = Math.round((total / 25) * 100);
-  const avgSteps = total > 0 ? (docEntries.reduce((s, e) => s + (e.stepCount || (e.steps ? e.steps.length : 0)), 0) / total).toFixed(1) : '-';
+  const total    = docEntries.length;
+  const pct      = Math.round((total / 25) * 100);
+  const avgSteps = total > 0
+    ? (docEntries.reduce((s, e) => s + (e.stepCount || (e.steps ? e.steps.length : 0)), 0) / total).toFixed(1)
+    : '-';
   const withDec  = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'))).length;
 
-  // KPIs
   $('kTotal').textContent    = total;
   $('kPct').textContent      = pct + '%';
   $('kAvgSteps').textContent = avgSteps;
   $('kWithDec').textContent  = withDec;
   $('kPctLbl').textContent   = total + ' / 25';
   $('progressBar').style.width = pct + '%';
-  $('docWelcome').textContent = total + ' emprendedoras han guardado su flujograma.';
+  $('docWelcome').textContent  = total + ' emprendedoras han guardado su flujograma.';
 
-  // Alertas pedagogicas
+  // Alertas pedagógicas
   let alerts = '';
   if (total === 0) {
-    alerts += '<div class="alert-box amber"><b>Aun no hay flujogramas guardados.</b> Comparte el QR con las emprendedoras para que accedan a la app.</div>';
+    alerts += '<div class="alert-box amber"><b>Aún no hay flujogramas guardados.</b> Comparte el QR para que las emprendedoras ingresen.</div>';
   } else {
-    if (pct < 50) alerts += '<div class="alert-box amber"><b>Participacion baja (' + pct + '%).</b> Menos de la mitad del grupo ha guardado su flujo. Considera dar 5 minutos extra para que las demas lo completen.</div>';
-    else if (pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participacion (' + pct + '%).</b> La mayoria del grupo tiene su flujograma guardado.</div>';
-    if (withDec === 0 && total > 0) alerts += '<div class="alert-box navy"><b>Ninguna emprendedora ha incluido un nodo de decision aun.</b> Puedes hacer una pausa para mostrar como usar el rombo.</div>';
+    if (pct < 50)  alerts += '<div class="alert-box amber"><b>Participación baja (' + pct + '%).</b> Considera dar unos minutos más para que las demás completen su flujo.</div>';
+    if (pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participación (' + pct + '%).</b></div>';
+    if (withDec === 0) alerts += '<div class="alert-box navy"><b>Ninguna emprendedora incluyó un nodo de decisión aún.</b> Puedes hacer una pausa para mostrar cómo usar el rombo.</div>';
     const avgN = parseFloat(avgSteps);
-    if (!isNaN(avgN) && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgSteps + ').</b> Algunos flujos pueden estar incompletos. Revisa los que tienen 1-2 pasos.</div>';
+    if (!isNaN(avgN) && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgSteps + ').</b> Algunos flujos pueden estar incompletos.</div>';
   }
   $('docAlerts').innerHTML = alerts;
 
   // Tabla
   if (total === 0) {
-    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aun.</td></tr>';
+    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aún.</td></tr>';
   } else {
     let rows = '';
     docEntries.forEach((e, idx) => {
-      const sc = e.stepCount || (e.steps ? e.steps.length : 0);
-      const hasDec = e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'));
-      const hasOv  = e.hasOval    || (e.steps && e.steps.some(s => s.type === 'oval'));
-      const tagDec = hasDec ? '<span class="tag green">Decision</span>' : '<span class="tag gray">Sin decision</span>';
-      const tagOv  = hasOv  ? '<span class="tag green">Inicio/Fin</span>' : '';
-      const scClass = sc < 3 ? 'red' : sc < 6 ? 'amber' : 'green';
-      rows += '<tr onclick="openModal(' + idx + ')">' +
+      const sc    = e.stepCount || (e.steps ? e.steps.length : 0);
+      const hasDec= e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'));
+      const hasOv = e.hasOval     || (e.steps && e.steps.some(s => s.type === 'oval'));
+      const scCls = sc < 3 ? 'red' : sc < 6 ? 'amber' : 'green';
+      const first = (e.name || e.dni).split(' ')[0];
+      rows +=
+        '<tr onclick="openModal(' + idx + ')">' +
         '<td style="color:var(--muted);font-size:12px">' + (idx+1) + '</td>' +
-        '<td><div class="emp-name-cell">' + esc(firstName(e.name || e.dni)) + '</div>' +
-             '<div class="emp-business" style="font-size:11px">' + esc(e.name || '') + '</div></td>' +
-        '<td style="font-size:12px;color:var(--ink)">' + esc(e.processName || '(sin nombre)') + '</td>' +
-        '<td><span class="tag ' + scClass + '">' + sc + '</span></td>' +
-        '<td>' + tagDec + tagOv + '</td>' +
+        '<td><div class="emp-name-cell">' + esc(first) + '</div>' +
+             '<div style="font-size:11px;color:var(--muted)">' + esc(e.name || '') + '</div></td>' +
+        '<td style="font-size:12px">' + esc(e.processName || '(sin nombre)') + '</td>' +
+        '<td><span class="tag ' + scCls + '">' + sc + '</span></td>' +
+        '<td>' + (hasDec ? '<span class="tag green">Decisión</span>' : '<span class="tag gray">Sin decisión</span>') +
+                 (hasOv  ? '<span class="tag green">Inicio/Fin</span>' : '') + '</td>' +
         '</tr>';
     });
     $('docTableBody').innerHTML = rows;
   }
 
   // Pendientes
-  const registeredDNIs = new Set(docEntries.map(e => e.dni));
-  const pending = Object.entries(ROSTER).filter(([dni]) => !registeredDNIs.has(dni));
+  const registered = new Set(docEntries.map(e => e.dni));
+  const pending    = Object.entries(ROSTER).filter(([dni]) => !registered.has(dni));
   if (pending.length === 0) {
-    $('docPending').innerHTML = '<div class="alert-box green"><b>Todas las emprendedoras han guardado su flujograma.</b></div>';
+    $('docPending').innerHTML = '<div class="alert-box green"><b>¡Todas las emprendedoras han guardado su flujograma!</b></div>';
   } else {
     let ph = '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + pending.length + ' emprendedoras sin flujo guardado:</p>';
     ph += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
     pending.forEach(([, name]) => {
-      ph += '<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px;color:var(--ink)">' + esc(firstName(name)) + '</span>';
+      ph += '<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">' +
+            esc(name.split(' ')[0]) + '</span>';
     });
     ph += '</div>';
     $('docPending').innerHTML = ph;
   }
 }
 
-// Modal
+// Modal detalle flujo
 function openModal(idx) {
-  const e = docEntries[idx]; if (!e) return;
+  const e = docEntries[idx];
+  if (!e) return;
   $('modalEmpName').textContent = e.name || e.dni;
-  const sc = e.steps ? e.steps.length : 0;
-  const saved = e.savedAt ? e.savedAt.slice(0,16).replace('T',' ') : '-';
+  const sc    = e.steps ? e.steps.length : 0;
+  const saved = e.savedAt ? e.savedAt.slice(0, 16).replace('T', ' ') : '-';
   $('modalMeta').textContent = 'Proceso: ' + (e.processName || '(sin nombre)') + ' · ' + sc + ' pasos · ' + saved;
-  const mf = $('modalFlow'); mf.innerHTML = '';
-  if (!e.steps || !e.steps.length) { mf.innerHTML = '<p class="empty-hint">Sin pasos.</p>'; }
-  else {
+  const mf = $('modalFlow');
+  mf.innerHTML = '';
+  if (!e.steps || !e.steps.length) {
+    mf.innerHTML = '<p class="empty-hint">Sin pasos registrados.</p>';
+  } else {
     e.steps.forEach((s, i) => {
-      const n = document.createElement('div'); n.className = 'node ' + s.type; n.textContent = s.text; mf.appendChild(n);
+      const n = document.createElement('div');
+      n.className = 'node ' + s.type;
+      n.textContent = s.text;
+      mf.appendChild(n);
       if (s.type === 'decision') {
-        const oA = s.optionA || 'Si', oB = s.optionB || 'No';
         if (!Array.isArray(s.branchA)) s.branchA = [];
         if (!Array.isArray(s.branchB)) s.branchB = [];
-        const fw = document.createElement('div'); fw.className = 'fork-wrap';
-        let bh = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div><div class="fork-line r"><span class="dot"></span></div></div><div class="branch-row">';
-        bh += '<div class="branch-col"><div class="branch-head">' + esc(oA) + '</div>';
-        if (s.branchA.length) s.branchA.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
-        else bh += '<div class="branch-empty">Sin pasos</div>';
-        bh += '</div><div class="branch-col"><div class="branch-head">' + esc(oB) + '</div>';
-        if (s.branchB.length) s.branchB.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
-        else bh += '<div class="branch-empty">Sin pasos</div>';
-        bh += '</div></div><div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
-        fw.innerHTML = bh; mf.appendChild(fw);
+        const fw = document.createElement('div');
+        fw.className = 'fork-wrap';
+        let bh = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div>' +
+                 '<div class="fork-line r"><span class="dot"></span></div></div><div class="branch-row">';
+        ['A','B'].forEach(bKey => {
+          const label = bKey === 'A' ? (s.optionA || 'Sí') : (s.optionB || 'No');
+          const list  = bKey === 'A' ? s.branchA : s.branchB;
+          bh += '<div class="branch-col"><div class="branch-head">' + esc(label) + '</div>';
+          if (list.length) list.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
+          else bh += '<div class="branch-empty">Sin pasos</div>';
+          bh += '</div>';
+        });
+        bh += '</div><div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
+        fw.innerHTML = bh;
+        mf.appendChild(fw);
       }
       if (i < e.steps.length - 1) {
-        const c = document.createElement('div'); c.className = 'connector';
-        c.innerHTML = '<div class="line"></div><div class="arrow">&#9660;</div>'; mf.appendChild(c);
+        const c = document.createElement('div');
+        c.className = 'connector';
+        c.innerHTML = '<div class="line"></div><div class="arrow">▼</div>';
+        mf.appendChild(c);
       }
     });
   }
@@ -944,8 +988,10 @@ function closeModal() {
 $('flowModal').addEventListener('click', e => { if (e.target === $('flowModal')) closeModal(); });
 $('docPrintBtn').addEventListener('click', () => window.print());
 
-// ── Init ──────────────────────────────────────────────────────────────────
-setRole('emp');
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+pickRole('emp');
 tryResume();
 </script>
 </body>

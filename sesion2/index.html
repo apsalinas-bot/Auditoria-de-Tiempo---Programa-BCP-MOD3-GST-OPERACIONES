@@ -376,8 +376,8 @@ const ROSTER = {
     <div class="kpi-grid">
       <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Flujos guardados</div></div>
       <div class="kpi-box orange"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
-      <div class="kpi-box green"><div class="kpi-val" id="kAvgSteps">-</div><div class="kpi-lbl">Promedio de pasos</div></div>
-      <div class="kpi-box teal"><div class="kpi-val" id="kWithDec">-</div><div class="kpi-lbl">Con nodo decisi&oacute;n</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kPctOp">-</div><div class="kpi-lbl">% pasos son Operaci&oacute;n</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kPctDec">-</div><div class="kpi-lbl">% pasos son Decisi&oacute;n</div></div>
     </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -863,15 +863,24 @@ async function loadDocData() {
   docEntries = Array.isArray(rec.entries) ? rec.entries : [];
   const total    = docEntries.length;
   const pct      = Math.round((total / 25) * 100);
-  const avgSteps = total > 0
-    ? (docEntries.reduce((s, e) => s + (e.stepCount || (e.steps ? e.steps.length : 0)), 0) / total).toFixed(1)
-    : '-';
-  const withDec  = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'))).length;
 
-  $('kTotal').textContent    = total;
-  $('kPct').textContent      = pct + '%';
-  $('kAvgSteps').textContent = avgSteps;
-  $('kWithDec').textContent  = withDec;
+  // Contar pasos por tipo en todos los flujos
+  let totalSteps = 0, totalOval = 0, totalRect = 0, totalDec = 0;
+  docEntries.forEach(e => {
+    const ss = Array.isArray(e.steps) ? e.steps : [];
+    totalSteps += ss.length;
+    totalOval  += ss.filter(s => s.type === 'oval').length;
+    totalRect  += ss.filter(s => s.type === 'rect').length;
+    totalDec   += ss.filter(s => s.type === 'decision').length;
+  });
+  const pctOp  = totalSteps > 0 ? Math.round((totalRect  / totalSteps) * 100) : '-';
+  const pctDec = totalSteps > 0 ? Math.round((totalDec   / totalSteps) * 100) : '-';
+  const withDec = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'))).length;
+
+  $('kTotal').textContent   = total;
+  $('kPct').textContent     = pct + '%';
+  $('kPctOp').textContent   = totalSteps > 0 ? pctOp  + '%' : '-';
+  $('kPctDec').textContent  = totalSteps > 0 ? pctDec + '%' : '-';
   $('kPctLbl').textContent   = total + ' / 25';
   $('progressBar').style.width = pct + '%';
   $('docWelcome').textContent  = total + ' emprendedoras han guardado su flujograma.';
@@ -884,8 +893,9 @@ async function loadDocData() {
     if (pct < 50)  alerts += '<div class="alert-box amber"><b>Participación baja (' + pct + '%).</b> Considera dar unos minutos más para que las demás completen su flujo.</div>';
     if (pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participación (' + pct + '%).</b></div>';
     if (withDec === 0) alerts += '<div class="alert-box navy"><b>Ninguna emprendedora incluyó un nodo de decisión aún.</b> Puedes hacer una pausa para mostrar cómo usar el rombo.</div>';
-    const avgN = parseFloat(avgSteps);
-    if (!isNaN(avgN) && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgSteps + ').</b> Algunos flujos pueden estar incompletos.</div>';
+    const avgN = totalSteps > 0 ? (totalSteps / total) : 0;
+    if (avgN > 0 && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgN.toFixed(1) + ').</b> Algunos flujos pueden estar incompletos.</div>';
+    if (pctDec !== '-' && pctDec < 10 && total >= 3) alerts += '<div class="alert-box navy"><b>Solo el ' + pctDec + '% de pasos son decisiones.</b> Motiva a las emprendedoras a incluir rombos en sus flujos.</div>';
   }
   $('docAlerts').innerHTML = alerts;
 

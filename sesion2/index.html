@@ -38,15 +38,25 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
 
 /* gate */
-.gate-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
-.gate-sub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.45}
-.role-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.role-btn{padding:14px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;text-align:center;transition:.15s}
-.role-btn .rb-icon{font-size:24px;display:block;margin-bottom:6px}
-.role-btn .rb-label{font-size:13px;font-weight:700;color:var(--navy)}
-.role-btn .rb-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.role-btn.active{border-color:var(--navy);background:#EEF2FB}
-.gate-input{width:100%;padding:13px 14px;font-size:18px;border:2px solid var(--line);border-radius:11px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:2px;text-align:center}
+.gate-title{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:3px;text-align:center}
+.gate-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.45;text-align:center}
+.role-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.role-btn{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--line);
+  border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;
+  transition:.15s;width:100%;box-shadow:0 2px 8px rgba(0,20,80,.06)}
+.role-btn:hover{border-color:var(--navy);box-shadow:0 4px 14px rgba(0,20,80,.1)}
+.role-btn.active{border-color:var(--navy);background:#F0F4FF;box-shadow:0 4px 14px rgba(0,42,141,.12)}
+.role-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0}
+.role-icon.emp{background:var(--orange)}
+.role-icon.doc{background:var(--navy)}
+.role-text{flex:1}
+.role-btn .rb-label{font-size:15px;font-weight:700;color:var(--ink);display:block;margin-bottom:2px}
+.role-btn .rb-sub{font-size:12px;color:var(--muted)}
+.role-btn.active .rb-label{color:var(--navy)}
+.gate-divider{height:1px;background:var(--line);margin:4px 0 16px}
+.gate-input{width:100%;padding:13px 14px;font-size:18px;border:1.5px solid var(--line);
+  border-radius:11px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:2px;text-align:center}
 .gate-input:focus{outline:none;border-color:var(--navy);background:#fafcff}
 .gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:20px;margin-top:6px;text-align:center}
 
@@ -244,32 +254,39 @@ const ROSTER = {
 <!-- PANTALLA GATE -->
 <div id="gateScreen">
   <div class="top">
-    <div class="eyebrow">Modulo 3 · Gestion de Operaciones · Sesion 2</div>
+    <div class="eyebrow">Modulo 3 &middot; Gestion de Operaciones &middot; Sesion 2</div>
     <h1>El Esqueleto <span>del Negocio</span></h1>
     <p>Dibuja como funciona realmente tu negocio, paso a paso.</p>
   </div>
   <div class="wrap">
     <div class="card">
-      <div class="gate-title">Quienes eres?</div>
-      <div class="gate-sub">Selecciona tu rol e ingresa tu DNI.</div>
-      <div class="role-btn-row">
+      <div class="gate-title">&#191;Como vas a entrar?</div>
+      <div class="gate-sub">Elige tu perfil para empezar.</div>
+
+      <div class="role-list">
         <button class="role-btn active" id="roleEmp" onclick="setRole('emp')">
-          <span class="rb-icon">🌸</span>
-          <span class="rb-label">Emprendedora</span>
-          <span class="rb-sub">Construyo mi flujograma</span>
+          <div class="role-icon emp">&#9670;</div>
+          <div class="role-text">
+            <span class="rb-label">Soy emprendedora / duena de negocio</span>
+            <span class="rb-sub">Entra con tu DNI y construye tu flujograma</span>
+          </div>
         </button>
         <button class="role-btn" id="roleDoc" onclick="setRole('doc')">
-          <span class="rb-icon">📊</span>
-          <span class="rb-label">Docente</span>
-          <span class="rb-sub">Panel de seguimiento</span>
+          <div class="role-icon doc">&#9783;</div>
+          <div class="role-text">
+            <span class="rb-label">Docente</span>
+            <span class="rb-sub">Ver el panel de seguimiento del aula</span>
+          </div>
         </button>
       </div>
+
+      <div class="gate-divider"></div>
       <label class="field-label" id="gateLabel">Tu DNI (8 digitos)</label>
       <input class="gate-input" type="tel" id="gateInput" placeholder="00000000" maxlength="8" inputmode="numeric">
       <div class="gate-err" id="gateErr"></div>
-      <button class="cta full" style="margin-top:14px" onclick="doLogin()">Ingresar &rarr;</button>
+      <button class="cta full" style="margin-top:14px" onclick="doLogin()">Ingresar &#8594;</button>
     </div>
-    <div class="foot">Programa BCP · UCSP-CENDES · Modulo 3: Gestion de Operaciones</div>
+    <div class="foot">Programa BCP &middot; UCSP-CENDES &middot; Modulo 3: Gestion de Operaciones</div>
   </div>
 </div>
 

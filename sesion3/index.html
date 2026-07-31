@@ -176,9 +176,10 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 
 <!-- ▼▼▼ PEGA TUS CLAVES AQUI ▼▼▼ -->
 <script>
-const BIN_ID     = '6a6bfa73f5f4af5e29d83006';
-const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
-const DOCENTE_PW = '70003700';
+const BIN_ID     = '6a6bfa73f5f4af5e29d83006';                    // ← BIN de la Sesion 3 (crea uno nuevo)
+const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm'; // ← tu Master Key
+const DOCENTE_PW = '70003700';                              // ← tu DNI
+const BIN_ID_S2  = '6a6ab4a3f5f4af5e29d3bc50';              // ← BIN de la Sesion 2 (para traer flujogramas)
 </script>
 <!-- ▲▲▲ FIN CLAVES ▲▲▲ -->
 
@@ -310,6 +311,7 @@ const ROSTER = {
 
     <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagn&oacute;stico</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
+    <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
     <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S3</div>
   </div>
@@ -400,6 +402,24 @@ async function binWrite(data){
   catch(e){ return false; }
 }
 
+// Leer el flujograma de una emprendedora desde el BIN de la Sesion 2 (nube)
+async function getFlujoS2FromCloud(dni){
+  try{
+    const url = 'https://api.jsonbin.io/v3/b/' + BIN_ID_S2 + '/latest';
+    const r = await fetch(url, { headers: HEADERS_R });
+    if(!r.ok) return null;
+    const j = await r.json();
+    const rec = j.record || {};
+    const entries = Array.isArray(rec.entries) ? rec.entries : [];
+    const found = entries.find(e => e.dni === dni);
+    if(!found || !Array.isArray(found.steps)) return null;
+    return {
+      processName: found.processName || '',
+      steps: found.steps.filter(s => s.type==='rect' || s.type==='oval').map(s => ({ text:s.text, light:'' }))
+    };
+  }catch(e){ return null; }
+}
+
 // ── GATE ──
 function pickRole(role){
   $('cardEmp').classList.toggle('selected', role==='emp');
@@ -470,30 +490,39 @@ function getFlujoS2(dni){
   }catch(e){ return null; }
 }
 
-function cargarDatos(){
-  // 1. Semaforo: primero el propio guardado, si no el flujo de S2
+async function cargarDatos(){
+  const msg = $('sourceMsg');
+  msg.textContent = 'Buscando tu flujograma de la Sesi\u00f3n 2...';
+  msg.className = 'source-msg'; msg.style.display = 'block';
+
+  // 1. Semaforo: primero el propio guardado en S3 (si ya trabajaste antes)
   let ownSem = null;
   try{ const raw = localStorage.getItem(SEM_PREFIX + currentDNI); ownSem = raw ? JSON.parse(raw) : null; }catch(e){}
-  const msg = $('sourceMsg');
+
   if(ownSem && ownSem.length){
     semSteps = ownSem;
-    msg.textContent = 'Se recuper\u00f3 tu sem\u00e1foro anterior.';
-    msg.className = 'source-msg'; msg.style.display = 'block';
+    msg.textContent = 'Se recuper\u00f3 el sem\u00e1foro que ya hab\u00edas marcado antes.';
+    msg.className = 'source-msg';
   } else {
-    const flujo = getFlujoS2(currentDNI);
+    // 2. Buscar en la NUBE (BIN de S2) — funciona en cualquier dispositivo
+    let flujo = await getFlujoS2FromCloud(currentDNI);
+    // 3. Si la nube falla, intentar localStorage local como respaldo
+    if(!flujo || !flujo.steps.length){
+      flujo = getFlujoS2(currentDNI);
+    }
     if(flujo && flujo.steps.length){
       semSteps = flujo.steps;
       msg.textContent = '\u2713 Se cargaron ' + flujo.steps.length + ' pasos de tu flujograma de la Sesi\u00f3n 2' + (flujo.processName ? ' (' + flujo.processName + ')' : '') + '. Toca cada c\u00edrculo para marcarlo.';
-      msg.className = 'source-msg'; msg.style.display = 'block';
+      msg.className = 'source-msg';
     } else {
       semSteps = [];
-      msg.textContent = 'No encontramos tu flujograma de S2 en este dispositivo. Agrega tus pasos manualmente abajo.';
-      msg.className = 'source-msg warn'; msg.style.display = 'block';
+      msg.textContent = 'No encontramos tu flujograma guardado de la Sesi\u00f3n 2. Aseg\u00farate de haberlo guardado en la nube en S2, o agrega tus pasos manualmente abajo.';
+      msg.className = 'source-msg warn';
     }
   }
   renderSem();
 
-  // 2. Ishikawa
+  // Ishikawa (siempre de localStorage propio de S3)
   causes = {};
   M_CATEGORIES.forEach(c => causes[c.m] = []);
   try{
@@ -540,16 +569,19 @@ $('semList').addEventListener('click', e => {
   const del = e.target.closest('.sem-del');
   if(del){ semSteps.splice(parseInt(del.dataset.del,10),1); renderSem(); }
 });
-$('reloadBtn').addEventListener('click', () => {
-  const flujo = getFlujoS2(currentDNI);
+$('reloadBtn').addEventListener('click', async () => {
   const msg = $('sourceMsg');
+  msg.textContent = 'Buscando en la nube...';
+  msg.className = 'source-msg'; msg.style.display = 'block';
+  let flujo = await getFlujoS2FromCloud(currentDNI);
+  if(!flujo || !flujo.steps.length){ flujo = getFlujoS2(currentDNI); }
   if(!flujo || !flujo.steps.length){
-    msg.textContent = 'No se encontr\u00f3 tu flujograma de S2 en este navegador.';
-    msg.className = 'source-msg warn'; msg.style.display = 'block'; return;
+    msg.textContent = 'No se encontr\u00f3 tu flujograma de la Sesi\u00f3n 2. Verifica que lo guardaste en la nube en S2.';
+    msg.className = 'source-msg warn'; return;
   }
   semSteps = flujo.steps;
   msg.textContent = '\u2713 Se recargaron ' + flujo.steps.length + ' pasos de tu flujograma de S2.';
-  msg.className = 'source-msg'; msg.style.display = 'block';
+  msg.className = 'source-msg';
   renderSem();
 });
 
@@ -735,6 +767,35 @@ $('mGrid').addEventListener('keydown', e => {
 });
 
 $('printBtn').addEventListener('click', () => window.print());
+
+// Limpiar datos locales de S3 de este dispositivo
+let clearArmed = false;
+$('clearBtn').addEventListener('click', () => {
+  const btn = $('clearBtn');
+  if(!clearArmed){
+    clearArmed = true;
+    btn.textContent = '\u00bfSeguro? Toca de nuevo para borrar tu sem\u00e1foro e Ishikawa';
+    btn.classList.add('warn');
+    btn.style.borderColor = 'var(--red)'; btn.style.color = 'var(--red)';
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => {
+      clearArmed = false;
+      btn.textContent = 'Limpiar mis datos de este dispositivo';
+      btn.style.borderColor = ''; btn.style.color = '';
+    }, 4000);
+    return;
+  }
+  try{
+    localStorage.removeItem(SEM_PREFIX + currentDNI);
+    localStorage.removeItem(ISHI_PREFIX + currentDNI);
+  }catch(e){}
+  clearArmed = false;
+  btn.textContent = 'Limpiar mis datos de este dispositivo';
+  btn.style.borderColor = ''; btn.style.color = '';
+  // Recargar desde la nube
+  $('symptomInput').value = '';
+  cargarDatos();
+});
 
 // ── GUARDAR EN NUBE ──
 $('saveCloudBtn').addEventListener('click', async () => {

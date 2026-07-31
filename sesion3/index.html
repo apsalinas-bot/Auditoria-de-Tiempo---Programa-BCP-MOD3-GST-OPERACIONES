@@ -159,12 +159,17 @@
     padding:0.3rem 0.8rem;border-radius:20px;font-weight:600;}
 
   /* ── Login overlay S3 ── */
+  html.overlay-open{overflow:hidden;}
   #s3LoginOverlay{
     position:fixed;inset:0;background:rgba(1,32,96,.97);
     display:flex;align-items:center;justify-content:center;
-    z-index:9999;padding:1.5rem;
+    z-index:99999;padding:1.5rem;
+    /* override body overflow:hidden */
+    overflow-y:auto;
   }
-  #s3LoginOverlay.hidden{display:none;}
+  #s3LoginOverlay.hidden{display:none !important;}
+  /* Cuando overlay está activo, ocultar el app */
+  #s3LoginOverlay:not(.hidden) ~ #app{visibility:hidden;}
   .s3-login-box{
     background:#fff;border-radius:16px;padding:2rem 1.8rem;
     max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.35);
@@ -204,7 +209,7 @@
 <!-- ▼▼▼ PEGA TUS CLAVES AQUI — solo edita las 3 lineas marcadas ▼▼▼ -->
 <script>
 const BIN_ID_S3    = '6a6bfa73f5f4af5e29d83006';      // ← BIN exclusivo para Sesion 3
-const BIN_KEY_S3   = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';   // ← tu Master Key de jsonbin.io
+const BIN_KEY_S3   = '6a6bfa73f5f4af5e29d83006';   // ← tu Master Key de jsonbin.io
 const DOCENTE_S3   = '70003700';                  // ← tu DNI (ya configurado)
 </script>
 <!-- ▲▲▲ FIN BLOQUE DE CLAVES ▲▲▲ -->
@@ -639,6 +644,7 @@ const DOCENTE_S3   = '70003700';                  // ← tu DNI (ya configurado)
 
     // Cerrar overlay
     document.getElementById('s3LoginOverlay').classList.add('hidden');
+    document.documentElement.classList.remove('overlay-open');
     const tag = document.getElementById('s3NameTag');
     if(tag) tag.textContent = s3Name ? s3Name.split(' ')[0] + ' · S3' : '';
     renderSem();
@@ -673,6 +679,9 @@ const DOCENTE_S3   = '70003700';                  // ← tu DNI (ya configurado)
     } catch(e){}
     return false;
   }
+
+  // Marcar html como overlay-open al inicio
+  document.documentElement.classList.add('overlay-open');
 
   // Enter en el input del login
   document.getElementById('s3DniInput').addEventListener('keydown', e => {
@@ -833,9 +842,6 @@ const DOCENTE_S3   = '70003700';                  // ← tu DNI (ya configurado)
     mGrid.appendChild(card);
   });
 
-  if(savedIshikawa && savedIshikawa.symptom){
-    document.getElementById('symptomInput').value = savedIshikawa.symptom;
-  }
   document.getElementById('symptomInput').addEventListener('input', saveIshikawa);
 
   function renderCauses(m){

@@ -1,1 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesión 3 · Caza de Cuellos de Botella</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
+  :root{
+    --navy:#012060;
+    --navy-2:#0a2f7e;
+    --coral:#F34135;
+    --coral-dark:#c62e24;
+    --green:#2E7D32;
+    --amber:#B8860B;
+    --ink:#1a1a1a;
+    --gray:#666666;
+    --line:#e4e4e4;
+    --paper:#f7f7f6;
+    --white:#ffffff;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{font-family:'Inter',sans-serif;color:var(--ink);background:var(--white);overflow:hidden;}
+
+  .eyebrow{font-family:'Inter',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--coral);margin:0 0 0.6rem 0;}
+  h1,h2,h3{font-family:'Poppins',sans-serif;margin:0;line-height:1.12;}
+
+  .badge{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;background:var(--coral);color:var(--white);font-family:'Poppins',sans-serif;font-weight:800;font-size:1rem;border-radius:50%;flex-shrink:0;}
+
+  #app{height:100vh;display:flex;flex-direction:column;}
+  .stage{flex:1;position:relative;overflow:hidden;}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:3rem clamp(1.5rem, 7vw, 7rem);opacity:0;transform:translateX(24px);transition:opacity .35s ease, transform .35s ease;pointer-events:none;overflow-y:auto;}
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:auto;}
+  .slide-head{display:flex;align-items:center;gap:0.9rem;margin-bottom:1.4rem;}
+  .slide-head .titles{display:flex;flex-direction:column;}
+  .slide-head h2{font-size:1.6rem;color:var(--navy);}
+
+  .content{max-width:880px;}
+  p{font-size:1.02rem;line-height:1.6;color:var(--ink);margin:0 0 1rem 0;}
+  .lead{font-size:1.22rem;font-weight:600;color:var(--navy);line-height:1.4;}
+  .muted{color:var(--gray);font-size:0.92rem;}
+
+  #slide-0{background:var(--navy);}
+  #slide-0 .content{max-width:none;}
+  #slide-0 .eyebrow{color:#8fb0ff;}
+  #slide-0 h1{color:var(--white);font-size:clamp(2rem, 5.5vw, 3.6rem);font-weight:800;}
+  #slide-0 h1 span{color:var(--coral);}
+  #slide-0 .sub{color:#c7d3ee;font-size:1.1rem;margin-top:1rem;max-width:640px;}
+  #slide-0 .cover-badge{width:4rem;height:4rem;font-size:1.5rem;margin-bottom:1.5rem;}
+  #slide-0 .foot{position:absolute;bottom:2.3rem;left:clamp(1.5rem,7vw,7rem);color:#7488b8;font-size:0.85rem;font-weight:500;}
+
+  .btn{font-family:'Inter',sans-serif;font-weight:700;font-size:0.92rem;background:var(--navy);color:var(--white);border:none;padding:0.8rem 1.5rem;border-radius:8px;cursor:pointer;transition:background .2s ease, transform .1s ease;}
+  .btn:hover{background:var(--navy-2);}
+  .btn:active{transform:scale(0.98);}
+  .btn.coral{background:var(--coral);}
+  .btn.coral:hover{background:var(--coral-dark);}
+  .btn.ghost{background:none;color:var(--navy);border:2px solid var(--line);}
+  .btn.ghost:hover{border-color:var(--navy);}
+  .btn:disabled{opacity:0.35;cursor:not-allowed;}
+  .btn.small{padding:0.5rem 0.9rem;font-size:0.82rem;}
+
+  .reveal-box{margin-top:1.1rem;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease, opacity .4s ease;}
+  .reveal-box.open{max-height:420px;opacity:1;}
+  .reveal-panel{background:var(--paper);border-left:4px solid var(--coral);padding:1.1rem 1.3rem;border-radius:4px;}
+
+  /* legend chips */
+  .chip-row{display:flex;gap:1rem;margin-top:1.3rem;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:0.5rem;background:var(--paper);padding:0.6rem 1rem;border-radius:30px;font-size:0.9rem;font-weight:600;}
+  .dot-g{width:0.8rem;height:0.8rem;border-radius:50%;background:var(--green);}
+  .dot-a{width:0.8rem;height:0.8rem;border-radius:50%;background:var(--amber);}
+  .dot-r{width:0.8rem;height:0.8rem;border-radius:50%;background:var(--coral);}
+
+  /* semaforo builder (bloque 2) */
+  .builder-row{display:flex;gap:0.6rem;margin-top:1.1rem;flex-wrap:wrap;}
+  .builder-row input{flex:1;min-width:220px;font-family:'Inter',sans-serif;font-size:0.98rem;padding:0.8rem 1rem;border:2px solid var(--line);border-radius:8px;outline:none;}
+  .builder-row input:focus{border-color:var(--navy);}
+  .steps-list{margin-top:1.3rem;max-width:560px;}
+  .empty-hint{color:var(--gray);font-style:italic;font-size:0.92rem;}
+  .step-card{display:flex;align-items:center;gap:0.7rem;background:var(--paper);padding:0.7rem 0.9rem;border-radius:8px;border-left:6px solid var(--green);}
+  .step-card.amber{border-left-color:var(--amber);}
+  .step-card.red{border-left-color:var(--coral);}
+  .step-text{flex:1;font-size:0.94rem;}
+  .light-btn{width:1.6rem;height:1.6rem;border-radius:50%;border:2px solid var(--white);box-shadow:0 0 0 1px var(--line);cursor:pointer;background:var(--green);flex-shrink:0;}
+  .light-btn.amber{background:var(--amber);}
+  .light-btn.red{background:var(--coral);}
+  .step-actions{display:flex;gap:0.3rem;}
+  .step-actions button{background:none;border:1px solid var(--line);width:1.7rem;height:1.7rem;border-radius:5px;cursor:pointer;font-size:0.8rem;color:var(--navy);}
+  .step-actions button:hover{background:var(--white);border-color:var(--navy);}
+
+  /* ishikawa builder */
+  .symptom-row{display:flex;gap:0.6rem;margin-top:1.1rem;max-width:640px;flex-wrap:wrap;}
+  .symptom-row input{flex:1;min-width:260px;font-family:'Inter',sans-serif;font-weight:600;font-size:1rem;padding:0.8rem 1rem;border:2px solid var(--coral);border-radius:8px;outline:none;color:var(--navy);}
+  .m-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:0.9rem;margin-top:1.2rem;}
+  .m-card{background:var(--paper);border-radius:10px;padding:0.9rem;display:flex;flex-direction:column;gap:0.5rem;}
+  .m-card h3{font-size:0.9rem;color:var(--navy);font-family:'Inter',sans-serif;font-weight:700;}
+  .m-card .m-input-row{display:flex;gap:0.4rem;}
+  .m-card input{flex:1;font-family:'Inter',sans-serif;font-size:0.82rem;padding:0.45rem 0.6rem;border:1.5px solid var(--line);border-radius:6px;outline:none;min-width:0;}
+  .m-card input:focus{border-color:var(--navy);}
+  .m-card .add-mini{background:var(--navy);color:var(--white);border:none;border-radius:6px;width:1.9rem;font-size:1rem;cursor:pointer;flex-shrink:0;}
+  .cause-list{display:flex;flex-direction:column;gap:0.35rem;}
+  .cause-item{display:flex;align-items:center;gap:0.4rem;background:var(--white);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.8rem;}
+  .cause-item.root{background:#fde8e6;font-weight:700;color:var(--coral-dark);}
+  .cause-item span{flex:1;}
+  .cause-item button{background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--gray);flex-shrink:0;}
+  .cause-item .mark-root{color:var(--navy);font-weight:700;}
+
+  /* accordion */
+  .accordion{margin-top:1.3rem;max-width:640px;}
+  .acc-item{border-bottom:1px solid var(--line);}
+  .acc-head{display:flex;justify-content:space-between;align-items:center;padding:0.9rem 0;cursor:pointer;font-weight:600;color:var(--navy);}
+  .acc-head .plus{color:var(--coral);font-size:1.3rem;font-weight:700;}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+  .acc-body p{padding-bottom:0.9rem;color:var(--gray);font-size:0.92rem;}
+  .acc-item.open .acc-body{max-height:200px;}
+  .acc-item.open .plus{transform:rotate(45deg);}
+
+  /* tabs (casos) */
+  .tabs{display:flex;gap:0.5rem;margin-top:1.1rem;flex-wrap:wrap;}
+  .tab-btn{font-family:'Inter',sans-serif;font-weight:700;font-size:0.85rem;padding:0.6rem 1.1rem;border-radius:30px;border:2px solid var(--line);background:var(--white);color:var(--gray);cursor:pointer;}
+  .tab-btn.active{border-color:var(--navy);color:var(--navy);background:var(--paper);}
+  .tab-panel{display:none;margin-top:1.3rem;}
+  .tab-panel.active{display:block;}
+
+  #slide-8{background:var(--navy);}
+  #slide-8 h2, #slide-8 .lead{color:var(--white);}
+  #slide-8 p{color:#c7d3ee;}
+  #slide-8 .eyebrow{color:#8fb0ff;}
+  #slide-8 .deliver-box{background:rgba(255,255,255,0.08);border-left:4px solid var(--coral);padding:1.1rem 1.3rem;border-radius:4px;margin:1.1rem 0;}
+
+  .navbar{height:4.6rem;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem, 7vw, 7rem);border-top:1px solid var(--line);flex-shrink:0;}
+  .nav-label{font-size:0.82rem;color:var(--gray);font-weight:600;}
+  .nav-controls{display:flex;align-items:center;gap:1rem;}
+  .nav-arrow{width:2.4rem;height:2.4rem;border-radius:50%;border:2px solid var(--line);background:var(--white);color:var(--navy);font-size:1.05rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .nav-arrow:hover:not(:disabled){border-color:var(--navy);}
+  .nav-arrow:disabled{opacity:0.25;cursor:not-allowed;}
+  .dots{display:flex;gap:0.35rem;}
+  .dot{width:0.5rem;height:0.5rem;border-radius:50%;background:var(--line);cursor:pointer;}
+  .dot.active{background:var(--coral);width:1.3rem;border-radius:4px;}
+
+  @media (max-width:640px){
+    .slide{padding:2rem 1.2rem;}
+    #slide-0 h1{font-size:1.9rem;}
+    .m-grid{grid-template-columns:1fr;}
+    .navbar{padding:0 1.1rem;}
+    .dots{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){.slide,.reveal-box,.acc-body{transition:none;}}
+
+  /* guardar en nube S3 */
+  .s3-save-row{display:flex;gap:0.7rem;align-items:center;margin-top:1.2rem;flex-wrap:wrap;}
+  .s3-save-status{font-size:0.88rem;font-weight:600;min-height:1.1rem;}
+  .s3-save-status.ok{color:var(--green);}
+  .s3-save-status.err{color:var(--coral);}
+  .s3-save-status.loading{color:var(--gray);}
+  .s3-name-tag{font-size:0.82rem;color:var(--gray);background:var(--paper);
+    padding:0.3rem 0.8rem;border-radius:20px;font-weight:600;}
+
+  /* ── Login overlay S3 ── */
+  #s3LoginOverlay{
+    position:fixed;inset:0;background:rgba(1,32,96,.97);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:1.5rem;
+  }
+  #s3LoginOverlay.hidden{display:none;}
+  .s3-login-box{
+    background:#fff;border-radius:16px;padding:2rem 1.8rem;
+    max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .s3-login-box .eyebrow{margin-bottom:0.4rem;}
+  .s3-login-box h2{font-family:'Poppins',sans-serif;font-size:1.4rem;
+    color:var(--navy);margin:0 0 0.5rem;}
+  .s3-login-box p{font-size:0.92rem;color:var(--gray);margin:0 0 1.2rem;line-height:1.5;}
+  .s3-login-box input{
+    width:100%;padding:0.85rem 1rem;font-family:'Inter',sans-serif;
+    font-size:1.1rem;border:2px solid #e4e4e4;border-radius:10px;
+    outline:none;letter-spacing:3px;text-align:center;margin-bottom:0.6rem;
+  }
+  .s3-login-box input:focus{border-color:var(--navy);}
+  .s3-login-err{font-size:0.82rem;color:var(--coral);font-weight:700;
+    min-height:1.1rem;margin-bottom:0.5rem;text-align:center;}
+  .s3-flujo-preview{
+    background:#f7f7f6;border-radius:10px;padding:0.9rem 1rem;
+    margin-top:0.8rem;max-height:160px;overflow-y:auto;
+  }
+  .s3-flujo-preview p{font-size:0.82rem;color:var(--gray);margin:0 0 0.5rem;font-weight:700;}
+  .s3-flujo-step{display:flex;align-items:center;gap:0.5rem;
+    font-size:0.88rem;color:var(--navy);padding:0.3rem 0;
+    border-bottom:1px solid #eee;}
+  .s3-flujo-step:last-child{border-bottom:none;}
+  .s3-step-dot{width:0.55rem;height:0.55rem;border-radius:50%;
+    background:var(--navy);flex-shrink:0;}
+  .s3-step-dot.oval{background:var(--coral);}
+  .s3-no-flujo{font-size:0.85rem;color:var(--coral);
+    background:#fde8e6;border-radius:8px;padding:0.7rem 0.9rem;
+    margin-top:0.6rem;line-height:1.45;}
+
+</style>
+</head>
+<body>
+
+<!-- ▼▼▼ PEGA TUS CLAVES AQUI — solo edita las 3 lineas marcadas ▼▼▼ -->
+<script>
+const BIN_ID_S3    = '6a6bfa73f5f4af5e29d83006';      // ← BIN exclusivo para Sesion 3
+const BIN_KEY_S3   = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';   // ← tu Master Key de jsonbin.io
+const DOCENTE_S3   = '70003700';                  // ← tu DNI (ya configurado)
+</script>
+<!-- ▲▲▲ FIN BLOQUE DE CLAVES ▲▲▲ -->
+
+<!-- ════ LOGIN OVERLAY S3 ════ -->
+<div id="s3LoginOverlay">
+  <div class="s3-login-box">
+    <div class="eyebrow">Módulo 3 · Sesión 3</div>
+    <h2>Caza de Cuellos de Botella</h2>
+    <p>Ingresa tu DNI para cargar tu flujograma de la Sesión 2 y empezar el Semáforo Operativo.</p>
+    <input type="tel" id="s3DniInput" placeholder="Tu DNI" maxlength="8" inputmode="numeric">
+    <div class="s3-login-err" id="s3DniErr"></div>
+    <button class="btn coral" style="width:100%;padding:0.9rem;" onclick="s3Login()">
+      Cargar mi flujograma →
+    </button>
+    <div id="s3FlujoPreview"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="stage">
+
+    <!-- SLIDE 0: COVER -->
+    <section class="slide active" id="slide-0">
+      <div class="content">
+        <div class="badge cover-badge">S3</div>
+        <div class="eyebrow">Módulo 3 · Gestión de Operaciones · Movimiento 2: DIAGNOSTICAR</div>
+        <h1>Caza de <span>Cuellos de Botella</span></h1>
+        <p class="sub">Separar el síntoma visible de la causa raíz real.</p>
+      </div>
+      <div class="foot">Programa de Impulso Pyme · Mujeres Emprendedoras de Arequipa · BCP · UCSP–CENDES</div>
+    </section>
+
+    <!-- SLIDE 1: RECAP -->
+    <section class="slide" id="slide-1">
+      <div class="slide-head">
+        <div class="badge">S2</div>
+        <div class="titles"><div class="eyebrow">Bloque 0 · Reconexión</div><h2>Antes de seguir, un repaso</h2></div>
+      </div>
+      <div class="content">
+        <p class="lead">En tu Sesión 2 dibujaste tu flujograma — y te fuiste con una pregunta pendiente:</p>
+        <div class="reveal-panel" style="margin-top:1rem;">
+          <p style="margin:0;font-weight:600;color:var(--navy);">"¿En qué paso de tu flujo sientes que algo se atasca, aunque todavía no sepas por qué?"</p>
+        </div>
+        <p style="margin-top:1.1rem;">Trae tu flujograma — hoy trabajamos <strong>directamente sobre él</strong>. Recuerda también tu clasificación de S2: ¿muchas operaciones seguidas, o muchas decisiones ambiguas? Es una pista.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: HOOK -->
+    <section class="slide" id="slide-2">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow">Bloque 1 · El gancho</div><h2>Síntoma vs. causa</h2></div>
+      </div>
+      <div class="content">
+        <p class="lead">Cuando algo sale mal en tu negocio, ¿sueles arreglar lo que ves, o lo que realmente lo causó?</p>
+        <button class="btn coral" onclick="toggleReveal('hook-reveal')">Ver el ejemplo</button>
+        <div class="reveal-box" id="hook-reveal">
+          <div class="reveal-panel">
+            <p style="margin:0 0 0.6rem 0;">Te duele la cabeza y tomas una pastilla. Eso calma el síntoma. Pero si la causa real es que no dormiste o no tomaste agua, mañana vuelve a doler.</p>
+            <p style="margin:0;font-weight:700;color:var(--navy);">Hoy vamos a separar el síntoma visible de la causa raíz real.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: SEMAFORO -->
+    <section class="slide" id="slide-3">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow">Bloque 2 · Concepto (15 min)</div><h2>El Semáforo Operativo</h2></div>
+      </div>
+      <div class="content">
+        <p>Toca el círculo de cada paso para cambiarle el color. Si ya armaste tu flujograma en la app de la Sesión 2 en este mismo navegador, aparece solo — no hace falta volver a escribirlo.</p>
+        <p class="muted" id="semSourceMsg" style="display:none;"></p>
+        <div class="chip-row">
+          <div class="chip"><span class="dot-g"></span> fluye bien</div>
+          <div class="chip"><span class="dot-a"></span> a veces se traba</div>
+          <div class="chip"><span class="dot-r"></span> siempre se traba — el cuello</div>
+        </div>
+        <div class="builder-row">
+          <input type="text" id="semStepInput" placeholder="Ej: Confirmo disponibilidad de insumos" maxlength="90">
+          <button class="btn" id="semAddBtn">+ Agregar paso</button>
+        </div>
+        <div class="steps-list" id="semStepsList"></div>
+        <div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.9rem;flex-wrap:wrap;">
+          <p class="muted" style="margin:0;">Marca <strong>un solo</strong> paso en rojo — el más crítico. No cinco.</p>
+          <button class="btn ghost small" id="semReloadBtn" style="margin-left:auto;">↻ Recargar desde Sesión 2</button>
+        </div>
+        <div class="s3-save-row">
+          <button class="btn coral" onclick="guardarEnNube()">☁ Guardar semáforo</button>
+          <span class="s3-name-tag" id="s3NameTag"></span>
+          <span class="s3-save-status" id="s3SaveStatus"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: ISHIKAWA 6M DETALLADO -->
+    <section class="slide" id="slide-4">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow">Bloque 3 · Concepto (15 min)</div><h2>Ishikawa — Las 6M explicadas</h2></div>
+      </div>
+      <div class="content">
+        <p class="lead" style="margin-bottom:0.5rem;">Síntoma del ejemplo: <span style="color:var(--coral);">"Mis pedidos especiales siempre salen tarde"</span></p>
+        <p style="margin-bottom:0.8rem;">Para cada M, la pregunta es: <strong>¿podría venir de aquí?</strong> Toca cada categoría para ver la definición y el ejemplo.</p>
+        <div class="accordion" id="m-accordion">
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>👷 <strong>Mano de Obra</strong> — ¿El problema viene de <em>quién</em> hace el trabajo?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>Capacitación, dependencia de una sola persona, rotación, habilidades no transferidas.</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: el armado final del pedido solo lo sabe hacer la dueña. Si ella no está, el pedido se atrasa.</p>
+            </div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>📋 <strong>Método</strong> — ¿El problema viene de <em>cómo</em> se hace?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>El procedimiento, la secuencia de pasos, si está documentado o solo existe en la cabeza.</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: no hay un orden fijo para los pedidos especiales — cada vez se hace diferente y se pierde tiempo.</p>
+            </div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>📦 <strong>Materiales</strong> — ¿El problema viene de los <em>insumos</em>?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>Calidad, disponibilidad, tiempo de entrega, dependencia de un solo proveedor, stock insuficiente.</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: la crema especial se compra en un solo local. Cuando no hay, el pedido se paraliza.</p>
+            </div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>⚙️ <strong>Máquina</strong> — ¿El problema viene del <em>equipo o herramienta</em>?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>Horno, máquina de coser, celular, impresora — cualquier herramienta clave. Capacidad, mantenimiento, recursos compartidos.</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: el único horno compite entre el pan del día y los pedidos especiales. El especial siempre pierde.</p>
+            </div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>🏠 <strong>Medio</strong> — ¿El problema viene del <em>entorno</em>?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>Espacio físico, temperatura, luz, ubicación, temporada, también entorno digital (conexión, plataformas).</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: la cocina es chica y en diciembre el calor derrite la crema más rápido — el proceso se alarga.</p>
+            </div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head" onclick="toggleAcc(this)">
+              <span>📏 <strong>Medición</strong> — ¿El problema viene de <em>no medir</em> lo correcto?</span>
+              <span class="plus">+</span>
+            </div>
+            <div class="acc-body">
+              <p>No saber cuánto tarda cada paso, no controlar inventario, confirmar pedidos "de cabeza" sin revisar capacidad real.</p>
+              <p style="color:var(--navy);font-weight:600;">Ejemplo: la dueña acepta un pedido para el sábado sin calcular si tiene tiempo. El atraso se descubre cuando ya es tarde.</p>
+            </div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:1rem;">💡 Para el video explicativo detallado con el caso completo de la pastelería, escanea el QR de la sesión o busca "6M Ishikawa · Módulo 3 BCP".</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: ISHIKAWA BUILDER -->
+    <section class="slide" id="slide-5">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow">Bloque 4 · Actividad (35 min)</div><h2>Tu propio Ishikawa</h2></div>
+      </div>
+      <div class="content">
+        <p class="lead">Escribe el síntoma exacto de tu paso rojo — la queja, tal como la dirías en voz alta.</p>
+        <div class="symptom-row">
+          <input type="text" id="symptomInput" placeholder="Ej: Siempre entrego tarde">
+        </div>
+        <div class="m-grid" id="mGrid"></div>
+        <p class="muted" style="margin-top:1rem;">¿Te trabas en alguna M? Revisa la explicación del slide anterior. Cuando hayas llenado las espinas, toca ★ en la causa que sientas más raíz — la que, si la resuelves, mueve todo lo demás.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: CASO REAL -->
+    <section class="slide" id="slide-7">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow">Bloque 5 · En su emprendimiento</div><h2>Caso real</h2></div>
+      </div>
+      <div class="content">
+        <div class="tabs">
+          <button class="tab-btn active" data-case="constructora">Constructora</button>
+          <button class="tab-btn" data-case="pasteleria">Pastelería</button>
+          <button class="tab-btn" data-case="ropa">Tienda de ropa</button>
+          <button class="tab-btn" data-case="catering">Catering</button>
+        </div>
+        <div class="tab-panel active" id="case-constructora">
+          <div class="reveal-panel"><p style="margin:0 0 0.5rem 0;"><strong>Síntoma:</strong> "Siempre entrego tarde."</p><p style="margin:0;"><strong>Causa raíz:</strong> no es el equipo — depende de un único proveedor de material. <span style="color:var(--coral);font-weight:700;">(Materiales)</span></p></div>
+        </div>
+        <div class="tab-panel" id="case-pasteleria">
+          <div class="reveal-panel"><p style="margin:0 0 0.5rem 0;"><strong>Síntoma:</strong> "El pedido especial siempre sale tarde."</p><p style="margin:0;"><strong>Causa raíz:</strong> el único horno compite con el pan del día a día. <span style="color:var(--coral);font-weight:700;">(Máquina)</span></p></div>
+        </div>
+        <div class="tab-panel" id="case-ropa">
+          <div class="reveal-panel"><p style="margin:0 0 0.5rem 0;"><strong>Síntoma:</strong> "Los clientes se quejan de que la talla nunca está."</p><p style="margin:0;"><strong>Causa raíz:</strong> el inventario se cuenta de memoria, sin método fijo. <span style="color:var(--coral);font-weight:700;">(Método / Medición)</span></p></div>
+        </div>
+        <div class="tab-panel" id="case-catering">
+          <div class="reveal-panel"><p style="margin:0 0 0.5rem 0;"><strong>Síntoma:</strong> "Siempre se atrasan las entregas de fin de semana."</p><p style="margin:0;"><strong>Causa raíz:</strong> el armado final depende de una sola persona del equipo. <span style="color:var(--coral);font-weight:700;">(Mano de obra)</span></p></div>
+        </div>
+        <p class="lead" style="margin-top:1.3rem;">¿Tu causa raíz depende de una sola persona, un solo proveedor, o una sola herramienta?</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: CIERRE -->
+    <section class="slide" id="slide-8">
+      <div class="slide-head">
+        <div class="badge">S3</div>
+        <div class="titles"><div class="eyebrow" style="color:#8fb0ff;">Bloque 6 · Cierre</div><h2>Tu entregable de hoy</h2></div>
+      </div>
+      <div class="content">
+        <div class="deliver-box"><p style="margin:0;font-weight:700;">Diagrama de Ishikawa + Semáforo Operativo, sobre tu flujograma de S2.</p></div>
+        <p class="lead">Hoy encontraron exactamente qué se traba y por qué.</p>
+        <p>La próxima sesión no vamos a diagnosticar más — vamos a arreglar esa restricción específica, sin adivinar.</p>
+        <p class="lead" style="color:var(--white);margin-top:1.3rem;">Pregunta para S4: si pudieras arreglar solo UNA cosa de tu negocio esta semana, ¿sería esta causa que acabas de encontrar?</p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="navbar">
+    <button class="nav-arrow" id="prevBtn" aria-label="Anterior">←</button>
+    <div class="nav-controls"><div class="dots" id="dots"></div><span class="nav-label" id="navLabel"></span></div>
+    <button class="nav-arrow" id="nextBtn" aria-label="Siguiente">→</button>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const labels = [
+    'Portada','Bloque 0 · Reconexión','Bloque 1 · El gancho','Bloque 2 · Semáforo Operativo',
+    'Bloque 3 · Ishikawa y las 6M','Bloque 4 · Tu propio Ishikawa',
+    'Bloque 5 · Caso real','Bloque 6 · Cierre'
+  ];
+  let current = 0;
+  const dotsWrap = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+  const navLabel = document.getElementById('navLabel');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function goTo(i){
+    if(i < 0 || i >= slides.length) return;
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    navLabel.textContent = (current+1) + ' / ' + slides.length + ' — ' + labels[current];
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === slides.length - 1;
+  }
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+  document.addEventListener('keydown', (e) => {
+    if(document.activeElement.tagName === 'INPUT') return;
+    if(e.key === 'ArrowRight') goTo(current + 1);
+    if(e.key === 'ArrowLeft') goTo(current - 1);
+  });
+  goTo(0);
+
+  function toggleReveal(id){ document.getElementById(id).classList.toggle('open'); }
+
+  function toggleAcc(head){
+    const item = head.closest('.acc-item');
+    item.classList.toggle('open');
+  }
+
+  document.querySelectorAll('#slide-7 .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#slide-7 .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#slide-7 .tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('case-' + btn.dataset.case).classList.add('active');
+    });
+  });
+
+  function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+
+  // ════════════════════════════════════════════════════════════
+  //  SEMÁFORO — puente desde S2 via DNI
+  // ════════════════════════════════════════════════════════════
+  const S2_PREFIX   = 'bcp_s2_flujo_';
+  const SEM_PREFIX  = 'bcp_s3_semaforo_';
+  const ISHI_PREFIX = 'bcp_s3_ishikawa_';
+  const S3_SESSION  = 'bcp_s3_session';
+  const LIGHT_ORDER = ['', 'amber', 'red'];
+  const semSourceMsg = document.getElementById('semSourceMsg');
+
+  let s3DNI  = null;
+  let s3Name = null;
+  let semSteps = [];
+
+  // ── ROSTER (mismo que S2) ─────────────────────────────────
+  const ROSTER_S3 = {
+    "40165543":"KAREN PILAR AQUINO SALAS",
+    "73765671":"Nelida Lizbeth Ari Mamani",
+    "29722177":"Sandra Lourdes Calderon Cornejo",
+    "41623431":"Ana Maria Cane Garcia",
+    "45352138":"Marisabel Yesenia Casanova Quezada",
+    "70403483":"Yulisa Choquehuanca Huamani",
+    "46761514":"Maria Lucero Condori Rivera",
+    "75892740":"Andrea Cordova Juarez",
+    "43748147":"Luz Marina Cuello Cora",
+    "29651879":"Selene Gloria Esquia Becerra",
+    "45941843":"Isabel Lizbeth Fuentes Sucantaype",
+    "70571367":"Yomelly Bertha Gordillo Vilca",
+    "74486847":"Edith Ysabel Guzman Mamani",
+    "72891102":"Sol Maria Humpiri Pari",
+    "72942216":"Flor de Maria Hurtado Condorena",
+    "40013470":"Kathia Lucia Lizarraga Macedo",
+    "47685045":"Ruth Raquel Nunez Ccoscco",
+    "43668612":"Maria del Pilar Ochoa Velarde",
+    "29616486":"Monica Paola Pajuelo Macedo",
+    "40826509":"Jessica Jacqueline Palomino de la Cruz",
+    "72463147":"Jenyfer Steysi Pineda Zapana",
+    "41929947":"Silvana Angela Riveros Chavez",
+    "72772991":"Jessica Jenny Romero Torres",
+    "29646340":"Patricia del Pilar Tinta Chambi",
+    "74943408":"Dayana Vargas Arizaca"
+  };
+
+  // ── Leer flujograma de S2 por DNI ────────────────────────
+  function getFlujoFromS2(dni){
+    try {
+      const raw = localStorage.getItem(S2_PREFIX + dni);
+      if(!raw) return null;
+      const d = JSON.parse(raw);
+      const steps = Array.isArray(d.steps) ? d.steps : [];
+      return {
+        processName: d.processName || '',
+        steps: steps.filter(s => s.type === 'rect' || s.type === 'oval')
+                    .map(s => ({ text: s.text, light: '' }))
+      };
+    } catch(e){ return null; }
+  }
+
+  // ── Semáforo: guardar / cargar por DNI ───────────────────
+  function saveSem(){
+    if(!s3DNI) return;
+    try {
+      localStorage.setItem(SEM_PREFIX + s3DNI, JSON.stringify(semSteps));
+    } catch(e){}
+  }
+  function loadSem(dni){
+    try {
+      const raw = localStorage.getItem(SEM_PREFIX + dni);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+  }
+
+  // ── Login overlay ─────────────────────────────────────────
+  function s3Login(){
+    const val = document.getElementById('s3DniInput').value.trim();
+    const err = document.getElementById('s3DniErr');
+    const preview = document.getElementById('s3FlujoPreview');
+    err.textContent = '';
+    preview.innerHTML = '';
+
+    if(!val || val.length < 6){
+      err.textContent = 'Ingresa tu DNI completo (8 dígitos).';
+      return;
+    }
+    if(!ROSTER_S3[val]){
+      err.textContent = 'DNI no registrado en el programa.';
+      return;
+    }
+
+    const flujo = getFlujoFromS2(val);
+    if(!flujo || flujo.steps.length === 0){
+      // Mostrar aviso pero permitir entrar igualmente (podrá agregar pasos manualmente)
+      preview.innerHTML =
+        '<div class="s3-no-flujo">No encontramos tu flujograma de S2 en este dispositivo.' +
+        ' Puedes agregar tus pasos manualmente en el Semáforo Operativo.</div>';
+      // Dar 1.5 seg para leer el aviso y luego entrar
+      setTimeout(() => iniciarS3(val, []), 1500);
+      return;
+    }
+
+    // Mostrar preview del flujo encontrado
+    let ph = '<div class="s3-flujo-preview"><p>✓ Flujograma encontrado — ' +
+             (flujo.processName || 'sin nombre') + '</p>';
+    flujo.steps.forEach(s => {
+      ph += '<div class="s3-flujo-step">' +
+            '<span class="s3-step-dot' + (s.type === 'oval' ? ' oval' : '') + '"></span>' +
+            escapeHtml(s.text) + '</div>';
+    });
+    ph += '</div>';
+    preview.innerHTML = ph;
+
+    setTimeout(() => iniciarS3(val, flujo.steps), 900);
+  }
+
+  function iniciarS3(dni, pasos){
+    s3DNI  = dni;
+    s3Name = ROSTER_S3[dni];
+    sessionStorage.setItem(S3_SESSION, JSON.stringify({ dni, name: s3Name }));
+
+    // ¿Ya tenía un semáforo guardado de una sesión anterior?
+    const prevSem = loadSem(dni);
+    if(prevSem && prevSem.length){
+      semSteps = prevSem;
+      semSourceMsg.textContent = 'Se recuperó tu semáforo anterior, ' + s3Name.split(' ')[0] + '.';
+    } else if(pasos.length){
+      semSteps = pasos;
+      semSourceMsg.textContent = '✓ ' + pasos.length + ' pasos cargados desde tu flujograma de S2, ' +
+                                  s3Name.split(' ')[0] + '. Toca cada círculo para marcarlo.';
+    } else {
+      semSteps = [];
+      semSourceMsg.textContent = 'Agrega los pasos de tu flujograma manualmente.';
+    }
+    semSourceMsg.style.display = 'block';
+
+    // Cerrar overlay
+    document.getElementById('s3LoginOverlay').classList.add('hidden');
+    const tag = document.getElementById('s3NameTag');
+    if(tag) tag.textContent = s3Name ? s3Name.split(' ')[0] + ' · S3' : '';
+    renderSem();
+
+    // Pre-cargar Ishikawa si ya lo tenía
+    try {
+      const rawI = localStorage.getItem(ISHI_PREFIX + dni);
+      if(rawI){
+        const saved = JSON.parse(rawI);
+        if(saved.symptom) document.getElementById('symptomInput').value = saved.symptom;
+        if(saved.causes){
+          M_CATEGORIES.forEach(m => {
+            causes[m] = saved.causes[m] || [];
+            renderCauses(m);
+          });
+        }
+      }
+    } catch(e){}
+  }
+
+  // ── Intentar reanudar sesión ──────────────────────────────
+  function tryResumeS3(){
+    try {
+      const raw = sessionStorage.getItem(S3_SESSION);
+      if(!raw) return false;
+      const s = JSON.parse(raw);
+      if(s.dni && ROSTER_S3[s.dni]){
+        document.getElementById('s3DniInput').value = s.dni;
+        s3Login();
+        return true;
+      }
+    } catch(e){}
+    return false;
+  }
+
+  // Enter en el input del login
+  document.getElementById('s3DniInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter') s3Login();
+  });
+
+  // ════════════════════════════════════════════════════════════
+  //  JSONBIN — guardar semáforo + ishikawa en la nube
+  // ════════════════════════════════════════════════════════════
+  const S3_BIN_URL      = 'https://api.jsonbin.io/v3/b/' + BIN_ID_S3;
+  const S3_HEADERS_R    = { 'X-Master-Key': BIN_KEY_S3 };
+  const S3_HEADERS_W    = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY_S3 };
+
+  async function s3BinRead(){
+    try{
+      const r = await fetch(S3_BIN_URL, { headers: S3_HEADERS_R });
+      if(!r.ok) return null;
+      const j = await r.json();
+      return j.record || null;
+    } catch(e){ return null; }
+  }
+
+  async function s3BinWrite(data){
+    try{
+      const r = await fetch(S3_BIN_URL, {
+        method: 'PUT', headers: S3_HEADERS_W, body: JSON.stringify(data)
+      });
+      return r.ok;
+    } catch(e){ return false; }
+  }
+
+  async function guardarEnNube(){
+    if(!s3DNI){ showS3Status('Ingresa tu DNI primero.', 'err'); return; }
+    if(!semSteps.length){ showS3Status('Agrega al menos un paso al semáforo.', 'err'); return; }
+    showS3Status('Guardando...', 'loading');
+    const rec = await s3BinRead();
+    if(rec === null){ showS3Status('Error de conexión. Verifica tu internet.', 'err'); return; }
+    const entries = Array.isArray(rec.entries) ? rec.entries : [];
+    const payload = {
+      dni: s3DNI,
+      name: s3Name,
+      semaforo: semSteps,
+      symptom: document.getElementById('symptomInput').value.trim(),
+      causes: causes,
+      savedAt: new Date().toISOString(),
+      // resumen para el panel docente
+      rojoCount:    semSteps.filter(s => s.light === 'red').length,
+      amberCount:   semSteps.filter(s => s.light === 'amber').length,
+      totalSteps:   semSteps.length,
+      hasRootCause: Object.values(causes).some(arr => arr.some(c => c.root)),
+    };
+    const idx = entries.findIndex(e => e.dni === s3DNI);
+    if(idx >= 0) entries[idx] = payload; else entries.push(payload);
+    const ok = await s3BinWrite({ entries });
+    showS3Status(
+      ok ? '✅ Guardado correctamente en la nube.' : '⚠️ Error al guardar. Intenta de nuevo.',
+      ok ? 'ok' : 'err'
+    );
+    if(ok) setTimeout(() => showS3Status('', ''), 4000);
+  }
+
+  function showS3Status(msg, cls){
+    const el = document.getElementById('s3SaveStatus');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 's3-save-status ' + (cls || '');
+  }
+
+  const semList = document.getElementById('semStepsList');
+  const semInput = document.getElementById('semStepInput');
+
+  function renderSem(){
+    saveSem();
+    semList.innerHTML = '';
+    if(semSteps.length === 0){
+      semList.innerHTML = '<p class="empty-hint">Aún no hay pasos. Escribe el primero de tu flujograma.</p>';
+      return;
+    }
+    semSteps.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'step-card' + (s.light ? ' ' + s.light : '');
+      card.innerHTML =
+        '<button class="light-btn' + (s.light ? ' ' + s.light : '') + '" data-i="' + i + '" title="Toca para cambiar el color" aria-label="Cambiar color"></button>' +
+        '<span class="step-text">' + escapeHtml(s.text) + '</span>' +
+        '<div class="step-actions"><button data-action="del" data-i="' + i + '" aria-label="Eliminar">✕</button></div>';
+      semList.appendChild(card);
+    });
+  }
+  function addSemStep(){
+    const val = semInput.value.trim();
+    if(!val) return;
+    semSteps.push({ text: val, light: '' });
+    semInput.value = '';
+    semInput.focus();
+    renderSem();
+  }
+  document.getElementById('semAddBtn').addEventListener('click', addSemStep);
+  semInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') addSemStep(); });
+  semList.addEventListener('click', (e) => {
+    const lightBtn = e.target.closest('.light-btn');
+    if(lightBtn){
+      const i = parseInt(lightBtn.dataset.i, 10);
+      const idx = LIGHT_ORDER.indexOf(semSteps[i].light);
+      semSteps[i].light = LIGHT_ORDER[(idx + 1) % LIGHT_ORDER.length];
+      renderSem();
+      return;
+    }
+    const delBtn = e.target.closest('button[data-action="del"]');
+    if(delBtn){
+      semSteps.splice(parseInt(delBtn.dataset.i, 10), 1);
+      renderSem();
+    }
+  });
+  document.getElementById('semReloadBtn').addEventListener('click', () => {
+    const fresh = loadFlujoFromS2();
+    if(!fresh.length){
+      semSourceMsg.textContent = 'No se encontró un flujograma guardado de la Sesión 2 en este navegador — agrega los pasos manualmente.';
+      semSourceMsg.style.display = 'block';
+      return;
+    }
+    semSteps = fresh;
+    semSourceMsg.textContent = '✓ Se recargaron ' + semSteps.length + ' pasos desde tu flujograma de la Sesión 2.';
+    semSourceMsg.style.display = 'block';
+    renderSem();
+  });
+  renderSem();
+  tryResumeS3();
+
+  // ---- ISHIKAWA builder ----
+  // Se guarda también en localStorage (síntoma + causas) para que, si más adelante
+  // se arma una app de Sesión 4, pueda partir directo de la causa raíz encontrada aquí.
+  // ISHIKAWA_KEY ahora es ISHI_PREFIX + DNI (definido arriba)
+  const M_CATEGORIES = ['Mano de obra', 'Método', 'Materiales', 'Máquina', 'Medio', 'Medición'];
+
+  // loadIshikawa movida a iniciarS3
+  let causes = {};
+  M_CATEGORIES.forEach(m => causes[m] = []);
+
+  function saveIshikawa(){
+    try {
+      const key = s3DNI ? (ISHI_PREFIX + s3DNI) : 'bcp_s3_ishikawa_anon';
+      localStorage.setItem(key, JSON.stringify({
+        symptom: document.getElementById('symptomInput').value,
+        causes: causes,
+      }));
+    } catch(e){}
+  }
+
+  const mGrid = document.getElementById('mGrid');
+  M_CATEGORIES.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'm-card';
+    card.dataset.m = m;
+    card.innerHTML =
+      '<h3>' + m + '</h3>' +
+      '<div class="m-input-row"><input type="text" placeholder="Posible causa..." maxlength="70"><button class="add-mini">+</button></div>' +
+      '<div class="cause-list"></div>';
+    mGrid.appendChild(card);
+  });
+
+  if(savedIshikawa && savedIshikawa.symptom){
+    document.getElementById('symptomInput').value = savedIshikawa.symptom;
+  }
+  document.getElementById('symptomInput').addEventListener('input', saveIshikawa);
+
+  function renderCauses(m){
+    saveIshikawa();
+    const card = mGrid.querySelector('.m-card[data-m="' + CSS.escape(m) + '"]');
+    const list = card.querySelector('.cause-list');
+    list.innerHTML = '';
+    causes[m].forEach((c, i) => {
+      const item = document.createElement('div');
+      item.className = 'cause-item' + (c.root ? ' root' : '');
+      item.innerHTML =
+        '<span>' + escapeHtml(c.text) + '</span>' +
+        '<button class="mark-root" data-m="' + escapeHtml(m) + '" data-i="' + i + '" data-action="root" title="Marcar como causa raíz">' + (c.root ? '★' : '☆') + '</button>' +
+        '<button data-m="' + escapeHtml(m) + '" data-i="' + i + '" data-action="del" title="Eliminar">✕</button>';
+      list.appendChild(item);
+    });
+  }
+  M_CATEGORIES.forEach(renderCauses);
+
+  mGrid.addEventListener('click', (e) => {
+    const addBtn = e.target.closest('.add-mini');
+    if(addBtn){
+      const card = addBtn.closest('.m-card');
+      const m = card.dataset.m;
+      const input = card.querySelector('input');
+      const val = input.value.trim();
+      if(!val) return;
+      causes[m].push({ text: val, root: false });
+      input.value = '';
+      renderCauses(m);
+      return;
+    }
+    const actionBtn = e.target.closest('button[data-action]');
+    if(actionBtn){
+      const m = actionBtn.dataset.m;
+      const i = parseInt(actionBtn.dataset.i, 10);
+      if(actionBtn.dataset.action === 'del'){ causes[m].splice(i, 1); }
+      if(actionBtn.dataset.action === 'root'){ causes[m][i].root = !causes[m][i].root; }
+      renderCauses(m);
+    }
+  });
+  mGrid.querySelectorAll('.m-card input').forEach(inp => {
+    inp.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.target.nextElementSibling.click(); }
+    });
+  });
+</script>
+</body>
+</html>

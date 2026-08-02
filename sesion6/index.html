@@ -451,17 +451,23 @@ function getTareaEj(){ return (currentDNI && TAREAS[currentDNI]) ? TAREAS[curren
 const SECTIONS = [
   { key:'materiales', icon:'\ud83e\uddf0', title:'1. Qu\u00e9 necesitas antes',
     hint:'Materiales, herramientas, ingredientes o preparaci\u00f3n que debes tener listos ANTES de empezar.',
-    ph:'Ej: horno precalentado, molde enmantecado, 3 huevos a temperatura ambiente...' },
+    ph:'Escribe aqu\u00ed lo que necesitas tener listo...',
+    ex:'\ud83d\udca1 Ejemplo: molde enmantecado, horno precalentado a 180\u00b0, mezcla ya reposada, guantes de horno.' },
   { key:'pasos', icon:'\ud83d\udc63', title:'2. El paso a paso del c\u00f3mo',
     hint:'Las acciones detalladas con tus trucos: tiempos, cantidades, temperaturas, la forma correcta de hacerlo.',
-    ph:'Ej: batir 5 min hasta punto letra, hornear a 180\u00b0 por 35 min, NO abrir el horno antes de 25 min...' },
+    ph:'Escribe cada paso en una l\u00ednea...',
+    ex:'\ud83d\udca1 Ejemplo: verter la mezcla llenando m\u00e1ximo \u00be del molde \u00b7 hornear 35 min exactos \u00b7 NO abrir el horno antes de 25 min.' },
   { key:'calidad', icon:'\u2705', title:'3. C\u00f3mo saber que qued\u00f3 bien',
     hint:'La se\u00f1al de que est\u00e1 bien hecho. \u00bfC\u00f3mo verificas la calidad antes de darlo por terminado?',
-    ph:'Ej: al insertar un palillo sale limpio, el color es dorado parejo, no se hunde al centro...' },
+    ph:'Escribe las se\u00f1ales de que qued\u00f3 bien...',
+    ex:'\ud83d\udca1 Ejemplo: el palillo sale limpio \u00b7 la superficie est\u00e1 dorada pareja \u00b7 al presionar el centro recupera su forma.' },
   { key:'errores', icon:'\u26a0\ufe0f', title:'4. Errores comunes a evitar',
     hint:'Lo que sale mal si no tienes cuidado. Esos errores que t\u00fa ya sabes evitar por experiencia.',
-    ph:'Ej: si abres el horno antes de tiempo se baja, si bates de m\u00e1s queda duro...' }
+    ph:'Escribe los errores que hay que evitar...',
+    ex:'\ud83d\udca1 Ejemplo: abrir el horno antes de tiempo (se baja) \u00b7 no enmantecar el molde (se pega) \u00b7 desmoldar en caliente (se rompe).' }
 ];
+
+
 
 async function cargarDatos(){
   let own=null;
@@ -552,7 +558,8 @@ function renderSections(){
     d.innerHTML =
       '<div class="poe-sec-head"><div class="poe-sec-icon">'+sec.icon+'</div><div class="poe-sec-title">'+sec.title+'</div></div>'+
       '<div class="poe-sec-hint">'+sec.hint+'</div>'+
-      '<textarea class="poe-textarea" data-key="'+sec.key+'" placeholder="'+sec.ph+'">'+esc(secciones[sec.key]||'')+'</textarea>';
+      '<textarea class="poe-textarea" data-key="'+sec.key+'" placeholder="'+sec.ph+'">'+esc(secciones[sec.key]||'')+'</textarea>'+
+      '<div class="poe-ex">'+sec.ex+'</div>';
     cont.appendChild(d);
   });
 }
@@ -636,27 +643,46 @@ $('wordBtn').addEventListener('click', ()=>{
 
   // helpers de formato
   const S='font-family:Calibri,sans-serif;color:#1C2536;';
+
+  // Formaliza el texto informal de la emprendedora para el documento formal:
+  // capitaliza, corrige espacios, une líneas sueltas, asegura punto final.
+  function formal(t){
+    if(!t) return '';
+    let s=String(t).replace(/\r/g,'').trim();
+    // normalizar espacios múltiples (respetando saltos de línea)
+    s=s.split('\n').map(l=>l.replace(/[ \t]+/g,' ').trim()).filter(l=>l).join('\n');
+    return s;
+  }
+  function formalLine(l){
+    let s=l.replace(/^[-•*\d\.\)\s]+/,'').replace(/[ \t]+/g,' ').trim();
+    if(!s) return '';
+    // capitalizar primera letra
+    s=s.charAt(0).toUpperCase()+s.slice(1);
+    // punto final si no tiene puntuación de cierre
+    if(!/[.!?:;]$/.test(s)) s+='.';
+    return s;
+  }
   const H2='color:#002A8D;font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1pt solid #C8D4E8;padding-bottom:2pt;';
   function bullets(txt){
-    // convierte líneas / oraciones en items de lista
-    const items=txt.split(/\n+/).map(l=>l.replace(/^[-•\d\.\)\s]+/,'').trim()).filter(l=>l);
+    const clean=formal(txt);
+    let items=clean.split(/\n+/).map(l=>l.trim()).filter(l=>l);
+    // si vino todo en un bloque, partir por oraciones
     if(items.length<=1){
-      // si es un bloque, intentar partir por ". "
-      const alt=txt.split(/\.\s+/).map(l=>l.trim()).filter(l=>l.length>3);
-      if(alt.length>1) return '<ul style="margin:0 0 0 18pt;padding:0">'+alt.map(i=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+(i.endsWith('.')?'':'.')+'</li>').join('')+'</ul>';
+      const alt=clean.split(/\.\s+/).map(l=>l.trim()).filter(l=>l.length>3);
+      if(alt.length>1) items=alt;
     }
+    items=items.map(formalLine).filter(l=>l);
     return '<ul style="margin:0 0 0 18pt;padding:0">'+items.map(i=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+'</li>').join('')+'</ul>';
   }
 
-  // tabla de metadatos
+    // tabla de metadatos
   const meta=[
     ['Código','POE-01'],
     ['Versión','1.0'],
     ['Proceso / tarea documentada', esc(tarea)],
     ['Elaborado por', esc(currentName)],
     ['Negocio', esc(rubro||'—')],
-    ['Fecha de elaboración', fecha],
-    ['Validado mediante prueba práctica', passed?'Sí':(val?'En proceso':'Pendiente')]
+    ['Fecha de elaboración', fecha]
   ];
   const metaRows=meta.map((r,i)=>
     '<tr>'+
@@ -665,7 +691,7 @@ $('wordBtn').addEventListener('click', ()=>{
     '</tr>').join('');
 
   // secciones de contenido
-  const objetivo='Estandarizar la ejecución de esta tarea para que cualquier persona capacitada pueda realizarla correctamente, sin depender de la supervisión directa de la propietaria del negocio. Este documento complementa el Mapa de Proceso (flujograma) elaborado en la Sesión 2, que identifica QUÉ pasos tiene el proceso; aquí se especifica CÓMO ejecutar correctamente el paso más crítico.';
+  const objetivo='Establecer un estándar claro y replicable para la ejecución de esta tarea, de modo que cualquier persona debidamente capacitada pueda llevarla a cabo de forma correcta y consistente, sin requerir la supervisión permanente de la propietaria del negocio. El presente documento complementa el mapa de proceso (flujograma) elaborado en la Sesión 2 —el cual identifica QUÉ pasos conforman el proceso— y detalla CÓMO debe ejecutarse correctamente el paso considerado crítico, incluyendo los parámetros técnicos, criterios de calidad y precauciones que garantizan un resultado uniforme.';
 
   let cuerpo='';
   cuerpo+='<div style="'+H2+'">1.  OBJETIVO DEL PROCEDIMIENTO</div>';
@@ -684,16 +710,6 @@ $('wordBtn').addEventListener('click', ()=>{
   }
   if(secciones.errores && secciones.errores.trim()){
     cuerpo+='<div style="'+H2+'">5.  RIESGOS Y ERRORES FRECUENTES</div>'+bullets(secciones.errores);
-  }
-
-  // sección 6: validación
-  cuerpo+='<div style="'+H2+'">6.  VALIDACIÓN DEL PROCEDIMIENTO (“PRUEBA DE FUEGO”)</div>';
-  cuerpo+='<p style="font-size:11pt;line-height:1.5;text-align:justify">Antes de darse por válido, este procedimiento fue puesto a prueba: una persona distinta a la autora lo ejecutó (o intentó seguirlo) usando únicamente lo aquí escrito, sin recibir explicaciones adicionales.</p>';
-  const chk=passed?'☑':'☐';
-  cuerpo+='<p style="font-size:11pt;line-height:1.7;margin:6pt 0">'+
-    chk+'  Una persona distinta a la autora pudo seguir el procedimiento sin preguntar'+(val?' (probado por: <b>'+esc(val)+'</b>)':'')+'</p>';
-  if(fb){
-    cuerpo+='<p style="font-size:11pt;line-height:1.5;margin-top:6pt"><b>Mejoras detectadas durante la prueba:</b> '+esc(fb)+'</p>';
   }
 
   const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+

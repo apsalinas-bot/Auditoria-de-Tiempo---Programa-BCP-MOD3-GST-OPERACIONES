@@ -101,12 +101,12 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .abc-cat.C h4{color:var(--muted)}
 .abc-cat p{font-size:12px;color:var(--ink);line-height:1.5}
 .abc-cat .items{font-size:11.5px;color:var(--muted);margin-top:5px;font-style:italic}
-/* barra pareto visual */
-.pareto{display:flex;height:38px;border-radius:8px;overflow:hidden;margin:12px 0}
-.pareto-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;min-width:24px}
-.pareto-seg.A{background:var(--A)}
-.pareto-seg.B{background:var(--B)}
-.pareto-seg.C{background:var(--C)}
+/* barra de distribución ABC */
+.abc-dist{display:flex;height:38px;border-radius:8px;overflow:hidden;margin:12px 0}
+.abc-dist-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;min-width:24px}
+.abc-dist-seg.A{background:var(--A)}
+.abc-dist-seg.B{background:var(--B)}
+.abc-dist-seg.C{background:var(--C)}
 /* plan */
 .plan-input{width:100%;padding:12px;font-size:14px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;color:var(--ink);min-height:60px;resize:vertical;margin-top:6px}
 .plan-input:focus{outline:none;border-color:var(--teal)}
@@ -219,7 +219,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <p class="hint">Escribe tus insumos o productos de inventario. Para cada uno: cu&aacute;nto cuesta y cu&aacute;ntos usas o vendes al mes. La app calcula cu&aacute;nto dinero representa cada uno.</p>
       <div class="name-tag" id="nameTag"></div>
       <div class="ins-intro">
-        <b>&iquest;Por qu&eacute; esto importa?</b> No todos tus insumos valen lo mismo. Algunos pocos se llevan la mayor parte de tu dinero. Esos son los que debes cuidar m&aacute;s.
+        <b>&iquest;Por qu&eacute; esto importa?</b> No todos tus insumos valen lo mismo. Los hay cr&iacute;ticos (valen mucho), intermedios y de bajo valor. Clasificarlos te dice exactamente cu&aacute;les cuidar y cu&aacute;les no.
       </div>
       <div id="insList"></div>
       <button class="ghost no-print" id="addInsBtn" style="margin-bottom:6px">+ Agregar otro insumo</button>
@@ -229,7 +229,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
     <div class="card">
       <span class="step-label">Paso 2 &middot; Tu Matriz ABC</span>
       <h2>As&iacute; se reparte tu dinero</h2>
-      <p class="hint">La app orden&oacute; tus insumos de mayor a menor valor y los agrup&oacute; con la regla 80-20: pocos insumos concentran la mayor parte del dinero.</p>
+      <p class="hint">La app orden&oacute; tus insumos de mayor a menor valor y los agrup&oacute; en 3 categor&iacute;as: A concentra la mayor parte de tu dinero, B es intermedio, y C son los de bajo valor.</p>
       <div id="abcResult"><p class="abc-empty">Agrega insumos con su costo y cantidad, y aqu&iacute; aparecer&aacute; tu clasificaci&oacute;n ABC.</p></div>
     </div>
 
@@ -427,7 +427,7 @@ function bindInsInputs(){
 }
 $('addInsBtn').addEventListener('click', ()=>{ insumos.push(emptyIns()); renderInsumos(); save(); });
 
-// ── MATRIZ ABC (Pareto 80-20) ──
+// ── MATRIZ ABC ──
 function computeABC(){
   const valid=insumos.filter(it=>it.name && it.cost!=='' && it.qty!=='' && !isNaN(parseFloat(it.cost)) && !isNaN(parseFloat(it.qty)));
   const cont=$('abcResult');
@@ -441,9 +441,10 @@ function computeABC(){
   const items=valid.map(it=>({ name:it.name, value:parseFloat(it.cost)*parseFloat(it.qty), cost:parseFloat(it.cost), qty:parseFloat(it.qty) }));
   items.sort((a,b)=>b.value-a.value);
   const total=items.reduce((s,it)=>s+it.value,0);
-  // Clasificacion ABC (Pareto 80-20) robusta tambien para pocos insumos.
-  // Regla: por % acumulado (A<=80, B<=95, C resto), PERO garantizando que
-  // un insumo con peso individual alto no caiga injustamente en C/B.
+  // Clasificación ABC clásica (por valor acumulado):
+  // A ≈ primer 80% del valor  (pocos insumos, la mayor parte del dinero)
+  // B ≈ siguiente 15%          (importancia intermedia)
+  // C ≈ último 5%              (numerosos, poco dinero)
   let acc=0;
   items.forEach(it=>{
     acc+=it.value;
@@ -453,8 +454,17 @@ function computeABC(){
     else if(it.cumPct<=95) it.cat='B';
     else it.cat='C';
   });
-  // Ajuste 1: el insumo #1 (mayor valor) siempre es A.
+  // Garantía 1: el insumo de mayor valor SIEMPRE es A (aunque solo él supere el 80%).
   if(items.length) items[0].cat='A';
+  // Garantía 2: si con la regla todo quedó en una sola categoría, separar el último
+  // un escalón (evita que con 2-3 insumos todo salga A o todo C).
+  {
+    const cats=new Set(items.map(it=>it.cat));
+    if(items.length>=2 && cats.size===1){
+      const only=[...cats][0];
+      if(only==='A') items[items.length-1].cat='B';
+    }
+  }
   // Ajuste 2: un insumo que por si solo pesa >=15% no puede ser C (minimo B).
   items.forEach(it=>{ if(it.cat==='C' && it.pct>=12) it.cat='B'; });
   // Ajuste 3: un insumo que por si solo pesa >=40% es A.
@@ -467,48 +477,62 @@ function computeABC(){
 
 // Dibuja la pirámide ABC: A arriba (pocos insumos, mucho dinero), C abajo (muchos, poco)
 function buildPyramid(groups, pctA, pctB, pctC, total){
-  const nA=groups.A.length, nB=groups.B.length, nC=groups.C.length, nTot=nA+nB+nC;
-  const cntPctA=Math.round(nA/nTot*100), cntPctB=Math.round(nB/nTot*100), cntPctC=Math.round(nC/nTot*100);
-  // SVG pirámide: 3 trapecios apilados. Ancho crece hacia abajo.
-  const W=300, H=210, cx=W/2;
-  // alturas proporcionales fijas para legibilidad (no por dato, para que se vea pirámide)
-  const hA=54, hB=64, hC=74, gap=4;
-  // anchos (mitad) por nivel
-  const wA=42, wB=90, wC=140;
-  let y=6;
-  const A_top_y=y, A_bot_y=y+hA;
-  y=A_bot_y+gap; const B_top_y=y, B_bot_y=y+hB;
-  y=B_bot_y+gap; const C_top_y=y, C_bot_y=y+hC;
-  // ancho superior de cada trapecio = ancho inferior del de arriba
-  const wA_top=14;
-  function trap(topY,botY,wTop,wBot,fill,cat){
+  // Construir SOLO las categorías que tienen insumos, en orden A->B->C
+  const defs=[
+    {cat:'A', color:'#0E8C8C', cnt:groups.A.length, pct:pctA},
+    {cat:'B', color:'#E8A800', cnt:groups.B.length, pct:pctB},
+    {cat:'C', color:'#8AACBD', cnt:groups.C.length, pct:pctC}
+  ].filter(d=>d.cnt>0);
+
+  const n=defs.length;
+  if(n===0) return '';
+
+  // Geometría dinámica: la pirámide crece hacia abajo.
+  // El ancho (mitad) de cada nivel se reparte según cuántos niveles haya.
+  const W=300, cx=W/2, gap=4, levelH=62, padTop=6;
+  const H=padTop + n*levelH + (n-1)*gap + 8;
+  // anchos (mitad) del borde inferior de cada nivel: del más angosto (arriba) al más ancho (abajo)
+  const maxHalf=140, minHalf=42;
+  function halfAt(idx){
+    if(n===1) return 100;
+    // interpolar de minHalf (arriba) a maxHalf (abajo)
+    return minHalf + (maxHalf-minHalf) * (idx/(n-1));
+  }
+  const topHalf = 14; // ancho de la puntita superior
+
+  function trap(topY,botY,wTop,wBot,fill){
     return '<polygon points="'+(cx-wTop)+','+topY+' '+(cx+wTop)+','+topY+' '+(cx+wBot)+','+botY+' '+(cx-wBot)+','+botY+'" fill="'+fill+'"/>';
   }
+
   let svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:340px;display:block;margin:0 auto 6px" xmlns="http://www.w3.org/2000/svg">';
-  // trapecios
-  svg+=trap(A_top_y,A_bot_y,wA_top,wA,'#0E8C8C');
-  svg+=trap(B_top_y,B_bot_y,wA,wB,'#E8A800');
-  svg+=trap(C_top_y,C_bot_y,wB,wC,'#8AACBD');
-  // etiquetas dentro (letra grande)
-  svg+='<text x="'+cx+'" y="'+(A_top_y+hA/2+7)+'" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">A</text>';
-  svg+='<text x="'+cx+'" y="'+(B_top_y+hB/2+7)+'" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">B</text>';
-  svg+='<text x="'+cx+'" y="'+(C_top_y+hC/2+7)+'" text-anchor="middle" font-size="26" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">C</text>';
-  svg+='</svg>';
-  // Leyenda de dos lados: insumos vs dinero
+  let y=padTop;
+  let labels='';
+  defs.forEach((d,idx)=>{
+    const topY=y, botY=y+levelH;
+    const wTop = (idx===0) ? topHalf : halfAt(idx-1);
+    const wBot = halfAt(idx);
+    svg+=trap(topY,botY,wTop,wBot,d.color);
+    const fs = 22 + idx*2;
+    labels+='<text x="'+cx+'" y="'+(topY+levelH/2+7)+'" text-anchor="middle" font-size="'+fs+'" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">'+d.cat+'</text>';
+    y=botY+gap;
+  });
+  svg+=labels+'</svg>';
+
+  // Caja contenedora
   let box='<div style="background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px 12px;margin-bottom:14px">';
   box+='<div style="text-align:center;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Tu pir\u00e1mide de inventario</div>';
-  box+='<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">Pocos insumos arriba (A) valen mucho \u00b7 muchos abajo (C) valen poco</div>';
+  // subtítulo dinámico según categorías presentes
+  const catsTxt = defs.map(d=>d.cat).join(', ');
+  box+='<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">Cr\u00edticos (A) \u00b7 Intermedios (B) \u00b7 Bajo valor (C)</div>';
   box+=svg;
-  // fila comparativa por nivel
+  // fila comparativa por nivel (solo las que existen)
   box+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">';
-  const rows=[['A','#0E8C8C',nA,pctA],['B','#E8A800',nB,pctB],['C','#8AACBD',nC,pctC]];
-  rows.forEach(([cat,col,cnt,pctDin])=>{
-    if(cnt===0) return;
+  defs.forEach(d=>{
     box+='<div style="display:flex;align-items:center;gap:8px;font-size:11.5px">'+
-      '<span style="width:18px;height:18px;border-radius:4px;background:'+col+';color:#fff;text-align:center;font-weight:700;line-height:18px;flex-shrink:0">'+cat+'</span>'+
-      '<span style="flex:1;color:var(--ink)"><b>'+cnt+'</b> insumo'+(cnt>1?'s':'')+'</span>'+
+      '<span style="width:18px;height:18px;border-radius:4px;background:'+d.color+';color:#fff;text-align:center;font-weight:700;line-height:18px;flex-shrink:0">'+d.cat+'</span>'+
+      '<span style="flex:1;color:var(--ink)"><b>'+d.cnt+'</b> insumo'+(d.cnt>1?'s':'')+'</span>'+
       '<span style="color:var(--muted)">se lleva</span>'+
-      '<span style="font-weight:700;color:'+col+'">'+pctDin+'% del dinero</span></div>';
+      '<span style="font-weight:700;color:'+d.color+'">'+d.pct+'% del dinero</span></div>';
   });
   box+='</div></div>';
   return box;
@@ -525,13 +549,13 @@ function renderABC(){
   const pctA=Math.round(valA/total*100), pctB=Math.round(valB/total*100), pctC=Math.round(valC/total*100);
 
   let h='';
-  // barra pareto
-  h+='<div class="pareto">';
-  if(pctA>0) h+='<div class="pareto-seg A" style="width:'+pctA+'%">'+(pctA>=8?pctA+'%':'')+'</div>';
-  if(pctB>0) h+='<div class="pareto-seg B" style="width:'+pctB+'%">'+(pctB>=8?pctB+'%':'')+'</div>';
-  if(pctC>0) h+='<div class="pareto-seg C" style="width:'+pctC+'%">'+(pctC>=8?pctC+'%':'')+'</div>';
+  // barra de distribución ABC
+  h+='<div class="abc-dist">';
+  if(pctA>0) h+='<div class="abc-dist-seg A" style="width:'+pctA+'%">'+(pctA>=8?pctA+'%':'')+'</div>';
+  if(pctB>0) h+='<div class="abc-dist-seg B" style="width:'+pctB+'%">'+(pctB>=8?pctB+'%':'')+'</div>';
+  if(pctC>0) h+='<div class="abc-dist-seg C" style="width:'+pctC+'%">'+(pctC>=8?pctC+'%':'')+'</div>';
   h+='</div>';
-  h+='<p style="font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:14px">Cada barra = % del dinero que concentra ese grupo</p>';
+  h+='<p style="font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:14px">Cada segmento = % del dinero que concentra ese grupo</p>';
 
   // ── PIRÁMIDE ABC ──
   h+=buildPyramid(groups, pctA, pctB, pctC, total);
@@ -551,17 +575,17 @@ function renderABC(){
   h+='<div class="abc-legend">';
   if(groups.A.length){
     h+='<div class="abc-cat A"><h4>\u{1F3C6} Grupo A \u2014 tus insumos cr\u00edticos</h4>'+
-       '<p>Son <b>'+groups.A.length+' insumo(s)</b> que concentran el <b>'+pctA+'% de tu dinero</b>. Si uno de estos falta, tu negocio se detiene o pierdes mucho. <b>Cu\u00eddalos: nunca deben faltar.</b></p>'+
+       '<p>Son <b>'+groups.A.length+' insumo(s)</b> que concentran el <b>'+pctA+'% de tu dinero</b> (la mayor parte). Requieren mayor control, seguimiento frecuente y disponibilidad asegurada. <b>Nunca deben faltar.</b></p>'+
        '<div class="items">'+groups.A.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
   }
   if(groups.B.length){
-    h+='<div class="abc-cat B"><h4>\u2696\uFE0F Grupo B \u2014 valor medio</h4>'+
-       '<p><b>'+groups.B.length+' insumo(s)</b> con el <b>'+pctB+'%</b> de tu dinero. Contr\u00f3lalos con moderaci\u00f3n.</p>'+
+    h+='<div class="abc-cat B"><h4>\u2696\uFE0F Grupo B \u2014 importancia intermedia</h4>'+
+       '<p><b>'+groups.B.length+' insumo(s)</b> con el <b>'+pctB+'%</b> de tu dinero. Contr\u00f3lalos regularmente, pero con menos intensidad que los A.</p>'+
        '<div class="items">'+groups.B.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
   }
   if(groups.C.length){
-    h+='<div class="abc-cat C"><h4>\u{1F4B0} Grupo C \u2014 libera este dinero</h4>'+
-       '<p>Son <b>'+groups.C.length+' insumo(s)</b> y solo son el <b>'+pctC+'%</b> de tu dinero. No necesitas tener mucho stock de estos. <b>Compra menos y libera efectivo.</b></p>'+
+    h+='<div class="abc-cat C"><h4>\u{1F4B0} Grupo C \u2014 bajo valor</h4>'+
+       '<p>Suelen ser numerosos (<b>'+groups.C.length+' insumo(s)</b>) pero solo representan el <b>'+pctC+'%</b> de tu dinero. El riesgo es comprar de m\u00e1s \u201cporque son baratos\u201d y terminar acumul\u00e1ndolos. <b>Compra solo lo necesario.</b></p>'+
        '<div class="items">'+groups.C.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
   }
   h+='</div>';

@@ -1,1 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>La Limpieza &middot; Optimizaci&oacute;n &middot; S4 &middot; BCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
+  --ink:#1C2536;--bg:#F0F2F7;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--teal:#0891B2;--purple:#6D3BD4;
+  --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
+  --font:'Rubik',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+h1,h2,h3{font-weight:600;letter-spacing:-.2px}
+.top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--purple);border-radius:50%;opacity:.2}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
+.top h1{font-size:24px;margin-top:7px;line-height:1.16;position:relative;z-index:2}
+.top h1 span{color:#B79CFF}
+.top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
+.wrap{padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--purple);margin-bottom:3px}
+.card h2{font-size:18px;margin-bottom:3px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+.field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
 
+/* GATE */
+.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
+.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
+.role-list{display:flex;flex-direction:column;gap:10px}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
+.role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.rc-icon.emp{background:var(--purple)}
+.rc-icon.doc{background:var(--navy-d)}
+.rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
+.rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.role-card.selected .rc-label{color:var(--navy)}
+.gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.gate-panel.on{display:block}
+.gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
+.gate-dni-input,.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
+.gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.gate-dni-input:focus,.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px}
+.gate-btn.emp{background:var(--purple);box-shadow:0 5px 18px rgba(109,59,212,.32)}
+.gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
+
+/* buttons */
+.cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--purple);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(109,59,212,.28);transition:.15s;white-space:nowrap}
+.cta:active{transform:translateY(1px)}
+.cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
+.cta.green{background:var(--green);box-shadow:0 5px 16px rgba(47,158,95,.25)}
+.cta.full{width:100%;text-align:center}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;width:100%;text-align:center}
+.ghost:hover{border-color:var(--navy);color:var(--navy)}
+.source-msg{font-size:12.5px;color:var(--green);font-weight:600;background:#E8F8EE;border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.4}
+.source-msg.warn{color:var(--orange-d);background:#FFF6EA}
+.name-tag{font-size:12px;color:var(--muted);background:#F5F7FB;padding:5px 12px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:12px}
+
+/* flujograma 2.0 - cuello */
+.cuello-box{background:#FDECEA;border:1.5px solid var(--red);border-radius:12px;padding:14px;margin-bottom:14px}
+.cuello-box .cb-label{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.5px}
+.cuello-box .cb-text{font-size:15px;font-weight:600;color:var(--ink);margin-top:4px}
+.cuello-box .cb-cause{font-size:13px;color:var(--muted);margin-top:6px}
+.action-row{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.action-opt{display:flex;align-items:flex-start;gap:11px;padding:13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;cursor:pointer;transition:.15s}
+.action-opt:hover{border-color:var(--purple)}
+.action-opt.sel{border-color:var(--purple);border-width:2px;background:#F4EFFF}
+.action-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--purple);color:#fff}
+.action-txt{flex:1}
+.action-txt b{font-size:14px;color:var(--ink);display:block}
+.action-txt span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.action-plan{width:100%;padding:12px;font-size:14px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;color:var(--ink);margin-top:10px;min-height:70px;resize:vertical}
+.action-plan:focus{outline:none;border-color:var(--purple)}
+
+/* optimizador */
+.opt-intro{background:#F4EFFF;border-left:3px solid var(--purple);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--navy-d);line-height:1.5}
+.prod-card{background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:11px;position:relative}
+.prod-card h3{font-size:13.5px;color:var(--navy);font-weight:700;margin-bottom:10px}
+.prod-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;font-family:inherit}
+.mini-field{margin-bottom:9px}
+.mini-field label{font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.mini-field input{width:100%;padding:9px 11px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;color:var(--ink)}
+.mini-field input:focus{outline:none;border-color:var(--purple)}
+.mini-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ex-hint{font-size:10.5px;color:var(--purple);margin-top:3px;font-style:italic;line-height:1.35;opacity:.85}
+.mini-field .unit{font-weight:400;color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0}
+.gan-calc{font-size:12.5px;color:var(--green);font-weight:600;background:#E8F8EE;border-radius:8px;padding:6px 10px;margin:2px 0 10px}
+.recurso-box{background:#FFF6EA;border:1.5px solid var(--amber);border-radius:11px;padding:13px;margin:12px 0}
+.recurso-box label{font-size:12px;font-weight:700;color:var(--orange-d);display:block;margin-bottom:6px}
+.recurso-box input{width:100%;padding:10px 12px;font-size:15px;border:1.5px solid var(--amber);border-radius:9px;font-family:inherit;background:#fff}
+.recurso-box input:focus{outline:none;border-color:var(--orange-d)}
+.recurso-name{font-size:12px;color:var(--muted);margin-top:5px}
+.recurso-step{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--orange-d);margin-bottom:8px}
+.recurso-unit-note{background:#FFF;border:1px dashed var(--amber);border-radius:8px;padding:8px 11px;margin-top:11px;font-size:12px;color:var(--orange-d);line-height:1.45}
+.recurso-unit-note b{color:var(--ink)}
+.prod-section-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--purple);margin:4px 0 10px}
+
+/* resumen ecuacion (sin verse como matematica) */
+.eq-summary{background:var(--navy);color:#fff;border-radius:12px;padding:16px;margin-top:14px}
+.eq-summary h4{font-size:12px;font-weight:700;color:#B79CFF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.eq-line{font-size:13.5px;color:#E4EAFF;line-height:1.7;padding:3px 0}
+.eq-line b{color:#fff}
+.eq-goal{background:rgba(109,59,212,.4);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:13px}
+/* ecuacion formal */
+.eq-formal{background:#0D1B2A;border-radius:12px;padding:16px;margin-top:12px;font-family:'Courier New',monospace}
+.eq-formal h4{font-size:12px;font-weight:700;color:#F4A228;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;font-family:var(--font)}
+.eq-var{font-size:12.5px;color:#8AACBD;margin-bottom:10px;font-family:var(--font);line-height:1.6}
+.eq-var b{color:#B79CFF}
+.eq-max{font-size:15px;color:#fff;font-weight:700;padding:8px 0;border-bottom:1px solid #1E3A52;margin-bottom:8px}
+.eq-max .hl{color:#2F9E5F}
+.eq-constraint-title{font-size:11px;color:#8AACBD;font-family:var(--font);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px}
+.eq-c{font-size:13.5px;color:#E4EAFF;padding:3px 0;padding-left:12px}
+.eq-c .cmt{color:#8AACBD;font-size:11px;font-family:var(--font);font-style:italic}
+.eq-solver-note{background:#F0EAFF;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12.5px;color:var(--navy-d);line-height:1.5}
+.eq-solver-note b{color:var(--purple)}
+
+.save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
+.save-status.loading{color:var(--muted)}
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
+.logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+
+/* docente */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
+.kpi-val{font-size:30px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.3}
+.kpi-box.purple .kpi-val{color:var(--purple)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
+.emp-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
+.tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
+.tag.green{background:#E6F8EE;color:var(--green)}
+.tag.purple{background:#F0EAFF;color:var(--purple)}
+.tag.gray{background:#F1F5F9;color:var(--muted)}
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--purple))}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+#detailModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px}
+#detailModal.on{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit}
+.modal-name{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<!-- CLAVES -->
+<script>
+const BIN_ID     = '6a6e904ada38895dfeae307d';
+const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
+const DOCENTE_PW = '70003700';
+const BIN_ID_S3  = '6a6bfa73f5f4af5e29d83006';
+</script>
+
+<script>
+const ROSTER = {
+  "40165543":"KAREN PILAR AQUINO SALAS","73765671":"Nelida Lizbeth Ari Mamani","29722177":"Sandra Lourdes Calderon Cornejo",
+  "41623431":"Ana Maria Cane Garcia","45352138":"Marisabel Yesenia Casanova Quezada","70403483":"Yulisa Choquehuanca Huamani",
+  "46761514":"Maria Lucero Condori Rivera","75892740":"Andrea Cordova Juarez","43748147":"Luz Marina Cuello Cora",
+  "29651879":"Selene Gloria Esquia Becerra","45941843":"Isabel Lizbeth Fuentes Sucantaype","70571367":"Yomelly Bertha Gordillo Vilca",
+  "74486847":"Edith Ysabel Guzman Mamani","72891102":"Sol Maria Humpiri Pari","72942216":"Flor de Maria Hurtado Condorena",
+  "40013470":"Kathia Lucia Lizarraga Macedo","47685045":"Ruth Raquel Nunez Ccoscco","43668612":"Maria del Pilar Ochoa Velarde",
+  "29616486":"Monica Paola Pajuelo Macedo","40826509":"Jessica Jacqueline Palomino de la Cruz","72463147":"Jenyfer Steysi Pineda Zapana",
+  "41929947":"Silvana Angela Riveros Chavez","72772991":"Jessica Jenny Romero Torres","29646340":"Patricia del Pilar Tinta Chambi",
+  "74943408":"Dayana Vargas Arizaca"
+};
+const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "detalle": "Venta de computadoras, impresas, suministros informáticos. Adicionalmente dar servicios de instalaciones de equipos.", "producto": "una computadora armada", "precio": "1200", "costo": "950", "recurso_nombre": "horas de tu tiempo", "recurso_uso": "3", "maximo": "10 al mes (tu mejor mes)"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "detalle": "Diseño y confección de lencerías para mujeres", "producto": "una bata de lencería", "precio": "80", "costo": "45", "recurso_nombre": "horas de costura", "recurso_uso": "4", "maximo": "15 por semana"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "detalle": "Catering. 15 años en el rubro. El negocio lo conocía y producía la mamá y con la pandemia se fortaleció. Con RUC 10 por ", "producto": "un servicio de catering para 50", "precio": "900", "costo": "600", "recurso_nombre": "horas de cocina", "recurso_uso": "8", "maximo": "6 eventos al mes"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "detalle": "Organizaba eventos para conciertos, ofrece servicios de eventos para empresas. Eventos de conciertos musicales, eventos ", "producto": "un evento producido", "precio": "3000", "costo": "2000", "recurso_nombre": "horas de tu equipo", "recurso_uso": "40", "maximo": "4 eventos al mes"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "detalle": "Distribución de materiales de construcción y transporte de carga en general.", "producto": "un flete de material", "precio": "400", "costo": "280", "recurso_nombre": "horas de camión disponibles", "recurso_uso": "5", "maximo": "20 fletes por semana"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "detalle": "Importan y venden sábanas, cubrecamas, cobertores, toalla, cortinas, ventas al por mayor y menor. Tienen dos tiendas fís", "producto": "un cobertor importado", "precio": "120", "costo": "80", "recurso_nombre": "unidades en almacén", "recurso_uso": "1", "maximo": "200 en stock"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "detalle": "Fabricación y venta de instrumentos ancestrales musicales en cerámica y kit educativos de música andina. Alquilan un loc", "producto": "un instrumento ancestral", "precio": "150", "costo": "70", "recurso_nombre": "horas de taller", "recurso_uso": "6", "maximo": "12 por mes"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "detalle": "Tiene una funeraria el Eden. Ofrecen los servicios funerarios por paquetes que incluyen ataúd, traslados, preparación de", "producto": "un servicio funerario", "precio": "2500", "costo": "1600", "recurso_nombre": "servicios que puedes atender", "recurso_uso": "1", "maximo": "8 al mes"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "detalle": "Desde el 2019 tiene una florería, local comercial.\nRUC 10.", "producto": "un arreglo floral", "precio": "60", "costo": "30", "recurso_nombre": "horas de armado", "recurso_uso": "1", "maximo": "40 por semana"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "detalle": "Ferretería, comercialización de materiales de construcción", "producto": "una venta de material", "precio": "500", "costo": "380", "recurso_nombre": "horas de atención en tienda", "recurso_uso": "0.5", "maximo": "60 ventas por semana"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "detalle": "Tecnología para manualidades, ofrecen máquinas que ayudan a realizar el proceso más profesional. Es decir son distribuid", "producto": "una máquina de manualidades", "precio": "300", "costo": "180", "recurso_nombre": "horas de ensamblaje", "recurso_uso": "5", "maximo": "20 por mes"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "detalle": "Venta de snack dulces y saladas, y elaboración y venta de yogures.", "producto": "una tanda de snacks", "precio": "25", "costo": "12", "recurso_nombre": "horas de preparación", "recurso_uso": "2", "maximo": "50 tandas por semana"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "detalle": "Venta de Ropa de Dama y Varón, para adultos. Tiene un puesto  propio y tres alquilados y los cuatro puestos están juntos", "producto": "una prenda vendida", "precio": "70", "costo": "40", "recurso_nombre": "prendas que exhibes", "recurso_uso": "1", "maximo": "100 en tienda"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "detalle": "Venta de repuestos para vehículos comerciales como camiones.", "producto": "un repuesto vendido", "precio": "150", "costo": "100", "recurso_nombre": "horas de atención", "recurso_uso": "0.3", "maximo": "80 ventas por semana"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "detalle": "Comercialización de materiales no convencionales para la construcción, como por ejemplo: Poliestireno expandido", "producto": "un lote de material", "precio": "600", "costo": "420", "recurso_nombre": "horas de transporte", "recurso_uso": "4", "maximo": "25 lotes por semana"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "detalle": "Producen y venden conservas de pescado", "producto": "una caja de conservas", "precio": "90", "costo": "55", "recurso_nombre": "horas de producción", "recurso_uso": "3", "maximo": "40 cajas por semana"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "detalle": "Es un Minimarket", "producto": "una venta del minimarket", "precio": "30", "costo": "20", "recurso_nombre": "espacio de góndola", "recurso_uso": "1", "maximo": "500 productos"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "detalle": "Es una escuela de cocina que ofrece clases a jóvenes o adultos mayores. Dan clases sólo sábados y domingos. Tiene actual", "producto": "un curso de cocina", "precio": "200", "costo": "90", "recurso_nombre": "horas de clase disponibles", "recurso_uso": "4", "maximo": "15 cupos por semana"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "detalle": "Tercerización de personal de salud, laboratorio y odontología. Oficina virtual.", "producto": "un servicio de personal", "precio": "1500", "costo": "1000", "recurso_nombre": "servicios que puedes cubrir", "recurso_uso": "1", "maximo": "10 al mes"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "detalle": "Compra y vende ladrillos, cementos, alambres y fierros, entre otros afines. Su cliente principal es el Estado. Es distri", "producto": "un pedido de ladrillos", "precio": "800", "costo": "600", "recurso_nombre": "horas de despacho", "recurso_uso": "3", "maximo": "30 pedidos por semana"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "detalle": "Formalizados desde el 2021, desarrolla servicios ambientales a empresas, ayudan a las empresas a prevenir multas ambient", "producto": "un servicio empresarial", "precio": "1200", "costo": "700", "recurso_nombre": "horas de consultoría", "recurso_uso": "10", "maximo": "8 servicios al mes"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "detalle": "Es un Hospedaje que fue inaugurado en el 2018 que atiende publico del sector salud y ejecutivo. Está ubicado en Cerro Co", "producto": "una noche de hospedaje", "precio": "120", "costo": "50", "recurso_nombre": "habitaciones-noche por día", "recurso_uso": "1", "maximo": "20 habitaciones"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "detalle": "Brindar asesoría a las  MYPES para certificarse en Normas ISO", "producto": "una asesoría MYPE", "precio": "900", "costo": "500", "recurso_nombre": "horas de asesoría", "recurso_uso": "12", "maximo": "6 al mes"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "detalle": "Su empresa brinda servicios profesionales a empresas, para certificaciones ISO, homologaciones, auditorías. Tiene 20 año", "producto": "un servicio profesional", "precio": "1000", "costo": "600", "recurso_nombre": "horas de trabajo disponibles", "recurso_uso": "15", "maximo": "5 al mes"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "detalle": "Hospedaje", "producto": "una noche de hospedaje", "precio": "100", "costo": "45", "recurso_nombre": "habitaciones-noche por día", "recurso_uso": "1", "maximo": "15 habitaciones"}};
+</script>
+
+<!-- GATE -->
+<div id="gateScreen">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 4</div>
+    <h1>La Limpieza <span>(Optimizaci&oacute;n)</span></h1>
+    <p>Mejora el paso que te frena y encuentra tu mezcla ideal de producci&oacute;n.</p>
+  </div>
+  <div class="wrap">
+    <div class="card" style="padding:24px 20px">
+      <div class="gate-title">&iquest;C&oacute;mo vas a entrar?</div>
+      <div class="gate-sub">Elige tu perfil para empezar.</div>
+      <div class="role-list">
+        <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
+          <div class="rc-icon emp">&#9670;</div>
+          <div><span class="rc-label">Soy emprendedora / due&ntilde;a de negocio</span><span class="rc-sub">Mejora tu cuello y optimiza tu producci&oacute;n</span></div>
+        </button>
+        <button class="role-card" id="cardDoc" onclick="pickRole('doc')">
+          <div class="rc-icon doc">&#9783;</div>
+          <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
+        </button>
+      </div>
+      <div class="gate-panel on" id="panelEmp">
+        <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div class="gate-err" id="errEmp"></div>
+        <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
+      </div>
+      <div class="gate-panel" id="panelDoc">
+        <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div class="gate-err" id="errDoc"></div>
+        <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+    </div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
+  </div>
+</div>
+
+<!-- VISTA EMPRENDEDORA -->
+<div id="empView" style="display:none">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Sesi&oacute;n 4 &middot; Diagnosticar</div>
+    <h1>La Limpieza <span>(Optimizaci&oacute;n)</span></h1>
+    <p id="empWelcome">Mejora tu cuello y encuentra tu mezcla ideal.</p>
+  </div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
+  <div class="wrap">
+
+    <!-- PASO 1: FLUJOGRAMA 2.0 -->
+    <div class="card">
+      <span class="step-label">Paso 1 &middot; Flujograma 2.0</span>
+      <h2>Ataca tu cuello de botella</h2>
+      <p class="hint">En la Sesi&oacute;n 3 encontraste <b>qu&eacute;</b> te frena y <b>por qu&eacute;</b>. Hoy decides <b>qu&eacute; hacer</b> con ese paso. Ese es todo el salto: de diagnosticar a curar.</p>
+      <div class="name-tag" id="nameTag"></div>
+      <div class="source-msg" id="sourceMsg" style="display:none"></div>
+      <div class="cuello-box" id="cuelloBox" style="display:none">
+        <div class="cb-label">&#128308; Tu cuello de botella</div>
+        <div class="cb-text" id="cuelloText">-</div>
+        <div class="cb-cause" id="cuelloCause"></div>
+      </div>
+      <label class="field-label">&iquest;Qu&eacute; vas a hacer con este paso?</label>
+      <div class="action-row" id="actionRow">
+        <div class="action-opt" data-action="eliminar" onclick="pickAction('eliminar')">
+          <div class="action-icon">&#10005;</div>
+          <div class="action-txt"><b>Eliminar</b><span>Este paso no agrega valor real. Se puede quitar.</span></div>
+        </div>
+        <div class="action-opt" data-action="automatizar" onclick="pickAction('automatizar')">
+          <div class="action-icon">&#9881;</div>
+          <div class="action-txt"><b>Automatizar</b><span>Una herramienta, plantilla o app puede hacerlo por m&iacute;.</span></div>
+        </div>
+        <div class="action-opt" data-action="simplificar" onclick="pickAction('simplificar')">
+          <div class="action-icon">&#9889;</div>
+          <div class="action-txt"><b>Simplificar</b><span>Reducir pasos, delegar, o hacerlo m&aacute;s r&aacute;pido.</span></div>
+        </div>
+      </div>
+      <textarea class="action-plan" id="actionPlan" placeholder="Escribe tu plan concreto: qu&eacute; har&aacute;s, qui&eacute;n, cu&aacute;ndo..."></textarea>
+    </div>
+
+    <!-- PASO 2: OPTIMIZADOR DE MIX -->
+    <div class="card">
+      <span class="step-label">Paso 2 &middot; Tu mezcla ideal</span>
+      <h2>&iquest;Cu&aacute;nto hacer de cada producto?</h2>
+      <div class="opt-intro">
+        Si tu negocio hace <b>2 o m&aacute;s productos que compiten por el mismo recurso</b> (tu tiempo, un horno, tela, etc.), esta parte te dice la mezcla que m&aacute;s te conviene. Si solo haces un producto, puedes saltar al Paso 3.
+      </div>
+
+      <div class="recurso-box" id="recursoBox">
+        <div class="recurso-step">PRIMERO &middot; Tu l&iacute;mite</div>
+        <label>1. &iquest;Qu&eacute; es lo que te <b>impide producir m&aacute;s</b>? (tu recurso m&aacute;s escaso)</label>
+        <input type="text" id="recursoName" placeholder="Ej: minutos de horno" maxlength="40">
+        <div class="ex-hint" id="recursoEx" style="margin-top:4px"></div>
+        <div class="mini-field" style="margin-top:13px">
+          <label>2. &iquest;Cu&aacute;nto tienes de ese recurso <b>por semana</b>? (usa la misma unidad)</label>
+          <input type="number" id="recursoTotal" placeholder="Ej: 2400" inputmode="decimal">
+          <div class="ex-hint" id="recursoTotalEx"></div>
+        </div>
+        <div class="recurso-unit-note" id="recursoUnitNote" style="display:none"></div>
+      </div>
+
+      <div class="prod-section-label" id="prodSectionLabel">DESPU&Eacute;S &middot; Tus productos</div>
+      <div id="prodList"></div>
+      <button class="ghost no-print" id="addProdBtn" style="margin-bottom:14px">+ Agregar otro producto</button>
+
+
+
+      <div class="eq-summary" id="eqSummary" style="display:none">
+        <h4>&#128200; As&iacute; qued&oacute; planteado tu problema</h4>
+        <div id="eqBody"></div>
+      </div>
+
+      <div class="eq-formal" id="eqFormal" style="display:none">
+        <h4>&#129518; Tu ecuaci&oacute;n (esto va al Solver)</h4>
+        <div id="eqFormalBody"></div>
+      </div>
+
+      <div class="eq-solver-note" id="eqSolverNote" style="display:none">
+        <b>&#128161; C&oacute;mo pasar esto a Solver:</b> descarga tu Excel abajo &mdash; ya viene con esta ecuaci&oacute;n armada. Solo abre <b>Datos &rarr; Solver</b>, revisa que las restricciones coincidan con las de arriba, y presiona <b>Resolver</b>.
+      </div>
+    </div>
+
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi trabajo</button>
+    <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Excel con Solver listo</button>
+    <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF resumen</button>
+    <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S4</div>
+  </div>
+</div>
+
+<!-- VISTA DOCENTE -->
+<div id="docView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#3a1d6b 100%)">
+    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 4</div>
+    <h1>Panel de <span style="color:#B79CFF">Optimizaci&oacute;n</span></h1>
+    <p id="docWelcome">Planes de mejora y optimizaciones registradas.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Trabajos guardados</div></div>
+      <div class="kpi-box purple"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kPlan">-</div><div class="kpi-lbl">Definieron plan de mejora</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kOpt">-</div><div class="kpi-lbl">Plantearon optimizaci&oacute;n</div></div>
+    </div>
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--purple)" id="kPctLbl">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div id="docAlerts"></div>
+    <div class="section-title">Trabajos registrados</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="emp-table">
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Acci&oacute;n</th><th>Productos</th></tr></thead>
+        <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Pendientes</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
+<div id="detailModal"><div class="modal-box">
+  <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+  <div class="modal-name" id="modalName">-</div>
+  <div class="modal-meta" id="modalMeta">-</div>
+  <div id="modalBody"></div>
+  <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const HEADERS_R = { 'X-Master-Key': BIN_KEY };
+const HEADERS_W = { 'Content-Type':'application/json', 'X-Master-Key': BIN_KEY };
+const SESSION_KEY = 'bcp_s4_session';
+const DATA_PREFIX = 'bcp_s4_data_';
+
+let currentDNI=null, currentName=null;
+let action=null;
+let products=[];  // {name, profit, resourcePerUnit, maxDemand}
+let docEntries=[];
+
+async function binRead(){ try{ const r=await fetch(BIN_URL,{headers:HEADERS_R}); if(!r.ok) return null; const j=await r.json(); return j.record||null; }catch(e){ return null; } }
+async function binWrite(d){ try{ const r=await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(d)}); return r.ok; }catch(e){ return false; } }
+
+// Leer el cuello de S3 desde la nube
+async function getCuelloS3(dni){
+  if(BIN_ID_S3.indexOf('REEMPLAZA')>=0) return null;
+  try{
+    const r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID_S3+'/latest',{headers:HEADERS_R});
+    if(!r.ok) return null;
+    const j = await r.json();
+    const entries = (j.record && j.record.entries) || [];
+    const e = entries.find(x => x.dni===dni);
+    if(!e) return null;
+    // el paso rojo del semaforo + la causa raiz del ishikawa
+    const rojo = (e.semaforo||[]).find(s => s.light==='red');
+    let root=null;
+    if(e.causes){ Object.keys(e.causes).forEach(m => { (e.causes[m]||[]).forEach(c => { if(c.root) root = { text:c.text, m:m }; }); }); }
+    return { cuello: rojo ? rojo.text : (e.symptom||null), root: root, symptom: e.symptom||null };
+  }catch(e){ return null; }
+}
+
+// GATE
+function pickRole(role){
+  $('cardEmp').classList.toggle('selected',role==='emp');
+  $('cardDoc').classList.toggle('selected',role==='doc');
+  $('panelEmp').classList.toggle('on',role==='emp');
+  $('panelDoc').classList.toggle('on',role==='doc');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+}
+function doLoginEmp(){
+  const v=$('inputEmp').value.trim(); $('errEmp').textContent='';
+  if(!v||v.length<6){ $('errEmp').textContent='Ingresa tu DNI completo.'; return; }
+  if(!ROSTER[v]){ $('errEmp').textContent='DNI no registrado.'; return; }
+  currentDNI=v; currentName=ROSTER[v];
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'emp',dni:v,name:currentName}));
+  showEmpView();
+}
+function doLoginDoc(){
+  const v=$('inputDoc').value.trim(); $('errDoc').textContent='';
+  if(v!==DOCENTE_PW){ $('errDoc').textContent='Contrase\u00f1a incorrecta.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
+  showDocView();
+}
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+}
+function tryResume(){
+  try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
+    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+  }catch(e){}
+}
+
+function showEmpView(){
+  $('gateScreen').style.display='none'; $('docView').style.display='none'; $('empView').style.display='';
+  $('empWelcome').textContent='Hola, '+(currentName.split(' ')[0])+' \u2014 mejora tu cuello y optimiza tu producci\u00f3n.';
+  $('nameTag').textContent=currentName+' \u00b7 DNI '+currentDNI;
+  cargarDatos();
+}
+function showDocView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='';
+  loadDocData();
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+async function cargarDatos(){
+  // Cargar trabajo propio guardado
+  let own=null;
+  try{ const raw=localStorage.getItem(DATA_PREFIX+currentDNI); own=raw?JSON.parse(raw):null; }catch(e){}
+  if(own){
+    action=own.action||null;
+    products=Array.isArray(own.products)?own.products:[];
+    if(own.actionPlan) $('actionPlan').value=own.actionPlan;
+    if(own.recursoName) $('recursoName').value=own.recursoName;
+    if(own.recursoTotal) $('recursoTotal').value=own.recursoTotal;
+    if(own.cuello){ showCuello(own.cuello, own.cuelloCause); }
+    if(action) markAction(action);
+  }
+
+  // Traer el cuello de S3 (nube) si no lo teniamos
+  const msg=$('sourceMsg');
+  if(!own || !own.cuello){
+    msg.textContent='Buscando tu cuello de botella de la Sesi\u00f3n 3...';
+    msg.className='source-msg'; msg.style.display='block';
+    const s3=await getCuelloS3(currentDNI);
+    if(s3 && s3.cuello){
+      showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
+      const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
+      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.' + raizTxt + ' Hoy ya no diagnosticamos \u2014 hoy lo arreglamos.';
+      msg.className='source-msg';
+    } else {
+      msg.innerHTML='No encontramos tu diagn\u00f3stico de la Sesi\u00f3n 3 en la nube. Aseg\u00farate de haberlo guardado en S3, o escribe tu cuello manualmente en el plan de abajo.';
+      msg.className='source-msg warn';
+    }
+  } else {
+    msg.style.display='none';
+  }
+
+  if(products.length===0){ products=[emptyProduct(), emptyProduct()]; }
+  renderProducts();
+  // ejemplo personalizado del recurso escaso
+  const ej = getEjemplo();
+  if(ej){
+    $('recursoEx').innerHTML = 'Ej para tu negocio: <b>' + esc(ej.recurso_nombre) + '</b>';
+    $('recursoTotalEx').textContent = 'Ej: si tienes 40 por semana, escribe 40';
+  }
+  updateRecursoNote();
+  bindOptInputs();
+}
+
+function showCuello(text, cause){
+  $('cuelloBox').style.display='block';
+  $('cuelloText').textContent=text;
+  $('cuelloCause').textContent=cause ? ('Causa ra\u00edz: '+cause) : '';
+  $('cuelloBox')._cuello=text; $('cuelloBox')._cause=cause;
+}
+function pickAction(a){ action=a; markAction(a); save(); }
+function markAction(a){ document.querySelectorAll('.action-opt').forEach(o=>o.classList.toggle('sel',o.dataset.action===a)); }
+
+// OPTIMIZADOR
+function emptyProduct(){ return { name:'', price:'', cost:'', resourcePerUnit:'', maxDemand:'' }; }
+function getEjemplo(){
+  return (currentDNI && EJEMPLOS[currentDNI]) ? EJEMPLOS[currentDNI] : null;
+}
+function updateRecursoNote(){
+  const rName=$('recursoName').value.trim();
+  const note=$('recursoUnitNote');
+  if(!note) return;
+  if(rName){
+    note.style.display='block';
+    note.innerHTML='\u2705 Tu unidad es <b>'+esc(rName)+'</b>. Abajo, en cada producto, usa <b>esta misma unidad</b> cuando te pregunte cu\u00e1nto recurso usa.';
+  } else {
+    note.style.display='none';
+  }
+}
+function renderProducts(){
+  const list=$('prodList'); list.innerHTML='';
+  const ej = getEjemplo();
+  const rName = $('recursoName').value.trim();  // para mostrar la unidad en la pregunta del recurso
+  products.forEach((p,i)=>{
+    const c=document.createElement('div'); c.className='prod-card';
+    // ejemplos personalizados (solo en el primer producto para no saturar)
+    const first = (i===0 && ej);
+    const exN = first ? '<div class="ex-hint">Ej: '+esc(ej.producto)+'</div>' : '';
+    const exP = first ? '<div class="ex-hint">Ej: lo vendes a S/ '+esc(ej.precio)+'</div>' : '';
+    const exC = first ? '<div class="ex-hint">Ej: te cuesta S/ '+esc(ej.costo)+' en materiales y mano de obra</div>' : '';
+    const exR = first ? '<div class="ex-hint">Ej: cada '+esc(ej.producto.replace(/^(un |una )/,''))+' usa '+esc(ej.recurso_uso)+'</div>' : '';
+    const exM = first ? '<div class="ex-hint">Ej: en tu mejor semana vendiste '+esc(ej.maximo)+'</div>' : '';
+    // ganancia calculada
+    const gan = (p.price!=='' && p.cost!=='') ? (parseFloat(p.price)-parseFloat(p.cost)) : null;
+    const ganTxt = (gan!==null && !isNaN(gan)) ? '<div class="gan-calc">\u2713 Ganas <b>S/ '+gan+'</b> con cada uno</div>' : '';
+    // la pregunta del recurso muestra la unidad que ella escribió arriba
+    const recLabel = rName
+      ? '&iquest;Cu&aacute;ntos <b>'+esc(rName)+'</b> usa cada uno?'
+      : '&iquest;Cu&aacute;nto de tu recurso escaso usa cada uno?';
+    c.innerHTML =
+      '<h3>Producto '+(i+1)+'</h3>'+
+      (products.length>2?'<button class="prod-del" data-del="'+i+'">&#10005; quitar</button>':'')+
+      '<div class="mini-field"><label>&iquest;Qu&eacute; producto o servicio es?</label><input type="text" data-i="'+i+'" data-f="name" value="'+esc(p.name)+'" placeholder="Escribe el nombre" maxlength="40">'+exN+'</div>'+
+      '<div class="mini-2col">'+
+        '<div class="mini-field"><label>&iquest;A c&oacute;mo lo vendes? <span class="unit">(S/ por unidad)</span></label><input type="number" data-i="'+i+'" data-f="price" value="'+esc(p.price)+'" placeholder="precio" inputmode="decimal">'+exP+'</div>'+
+        '<div class="mini-field"><label>&iquest;Cu&aacute;nto te cuesta hacerlo? <span class="unit">(S/ por unidad)</span></label><input type="number" data-i="'+i+'" data-f="cost" value="'+esc(p.cost)+'" placeholder="costo" inputmode="decimal">'+exC+'</div>'+
+      '</div>'+
+      ganTxt+
+      '<div class="mini-field"><label>'+recLabel+'</label><input type="number" data-i="'+i+'" data-f="resourcePerUnit" value="'+esc(p.resourcePerUnit)+'" placeholder="cantidad" inputmode="decimal">'+exR+'</div>'+
+      '<div class="mini-field"><label>&iquest;Cu&aacute;ntos vendes como m&aacute;ximo por semana? <span class="unit">(opcional)</span></label><input type="number" data-i="'+i+'" data-f="maxDemand" value="'+esc(p.maxDemand)+'" placeholder="tu mejor semana" inputmode="decimal">'+exM+'</div>';
+    list.appendChild(c);
+  });
+  updateEqSummary();
+}
+function bindOptInputs(){
+  $('prodList').addEventListener('input', e => {
+    const inp=e.target.closest('input[data-i]'); if(!inp) return;
+    const i=parseInt(inp.dataset.i,10), f=inp.dataset.f;
+    products[i][f]=inp.value;
+    // Actualizar la ganancia de ESTA tarjeta sin re-renderizar (para no perder foco)
+    if(f==='price' || f==='cost'){
+      const card = inp.closest('.prod-card');
+      let gc = card.querySelector('.gan-calc');
+      const g = ganancia(products[i]);
+      if(g!==null){
+        if(!gc){
+          gc=document.createElement('div'); gc.className='gan-calc';
+          // insertar despues de la fila de precio/costo (mini-2col)
+          const col=card.querySelector('.mini-2col');
+          col.insertAdjacentElement('afterend', gc);
+        }
+        gc.innerHTML='\u2713 Ganas <b>S/ '+g+'</b> por cada uno';
+      } else if(gc){ gc.remove(); }
+    }
+    updateEqSummary(); save();
+  });
+  $('prodList').addEventListener('click', e => {
+    const del=e.target.closest('[data-del]'); if(!del) return;
+    products.splice(parseInt(del.dataset.del,10),1); renderProducts(); save();
+  });
+  $('recursoName').addEventListener('input', ()=>{
+    renderProducts();   // actualiza la unidad en la pregunta de cada producto
+    updateRecursoNote();
+    updateEqSummary(); save();
+  });
+  $('recursoTotal').addEventListener('input', ()=>{ updateEqSummary(); save(); });
+}
+$('addProdBtn').addEventListener('click', ()=>{ products.push(emptyProduct()); renderProducts(); save(); });
+
+function ganancia(p){
+  const g = parseFloat(p.price) - parseFloat(p.cost);
+  return isNaN(g) ? null : g;
+}
+function updateEqSummary(){
+  const valid=products.filter(p=>p.name && p.price!=='' && p.cost!=='' && ganancia(p)!==null);
+  const rName=$('recursoName').value.trim();
+  const rTotal=$('recursoTotal').value.trim();
+  if(valid.length<1 || !rName || !rTotal){ $('eqSummary').style.display='none'; $('eqFormal').style.display='none'; $('eqSolverNote').style.display='none'; return; }
+  $('eqSummary').style.display='block';
+  let h='<div class="eq-goal"><b>Meta:</b> ganar lo m\u00e1ximo posible combinando tus productos.</div>';
+  h+='<div style="margin-top:10px"><b style="color:#B79CFF;font-size:12px">TUS PRODUCTOS</b></div>';
+  valid.forEach(p=>{
+    const g = ganancia(p);
+    h+='<div class="eq-line">\u2022 <b>'+esc(p.name)+'</b>: ganas <b>S/ '+g+'</b> (vendes a '+esc(p.price)+', te cuesta '+esc(p.cost)+') y usa '+esc(p.resourcePerUnit||'?')+' de '+esc(rName)+(p.maxDemand?', m\u00e1x '+esc(p.maxDemand)+'/sem':'')+'</div>';
+  });
+  h+='<div style="margin-top:8px"><b style="color:#B79CFF;font-size:12px">TU L\u00cdMITE</b></div>';
+  h+='<div class="eq-line">Solo tienes <b>'+esc(rTotal)+' de '+esc(rName)+'</b> por semana. La app repartir\u00e1 ese recurso para que ganes lo m\u00e1ximo.</div>';
+  $('eqBody').innerHTML=h;
+  renderEquation(valid, rName, rTotal);
+}
+
+// Genera la ecuación formal (la que va al Solver)
+function renderEquation(valid, rName, rTotal){
+  if(valid.length<2){ $('eqFormal').style.display='none'; $('eqSolverNote').style.display='none'; return; }
+  $('eqFormal').style.display='block';
+  $('eqSolverNote').style.display='block';
+
+  // Asignar letras variables: X1, X2, ...
+  const letters = valid.map((p,i)=>'X'+(i+1));
+
+  // Definir variables
+  let h='<div class="eq-var">Donde:<br>';
+  valid.forEach((p,i)=>{ h+='&nbsp;&nbsp;<b>'+letters[i]+'</b> = cu\u00e1ntos <b>'+esc(p.name)+'</b> producir<br>'; });
+  h+='</div>';
+
+  // Función objetivo (maximizar)
+  const objTerms = valid.map((p,i)=>{ const g=ganancia(p); return g+'&middot;'+letters[i]; });
+  h+='<div class="eq-max">Maximizar: <span class="hl">Ganancia = '+objTerms.join(' + ')+'</span></div>';
+
+  // Restricciones
+  h+='<div class="eq-constraint-title">Sujeto a:</div>';
+  // 1. recurso escaso
+  const resTerms = valid.map((p,i)=>{ return (p.resourcePerUnit||'?')+'&middot;'+letters[i]; });
+  h+='<div class="eq-c">'+resTerms.join(' + ')+' &le; '+esc(rTotal)+' &nbsp;<span class="cmt">('+esc(rName)+')</span></div>';
+  // 2. demandas máx (solo si tienen)
+  valid.forEach((p,i)=>{
+    if(p.maxDemand && p.maxDemand!==''){
+      h+='<div class="eq-c">'+letters[i]+' &le; '+esc(p.maxDemand)+' &nbsp;<span class="cmt">(m\u00e1x '+esc(p.name)+')</span></div>';
+    }
+  });
+  // 3. no negativos
+  h+='<div class="eq-c">'+letters.join(', ')+' &ge; 0 &nbsp;<span class="cmt">(nada negativo)</span></div>';
+
+  $('eqFormalBody').innerHTML=h;
+}
+
+function save(){
+  if(!currentDNI) return;
+  try{
+    localStorage.setItem(DATA_PREFIX+currentDNI, JSON.stringify({
+      action, actionPlan:$('actionPlan').value,
+      cuello:$('cuelloBox')._cuello||'', cuelloCause:$('cuelloBox')._cause||'',
+      products, recursoName:$('recursoName').value, recursoTotal:$('recursoTotal').value
+    }));
+  }catch(e){}
+}
+$('actionPlan').addEventListener('input', save);
+
+// Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
+$('excelBtn').addEventListener('click', ()=>{
+  const valid=products.filter(p=>p.name&&p.price);
+  const rName=$('recursoName').value.trim()||'Recurso';
+  const rTotal=$('recursoTotal').value.trim()||'0';
+  if(valid.length<1){ showStatus('Completa al menos un producto con precio.','err'); return; }
+
+  const letters=valid.map((p,i)=>'X'+(i+1));
+  let csv='OPTIMIZADOR DE MIX - Sesion 4 - '+currentName+'\\n';
+  csv+='Tu cuello: '+($('cuelloBox')._cuello||'-')+'\\n\\n';
+
+  // Tabla de datos
+  csv+='Variable,Producto,Precio venta (S/),Costo (S/),Ganancia (S/),'+rName+' que usa,Maximo a vender,CANTIDAD A PRODUCIR\\n';
+  valid.forEach((p,i)=>{
+    const g=(parseFloat(p.price)-parseFloat(p.cost))||0;
+    csv+=letters[i]+','+esc(p.name)+','+(p.price||0)+','+(p.cost||0)+','+g+','+(p.resourcePerUnit||0)+','+(p.maxDemand||'sin limite')+',0\\n';
+  });
+  csv+='\\nRECURSO TOTAL ('+rName+'),'+rTotal+'\\n\\n';
+
+  // La ecuacion escrita
+  csv+='===== TU ECUACION (para configurar Solver) =====\\n';
+  const objTerms=valid.map((p,i)=>{ const g=(parseFloat(p.price)-parseFloat(p.cost))||0; return g+'*'+letters[i]; });
+  csv+='MAXIMIZAR: Ganancia = '+objTerms.join(' + ')+'\\n';
+  csv+='SUJETO A:\\n';
+  const resTerms=valid.map((p,i)=>(p.resourcePerUnit||0)+'*'+letters[i]);
+  csv+='  '+resTerms.join(' + ')+' <= '+rTotal+'   ('+rName+')\\n';
+  valid.forEach((p,i)=>{ if(p.maxDemand){ csv+='  '+letters[i]+' <= '+p.maxDemand+'   (max '+esc(p.name)+')\\n'; } });
+  csv+='  '+letters.join(', ')+' >= 0   (nada negativo)\\n\\n';
+
+  // Pasos Solver
+  csv+='===== PASOS EN EXCEL SOLVER =====\\n';
+  csv+='1. Datos > Solver\\n';
+  csv+='2. Objetivo: la celda de Ganancia total -> Maximizar\\n';
+  csv+='3. Cambiando celdas: la columna CANTIDAD A PRODUCIR\\n';
+  csv+='4. Restricciones: copia las de arriba (recurso, maximos, >=0)\\n';
+  csv+='5. Metodo: LP Simplex -> Resolver\\n';
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Optimizador_'+currentName.split(' ')[0]+'_S4.csv'; a.click();
+});
+
+$('printBtn').addEventListener('click', ()=>window.print());
+
+let clearArmed=false;
+$('clearBtn').addEventListener('click', ()=>{
+  const b=$('clearBtn');
+  if(!clearArmed){ clearArmed=true; b.textContent='\u00bfSeguro? Toca de nuevo'; b.style.color='var(--red)'; b.style.borderColor='var(--red)';
+    setTimeout(()=>{ clearArmed=false; b.textContent='Limpiar mis datos de este dispositivo'; b.style.color=''; b.style.borderColor=''; },4000); return; }
+  try{ localStorage.removeItem(DATA_PREFIX+currentDNI); }catch(e){}
+  location.reload();
+});
+
+// GUARDAR NUBE
+$('saveCloudBtn').addEventListener('click', async ()=>{
+  if(!action && products.filter(p=>p.name&&p.price).length===0){ showStatus('Completa al menos el plan o un producto.','err'); return; }
+  showStatus('Guardando...','loading');
+  const rec=await binRead();
+  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); return; }
+  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  const valid=products.filter(p=>p.name&&p.price);
+  const payload={
+    dni:currentDNI, name:currentName,
+    cuello:$('cuelloBox')._cuello||'', action:action,
+    actionPlan:$('actionPlan').value.trim(),
+    recursoName:$('recursoName').value.trim(), recursoTotal:$('recursoTotal').value.trim(),
+    products:valid, productCount:valid.length,
+    hasPlan: !!(action && $('actionPlan').value.trim()),
+    hasOpt: valid.length>=2 && !!$('recursoTotal').value.trim(),
+    savedAt:new Date().toISOString()
+  };
+  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  if(idx>=0) entries[idx]=payload; else entries.push(payload);
+  const ok=await binWrite({entries});
+  showStatus(ok?'\u2705 Guardado correctamente.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''),4000);
+});
+function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
+
+// DOCENTE
+async function loadDocData(){
+  $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
+  const rec=await binRead();
+  if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
+  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  const total=docEntries.length, pct=Math.round(total/25*100);
+  const conPlan=docEntries.filter(e=>e.hasPlan).length;
+  const conOpt=docEntries.filter(e=>e.hasOpt).length;
+  $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
+  $('kPlan').textContent=conPlan; $('kOpt').textContent=conOpt;
+  $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras guardaron su trabajo.';
+  let al='';
+  if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay trabajos guardados.</b></div>';
+  else { if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
+    if(conOpt<total && total>=3) al+='<div class="alert-box amber"><b>'+(total-conOpt)+' a\u00fan no plantearon su optimizaci\u00f3n de mix.</b> Muchas quiz\u00e1 solo tienen un producto \u2014 revisa cu\u00e1les s\u00ed necesitan Solver.</div>'; }
+  $('docAlerts').innerHTML=al;
+  if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
+  else {
+    let rows='';
+    docEntries.forEach((e,idx)=>{
+      const first=(e.name||e.dni).split(' ')[0];
+      const actTag=e.action?'<span class="tag purple">'+esc(e.action)+'</span>':'<span class="tag gray">sin acci\u00f3n</span>';
+      const pc=e.productCount||0;
+      rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
+        '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
+        '<td>'+actTag+'</td><td>'+(pc>=2?'<span class="tag green">'+pc+' productos</span>':'<span class="tag gray">'+pc+'</span>')+'</td></tr>';
+    });
+    $('docTableBody').innerHTML=rows;
+  }
+  const reg=new Set(docEntries.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas guardaron su trabajo!</b></div>';
+  else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,n])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(n.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }
+}
+function openModal(idx){
+  const e=docEntries[idx]; if(!e) return;
+  $('modalName').textContent=e.name||e.dni;
+  $('modalMeta').textContent=(e.savedAt?e.savedAt.slice(0,16).replace('T',' '):'-');
+  let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Cuello de botella</b><div style="font-size:13px;margin-top:4px">'+esc(e.cuello||'-')+'</div></div>';
+  b+='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Acci\u00f3n: '+esc(e.action||'-')+'</b><div style="font-size:13px;margin-top:4px;color:var(--muted)">'+esc(e.actionPlan||'(sin plan escrito)')+'</div></div>';
+  if(e.products&&e.products.length){
+    b+='<div><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Optimizaci\u00f3n ('+esc(e.recursoName||'recurso')+': '+esc(e.recursoTotal||'?')+')</b>';
+    e.products.forEach(p=>{ b+='<div style="font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)"><b>'+esc(p.name)+'</b> \u2014 gana S/'+esc(p.profit)+', usa '+esc(p.resourcePerUnit||'?')+', m\u00e1x '+esc(p.maxDemand||'?')+'</div>'; });
+    b+='</div>';
+  }
+  $('modalBody').innerHTML=b;
+  $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('detailModal').classList.remove('on'); document.body.style.overflow=''; }
+$('detailModal').addEventListener('click',e=>{ if(e.target===$('detailModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click',()=>window.print());
+$('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
+
+pickRole('emp');
+tryResume();
+</script>
+</body>
+</html>

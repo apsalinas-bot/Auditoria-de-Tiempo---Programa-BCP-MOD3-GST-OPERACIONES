@@ -266,6 +266,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
         </div>
       </div>
       <textarea class="action-plan" id="actionPlan" placeholder="Escribe tu plan concreto: qu&eacute; har&aacute;s, qui&eacute;n, cu&aacute;ndo..."></textarea>
+      <button class="ghost no-print" id="reloadS3Btn" style="margin-top:10px">&#8635; Recargar mi cuello de la Sesi&oacute;n 3</button>
     </div>
 
     <!-- PASO 2: OPTIMIZADOR DE MIX -->
@@ -498,6 +499,25 @@ function showCuello(text, cause){
   $('cuelloBox')._cuello=text; $('cuelloBox')._cause=cause;
 }
 function pickAction(a){ action=a; markAction(a); save(); }
+
+// Botón: recargar el cuello desde la nube de S3
+document.getElementById('reloadS3Btn').addEventListener('click', async ()=>{
+  const msg=$('sourceMsg');
+  msg.style.display='block';
+  msg.textContent='Buscando tu diagn\u00f3stico de la Sesi\u00f3n 3 en la nube...';
+  msg.className='source-msg';
+  const s3=await getCuelloS3(currentDNI);
+  if(s3 && s3.cuello){
+    showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
+    const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
+    msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.' + raizTxt;
+    msg.className='source-msg';
+    save();
+  } else {
+    msg.innerHTML='A\u00fan no encontramos tu diagn\u00f3stico de S3. Verifica que lo guardaste en la nube en la app de la Sesi\u00f3n 3, o escribe tu cuello manualmente en el plan de abajo.';
+    msg.className='source-msg warn';
+  }
+});
 function markAction(a){ document.querySelectorAll('.action-opt').forEach(o=>o.classList.toggle('sel',o.dataset.action===a)); }
 
 // OPTIMIZADOR

@@ -623,29 +623,102 @@ function save(){
   })); }catch(e){}
 }
 
-// DESCARGAR WORD
+// DESCARGAR WORD (formato ejecutivo POE)
 $('wordBtn').addEventListener('click', ()=>{
   const tarea=$('tareaInput').value.trim();
   if(!tarea || filledSections()<2){ showStatus('Completa la tarea y al menos 2 secciones.','err'); return; }
-  const secHtml=SECTIONS.filter(s=>secciones[s.key]&&secciones[s.key].trim()).map(sec=>
-    '<h2 style="color:#002A8D;font-size:14pt;margin:16pt 0 4pt">'+sec.title+'</h2>'+
-    '<p style="font-size:11pt;line-height:1.5;white-space:pre-wrap">'+esc(secciones[sec.key])+'</p>'
-  ).join('');
+
   const val=$('validadorInput').value.trim(), fb=$('feedbackInput').value.trim();
-  const valHtml=(val||fb)?
-    '<div style="margin-top:20pt;padding-top:10pt;border-top:2pt solid #E85D2F"><h2 style="color:#E85D2F;font-size:13pt">Prueba de fuego</h2>'+
-    (val?'<p style="font-size:11pt"><b>Validado por:</b> '+esc(val)+($('chkPassed').checked?' (pudo seguirlo sin preguntar)':'')+'</p>':'')+
-    (fb?'<p style="font-size:11pt"><b>Mejoras detectadas:</b> '+esc(fb)+'</p>':'')+'</div>':'';
-  const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Procedimiento</title></head>'+
-    '<body style="font-family:Calibri,sans-serif;color:#1C2536">'+
-    '<div style="border-bottom:3pt solid #E85D2F;padding-bottom:8pt;margin-bottom:12pt">'+
-    '<h1 style="color:#E85D2F;font-size:18pt;margin:0">PROCEDIMIENTO: '+esc(tarea)+'</h1>'+
-    '<p style="font-size:9pt;color:#6B7688;margin:4pt 0 0">'+esc(currentName)+' &middot; M\u00f3dulo 3 &middot; Sesi\u00f3n 6 &middot; Programa BCP \u00d7 UCSP-CENDES</p></div>'+
-    secHtml+valHtml+'</body></html>';
+  const passed=$('chkPassed').checked;
+  const rubro = (currentDNI && TAREAS[currentDNI]) ? (TAREAS[currentDNI].rubro||'') : '';
+  const hoy=new Date();
+  const fecha=hoy.getDate()+' / '+(hoy.getMonth()+1)+' / '+hoy.getFullYear();
+
+  // helpers de formato
+  const S='font-family:Calibri,sans-serif;color:#1C2536;';
+  const H2='color:#002A8D;font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1pt solid #C8D4E8;padding-bottom:2pt;';
+  function bullets(txt){
+    // convierte líneas / oraciones en items de lista
+    const items=txt.split(/\n+/).map(l=>l.replace(/^[-•\d\.\)\s]+/,'').trim()).filter(l=>l);
+    if(items.length<=1){
+      // si es un bloque, intentar partir por ". "
+      const alt=txt.split(/\.\s+/).map(l=>l.trim()).filter(l=>l.length>3);
+      if(alt.length>1) return '<ul style="margin:0 0 0 18pt;padding:0">'+alt.map(i=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+(i.endsWith('.')?'':'.')+'</li>').join('')+'</ul>';
+    }
+    return '<ul style="margin:0 0 0 18pt;padding:0">'+items.map(i=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+'</li>').join('')+'</ul>';
+  }
+
+  // tabla de metadatos
+  const meta=[
+    ['Código','POE-01'],
+    ['Versión','1.0'],
+    ['Proceso / tarea documentada', esc(tarea)],
+    ['Elaborado por', esc(currentName)],
+    ['Negocio', esc(rubro||'—')],
+    ['Fecha de elaboración', fecha],
+    ['Validado mediante prueba práctica', passed?'Sí':(val?'En proceso':'Pendiente')]
+  ];
+  const metaRows=meta.map((r,i)=>
+    '<tr>'+
+    '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt;font-weight:bold;color:#002A8D;width:38%">'+r[0]+'</td>'+
+    '<td style="border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt">'+r[1]+'</td>'+
+    '</tr>').join('');
+
+  // secciones de contenido
+  const objetivo='Estandarizar la ejecución de esta tarea para que cualquier persona capacitada pueda realizarla correctamente, sin depender de la supervisión directa de la propietaria del negocio. Este documento complementa el Mapa de Proceso (flujograma) elaborado en la Sesión 2, que identifica QUÉ pasos tiene el proceso; aquí se especifica CÓMO ejecutar correctamente el paso más crítico.';
+
+  let cuerpo='';
+  cuerpo+='<div style="'+H2+'">1.  OBJETIVO DEL PROCEDIMIENTO</div>';
+  cuerpo+='<p style="font-size:11pt;line-height:1.5;text-align:justify">'+objetivo+'</p>';
+
+  if(secciones.materiales && secciones.materiales.trim()){
+    cuerpo+='<div style="'+H2+'">2.  RECURSOS Y PREPARACIÓN PREVIA</div>'+bullets(secciones.materiales);
+  }
+  if(secciones.pasos && secciones.pasos.trim()){
+    cuerpo+='<div style="'+H2+'">3.  DESCRIPCIÓN DEL PROCEDIMIENTO</div>'+bullets(secciones.pasos);
+  }
+  if(secciones.calidad && secciones.calidad.trim()){
+    cuerpo+='<div style="'+H2+'">4.  CRITERIOS DE CONFORMIDAD</div>'+
+      '<p style="font-size:11pt;line-height:1.4;margin-bottom:4pt">El procedimiento se considera correctamente ejecutado cuando se cumplen los siguientes criterios:</p>'+
+      bullets(secciones.calidad);
+  }
+  if(secciones.errores && secciones.errores.trim()){
+    cuerpo+='<div style="'+H2+'">5.  RIESGOS Y ERRORES FRECUENTES</div>'+bullets(secciones.errores);
+  }
+
+  // sección 6: validación
+  cuerpo+='<div style="'+H2+'">6.  VALIDACIÓN DEL PROCEDIMIENTO (“PRUEBA DE FUEGO”)</div>';
+  cuerpo+='<p style="font-size:11pt;line-height:1.5;text-align:justify">Antes de darse por válido, este procedimiento fue puesto a prueba: una persona distinta a la autora lo ejecutó (o intentó seguirlo) usando únicamente lo aquí escrito, sin recibir explicaciones adicionales.</p>';
+  const chk=passed?'☑':'☐';
+  cuerpo+='<p style="font-size:11pt;line-height:1.7;margin:6pt 0">'+
+    chk+'  Una persona distinta a la autora pudo seguir el procedimiento sin preguntar'+(val?' (probado por: <b>'+esc(val)+'</b>)':'')+'</p>';
+  if(fb){
+    cuerpo+='<p style="font-size:11pt;line-height:1.5;margin-top:6pt"><b>Mejoras detectadas durante la prueba:</b> '+esc(fb)+'</p>';
+  }
+
+  const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>Procedimiento Operativo Estándar</title>'+
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->'+
+    '</head>'+
+    '<body style="'+S+'">'+
+    // encabezado
+    '<p style="font-size:9pt;color:#6B7688;letter-spacing:1pt;margin:0">PROGRAMA DE IMPULSO PYME  ·  Mujeres Emprendedoras de Arequipa</p>'+
+    '<p style="color:#002A8D;font-size:16pt;font-weight:bold;margin:4pt 0 0">PROCEDIMIENTO OPERATIVO ESTÁNDAR</p>'+
+    '<p style="font-size:10pt;color:#6B7688;margin:2pt 0 0">Módulo 3 · Gestión de Operaciones · Sesión 6</p>'+
+    '<div style="border-bottom:2.5pt solid #E85D2F;margin:8pt 0 14pt"></div>'+
+    // tabla metadatos
+    '<table style="border-collapse:collapse;width:100%;margin-bottom:14pt">'+metaRows+'</table>'+
+    // cuerpo
+    cuerpo+
+    // footer
+    '<div style="border-top:1pt solid #C8D4E8;margin-top:22pt;padding-top:6pt">'+
+    '<p style="font-size:8.5pt;color:#6B7688;text-align:center">Documento elaborado en el marco del Programa de Impulso Pyme · BCP × UCSP–CENDES · Módulo 3: Gestión de Operaciones · Sesión 6.</p></div>'+
+    '</body></html>';
+
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='Procedimiento_'+currentName.split(' ')[0]+'_S6.doc'; a.click();
-  showStatus('\u2705 Documento Word descargado.','ok');
+  a.download='POE_'+currentName.split(' ')[0]+'_S6.doc'; a.click();
+  showStatus('\u2705 Procedimiento (formato ejecutivo) descargado.','ok');
   setTimeout(()=>showStatus('',''),4000);
 });
 
@@ -758,4 +831,3 @@ tryResume();
 </script>
 </body>
 </html>
-

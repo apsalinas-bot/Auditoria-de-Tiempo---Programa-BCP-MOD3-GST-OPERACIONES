@@ -6,7 +6,7 @@
 <title>La Limpieza &middot; Optimizaci&oacute;n &middot; S4 &middot; BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -677,79 +677,149 @@ function save(){
 $('actionPlan').addEventListener('input', save);
 
 // Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
-$('excelBtn').addEventListener('click', ()=>{
+$('excelBtn').addEventListener('click', async ()=>{
   const valid=products.filter(p=>p.name&&p.price);
   const rName=$('recursoName').value.trim()||'Recurso';
-  const rTotal=parseFloat($('recursoTotal').value.trim())||0;
+  const rTotal=$('recursoTotal').value.trim()||'0';
   if(valid.length<1){ showStatus('Completa al menos un producto con precio.','err'); return; }
-  if(typeof XLSX==='undefined'){ showStatus('No se pudo cargar el generador de Excel. Verifica tu internet.','err'); return; }
-
-  const n=valid.length;
-  const firstRow=7, lastRow=firstRow+n-1, totalRow=lastRow+1, resRow=totalRow+3;
-
-  const rows=[];
-  rows.push(['OPTIMIZADOR DE MEZCLA - SOLVER']);
-  rows.push(['Modulo 3 - Sesion 4 - '+currentName+'  |  Cuello: '+($('cuelloBox')._cuello||'-')]);
-  rows.push([]);
-  rows.push(['AMARILLO = tu ya lo llenaste   |   Columna CANTIDAD = Solver la calcula   |   Ganancia total = tu resultado']);
-  rows.push([]);
-  rows.push(['Variable','Producto','Precio venta (S/)','Costo (S/)','Ganancia (S/)',rName+' que usa c/u','Maximo a vender','CANTIDAD (Solver)']);
-  valid.forEach((p,i)=>{
-    const g=(Number(p.price)-Number(p.cost))||0;
-    rows.push([
-      'X'+(i+1), p.name, Number(p.price)||0, Number(p.cost)||0, g,
-      Number(p.resourcePerUnit)||0,
-      p.maxDemand!==''?(Number(p.maxDemand)||0):'(sin limite)',
-      0
-    ]);
-  });
-  // Totales (valores 0 porque Solver aun no corre; se recalculan al meter cantidades)
-  const t=['','TOTALES ->','','','','','',''];
-  t[5]=0;  // recurso usado (Solver lo llena)
-  t[7]=0;  // ganancia total (Solver lo llena)
-  rows.push(t);
-  rows.push(['','','','','','(recurso usado)','','(ganancia total)']);
-  rows.push([]);
-  rows.push(['RECURSO DISPONIBLE POR SEMANA ('+rName+'):', '', '', '', '', '', rTotal, '']);
-  rows.push([]);
-  // Ecuacion
-  const objTerms=valid.map((p,i)=>{ const g=(Number(p.price)-Number(p.cost))||0; return g+'*X'+(i+1); });
-  const resTerms=valid.map((p,i)=>(Number(p.resourcePerUnit)||0)+'*X'+(i+1));
-  rows.push(['===== TU ECUACION =====']);
-  rows.push(['MAXIMIZAR:  Ganancia = '+objTerms.join(' + ')]);
-  rows.push(['SUJETO A:']);
-  rows.push(['   '+resTerms.join(' + ')+'  <=  '+rTotal+'   ('+rName+')']);
-  valid.forEach((p,i)=>{ if(p.maxDemand!=='') rows.push(['   X'+(i+1)+'  <=  '+p.maxDemand+'   (max '+p.name+')']); });
-  rows.push(['   Todas las cantidades  >=  0']);
-  rows.push([]);
-  // Pasos Solver con celdas reales
-  rows.push(['===== PASOS EN SOLVER (pestana Datos > Solver) =====']);
-  rows.push(['PRIMERO: en la celda H'+totalRow+' escribe: =SUMAPRODUCTO(E'+firstRow+':E'+lastRow+';H'+firstRow+':H'+lastRow+')']);
-  rows.push(['         en la celda F'+totalRow+' escribe: =SUMAPRODUCTO(F'+firstRow+':F'+lastRow+';H'+firstRow+':H'+lastRow+')']);
-  rows.push(['1. Establecer objetivo:  $H$'+totalRow+'   ->  marca (o) Max']);
-  rows.push(['2. Cambiando las celdas de variables:  $H$'+firstRow+':$H$'+lastRow]);
-  rows.push(['3. Sujeto a las restricciones (Agregar cada una):']);
-  rows.push(['      $F$'+totalRow+'  <=  $G$'+resRow]);
-  rows.push(['      $H$'+firstRow+':$H$'+lastRow+'  <=  $G$'+firstRow+':$G$'+lastRow+'   (los maximos)']);
-  rows.push(['      $H$'+firstRow+':$H$'+lastRow+'  >=  0']);
-  rows.push(['4. Metodo de resolucion:  LP Simplex']);
-  rows.push(['5. Resolver  ->  las cantidades optimas apareceran en la columna CANTIDAD.']);
-
-  const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:11},{wch:24},{wch:15},{wch:11},{wch:13},{wch:20},{wch:14},{wch:16}];
-  ws['!merges']=[
-    {s:{r:0,c:0},e:{r:0,c:7}},
-    {s:{r:1,c:0},e:{r:1,c:7}},
-    {s:{r:3,c:0},e:{r:3,c:7}},
-    {s:{r:resRow-1,c:0},e:{r:resRow-1,c:5}}
-  ];
-
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Solver');
-  XLSX.writeFile(wb,'Optimizador_'+currentName.split(' ')[0]+'_S4.xlsx');
-  showStatus('\u2705 Excel (.xlsx) descargado. Sigue los pasos de Solver dentro del archivo.','ok');
-  setTimeout(()=>showStatus('',''),5000);
+  if(typeof ExcelJS==='undefined'){ showStatus('No se pudo cargar el generador de Excel. Verifica tu internet.','err'); return; }
+  showStatus('Generando tu Excel...','loading');
+  try{
+    const wb=await generarExcelSolver(valid, rName, rTotal);
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Optimizador_'+currentName.split(' ')[0]+'_S4.xlsx'; a.click();
+    showStatus('\u2705 Excel descargado con tus datos. Sigue los pasos de Solver dentro del archivo.','ok');
+    setTimeout(()=>showStatus('',''),5000);
+  }catch(e){ showStatus('\u26a0\ufe0f Error al generar el Excel: '+e.message,'err'); }
 });
+
+async function generarExcelSolver(valid, rName, rTotal){
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Solver',{views:[{showGridLines:false}]});
+  const PURPLE='FF6D3BD4', NAVY='FF002A8D', GREEN='FF2F9E5F';
+  const fillInput={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF2CC'}};
+  const fillVar={type:'pattern',pattern:'solid',fgColor:{argb:'FFE4D9FF'}};
+  const fillObj={type:'pattern',pattern:'solid',fgColor:{argb:'FFD5F5DD'}};
+  const fillGan={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEFBF1'}};
+  const fillAmb={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF6EA'}};
+  const fillHdr={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const fillPurple={type:'pattern',pattern:'solid',fgColor:{argb:PURPLE}};
+  const fillNavy={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const thin={style:'thin',color:{argb:'FFC8D4E8'}};
+  const bAll={top:thin,left:thin,bottom:thin,right:thin};
+  const bV={top:{style:'medium',color:{argb:PURPLE}},left:{style:'medium',color:{argb:PURPLE}},bottom:{style:'medium',color:{argb:PURPLE}},right:{style:'medium',color:{argb:PURPLE}}};
+  const bG={top:{style:'medium',color:{argb:GREEN}},left:{style:'medium',color:{argb:GREEN}},bottom:{style:'medium',color:{argb:GREEN}},right:{style:'medium',color:{argb:GREEN}}};
+  const white={argb:'FFFFFFFF'}, ink={argb:'FF1C2536'}, gray={argb:'FF6B7688'};
+  const cuello=$('cuelloBox')._cuello||'';
+
+  ws.columns=[{width:10},{width:24},{width:13},{width:11},{width:12},{width:16},{width:13},{width:15}];
+
+  // Título
+  ws.mergeCells('A1:H1');
+  let c=ws.getCell('A1'); c.value='OPTIMIZADOR DE MEZCLA  \u00b7  SOLVER';
+  c.fill=fillPurple; c.font={bold:true,size:18,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(1).height=36;
+  ws.mergeCells('A2:H2');
+  c=ws.getCell('A2'); c.value='M\u00f3dulo 3 \u00b7 Sesi\u00f3n 4 \u00b7 '+currentName+(cuello?('  |  Cuello: '+cuello):'');
+  c.fill=fillNavy; c.font={size:10.5,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(2).height=20;
+  ws.mergeCells('A4:H4');
+  c=ws.getCell('A4'); c.value='C\u00d3MO USAR:  llena las celdas AMARILLAS  \u2192  abre  Datos \u25b8 Solver  \u2192  Resolver.   (Amarillo = t\u00fa \u00b7 Morado = Solver \u00b7 Verde = ganancia)';
+  c.fill=fillAmb; c.font={bold:true,size:10.5,color:{argb:'FF7C5A00'}}; c.alignment={horizontal:'left',vertical:'middle',wrapText:true};
+  ws.getRow(4).height=28;
+
+  // APARTADO 1: DATOS
+  ws.mergeCells('A6:H6');
+  c=ws.getCell('A6'); c.value='1 \u00b7 TUS DATOS';
+  c.fill=fillPurple; c.font={bold:true,size:12,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(6).height=22;
+  const r0=7;
+  const heads=['Variable','Producto','Precio venta\n(S/)','Costo\n(S/)','Ganancia\n(S/)','Recurso que\nusa c/u','M\u00e1ximo a\nvender','CANTIDAD\n(Solver)'];
+  heads.forEach((h,jj)=>{ const cc=ws.getCell(r0,jj+1); cc.value=h; cc.fill=fillHdr; cc.font={bold:true,size:11,color:white}; cc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cc.border=bAll; });
+  ws.getRow(r0).height=38;
+  const ds=r0+1, de=r0+valid.length;
+  valid.forEach((p,i)=>{
+    const r=ds+i;
+    ws.getCell(r,1).value='X'+(i+1); ws.getCell(r,1).font={bold:true,size:12,color:{argb:PURPLE}}; ws.getCell(r,1).alignment={horizontal:'center'}; ws.getCell(r,1).border=bAll;
+    ws.getCell(r,2).value=p.name; ws.getCell(r,2).fill=fillInput;
+    ws.getCell(r,3).value=Number(p.price)||0; ws.getCell(r,3).fill=fillInput;
+    ws.getCell(r,4).value=Number(p.cost)||0; ws.getCell(r,4).fill=fillInput;
+    ws.getCell(r,5).value={formula:'C'+r+'-D'+r}; ws.getCell(r,5).fill=fillGan; ws.getCell(r,5).font={bold:true,color:{argb:GREEN}};
+    ws.getCell(r,6).value=Number(p.resourcePerUnit)||0; ws.getCell(r,6).fill=fillInput;
+    ws.getCell(r,7).value=(p.maxDemand!==''?Number(p.maxDemand):''); ws.getCell(r,7).fill=fillInput;
+    ws.getCell(r,8).value=0; ws.getCell(r,8).fill=fillVar; ws.getCell(r,8).font={bold:true,size:12,color:{argb:PURPLE}}; ws.getCell(r,8).border=bV;
+    for(let col=2;col<=7;col++){ ws.getCell(r,col).border=bAll; ws.getCell(r,col).alignment={horizontal:(col===2?'left':'center'),vertical:'middle'}; }
+    ws.getCell(r,5).alignment={horizontal:'center'};
+    ws.getRow(r).height=22;
+  });
+  const tr=de+1;
+  ws.mergeCells('A'+tr+':B'+tr);
+  ws.getCell(tr,1).value='TOTALES \u2192'; ws.getCell(tr,1).font={bold:true,color:{argb:NAVY}}; ws.getCell(tr,1).alignment={horizontal:'right',vertical:'middle'};
+  ws.getCell(tr,6).value={formula:'SUMPRODUCT(F'+ds+':F'+de+',H'+ds+':H'+de+')'}; ws.getCell(tr,6).fill=fillAmb; ws.getCell(tr,6).font={bold:true,size:12,color:{argb:'FF7C5A00'}}; ws.getCell(tr,6).alignment={horizontal:'center'}; ws.getCell(tr,6).border=bAll;
+  ws.getCell(tr,8).value={formula:'SUMPRODUCT(E'+ds+':E'+de+',H'+ds+':H'+de+')'}; ws.getCell(tr,8).fill=fillObj; ws.getCell(tr,8).font={bold:true,size:14,color:{argb:GREEN}}; ws.getCell(tr,8).alignment={horizontal:'center'}; ws.getCell(tr,8).border=bG;
+  for(const col of [3,4,5,7]) ws.getCell(tr,col).border=bAll;
+  ws.getRow(tr).height=28;
+  ws.getCell(tr+1,6).value='\u2191 recurso usado'; ws.getCell(tr+1,6).font={size:8.5,color:gray}; ws.getCell(tr+1,6).alignment={horizontal:'center'};
+  ws.getCell(tr+1,8).value='\u2191 GANANCIA'; ws.getCell(tr+1,8).font={size:8.5,bold:true,color:{argb:GREEN}}; ws.getCell(tr+1,8).alignment={horizontal:'center'};
+
+  // APARTADO 2: RESTRICCIONES
+  const cr=tr+3;
+  ws.mergeCells('A'+cr+':H'+cr);
+  c=ws.getCell(cr,1); c.value='2 \u00b7 RESTRICCIONES'; c.fill=fillPurple; c.font={bold:true,size:12,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(cr).height=22;
+  const rr=cr+1;
+  ws.mergeCells('A'+rr+':E'+rr);
+  ws.getCell(rr,1).value='Recurso disponible por semana ('+rName+'):'; ws.getCell(rr,1).font={bold:true,color:{argb:'FF7C5A00'}}; ws.getCell(rr,1).fill=fillAmb; ws.getCell(rr,1).alignment={horizontal:'left',vertical:'middle'};
+  ws.getCell(rr,6).value=Number(rTotal)||0; ws.getCell(rr,6).fill=fillInput; ws.getCell(rr,6).font={bold:true,size:13,color:{argb:'FF1A5C47'}}; ws.getCell(rr,6).alignment={horizontal:'center'}; ws.getCell(rr,6).border=bV;
+  ws.getRow(rr).height=24;
+  const restr=[];
+  const resTerms=valid.map((p,i)=>(Number(p.resourcePerUnit)||0)+'\u00b7X'+(i+1));
+  restr.push('\u2022  Recurso:   '+resTerms.join(' + ')+'   \u2264   '+rTotal+'   (F'+tr+' \u2264 F'+rr+')');
+  valid.forEach((p,i)=>{ if(p.maxDemand!=='') restr.push('\u2022  Demanda '+p.name+':   X'+(i+1)+'   \u2264   '+p.maxDemand); });
+  restr.push('\u2022  No negativo:   todas las cantidades   \u2265   0');
+  restr.forEach((t,i)=>{ const r=rr+1+i; ws.mergeCells('A'+r+':H'+r); ws.getCell(r,1).value=t; ws.getCell(r,1).font={size:11,color:ink}; ws.getCell(r,1).alignment={horizontal:'left',vertical:'middle'}; ws.getRow(r).height=18; });
+
+  // APARTADO 3: ECUACIÓN Y VARIABLES
+  const er=rr+1+restr.length+1;
+  ws.mergeCells('A'+er+':H'+er);
+  c=ws.getCell(er,1); c.value='3 \u00b7 ECUACI\u00d3N Y VARIABLES (lo que calcula Solver)'; c.fill=fillPurple; c.font={bold:true,size:12,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(er).height=22;
+  let vr=er+1;
+  ws.mergeCells('A'+vr+':H'+vr);
+  ws.getCell(vr,1).value='VARIABLES (lo que Solver va a decidir):'; ws.getCell(vr,1).font={bold:true,size:10.5,color:{argb:NAVY}}; ws.getCell(vr,1).alignment={horizontal:'left'};
+  ws.getRow(vr).height=17;
+  valid.forEach((p,i)=>{ const r=vr+1+i; ws.mergeCells('A'+r+':H'+r); ws.getCell(r,1).value='     X'+(i+1)+'  =  cu\u00e1ntos "'+p.name+'" producir  \u2192  celda H'+(ds+i); ws.getCell(r,1).font={size:10.5,color:ink}; ws.getCell(r,1).alignment={horizontal:'left'}; ws.getRow(r).height=16; });
+  let eqr=vr+1+valid.length;
+  const objTerms=valid.map((p,i)=>{ const g=(Number(p.price)-Number(p.cost))||0; return g+'\u00b7X'+(i+1); });
+  ws.mergeCells('A'+eqr+':H'+eqr);
+  ws.getCell(eqr,1).value='FUNCI\u00d3N OBJETIVO (maximizar):'; ws.getCell(eqr,1).font={bold:true,size:10.5,color:{argb:NAVY}}; ws.getCell(eqr,1).alignment={horizontal:'left'};
+  ws.getRow(eqr).height=17; eqr++;
+  ws.mergeCells('A'+eqr+':H'+eqr);
+  ws.getCell(eqr,1).value='     Ganancia  =  '+objTerms.join('  +  ')+'   \u2192  celda H'+tr; ws.getCell(eqr,1).font={size:11,bold:true,color:{argb:GREEN}}; ws.getCell(eqr,1).alignment={horizontal:'left'};
+  ws.getRow(eqr).height=18;
+
+  // PASOS SOLVER
+  const sr=eqr+2;
+  ws.mergeCells('A'+sr+':H'+sr);
+  c=ws.getCell(sr,1); c.value='PASOS EN SOLVER  (Datos \u25b8 Solver)'; c.fill=fillNavy; c.font={bold:true,size:11,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(sr).height=22;
+  const pasos=[
+    '1.  Establecer objetivo:   $H$'+tr+'    \u2192   marca ( ) M\u00e1x',
+    '2.  Cambiando las celdas de variables:   $H$'+ds+':$H$'+de,
+    '3.  Sujeto a las restricciones (Agregar cada una):',
+    '        $F$'+tr+'   \u2264   $F$'+rr,
+    '        $H$'+ds+':$H$'+de+'   \u2264   $G$'+ds+':$G$'+de,
+    '        $H$'+ds+':$H$'+de+'   \u2265   0',
+    '4.  \u2611 Convertir variables sin restricciones en no negativas',
+    '5.  M\u00e9todo:   LP Simplex   \u2192   Resolver',
+  ];
+  pasos.forEach((p,i)=>{ const r=sr+1+i; ws.mergeCells('A'+r+':H'+r); const isMain=/^\d\./.test(p.trim()); ws.getCell(r,1).value=p; ws.getCell(r,1).font={size:10.5,bold:isMain,color:(isMain?ink:{argb:NAVY})}; ws.getCell(r,1).alignment={horizontal:'left'}; ws.getRow(r).height=17; });
+
+  ws.views=[{showGridLines:false,state:'frozen',ySplit:r0}];
+  return wb;
+}
 
 $('printBtn').addEventListener('click', ()=>window.print());
 

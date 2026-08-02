@@ -693,6 +693,7 @@ $('excelBtn').addEventListener('click', async ()=>{
 });
 
 async function generarExcelABC(){
+  computeABC();  // recalcular SIEMPRE antes de generar, para que la piramide coincida con la tabla
   const wb=new ExcelJS.Workbook();
   const ws=wb.addWorksheet('Matriz ABC',{views:[{showGridLines:false}]});
   const TEAL='FF0E8C8C', NAVY='FF002A8D', AMBER='FFE8A800', GRAY='FF8AACBD';
@@ -748,28 +749,36 @@ async function generarExcelABC(){
 
   // ── PIRÁMIDE ABC (columnas H-N, al lado de la tabla) ──
   {
-    const grp={A:[],B:[],C:[]}; abcData.forEach(it=>grp[it.cat].push(it));
-    const totAll=abcData.reduce((s,it)=>s+it.value,0);
-    const sumCat=cat=>grp[cat].reduce((s,i)=>s+i.value,0);
-    const catInfo=[
-      {cat:'A',color:'FF0E8C8C',name:'Cr\u00edticos',val:sumCat('A'),cnt:grp.A.length},
-      {cat:'B',color:'FFE8A800',name:'Valor medio',val:sumCat('B'),cnt:grp.B.length},
-      {cat:'C',color:'FF8AACBD',name:'Liberar dinero',val:sumCat('C'),cnt:grp.C.length}
-    ].filter(c=>c.cnt>0);
-    const wb2={};
+    // Reagrupar SIEMPRE desde abcData (misma fuente que la tabla) para evitar desajustes.
+    const grp={A:[],B:[],C:[]};
+    abcData.forEach(it=>{ if(grp[it.cat]) grp[it.cat].push(it); });
+    const totAll=abcData.reduce((s,it)=>s+it.value,0) || 1;
+    // Construir la lista de categorías EN ORDEN A->B->C, incluyendo SOLO las que tienen insumos.
+    const catDefs=[
+      {cat:'A',color:'FF0E8C8C',name:'Cr\u00edticos'},
+      {cat:'B',color:'FFE8A800',name:'Valor medio'},
+      {cat:'C',color:'FF8AACBD',name:'Liberar dinero'}
+    ];
+    const catInfo=catDefs
+      .map(d=>{ const arr=grp[d.cat]; const val=arr.reduce((s,i)=>s+i.value,0); return {cat:d.cat,color:d.color,name:d.name,val:val,cnt:arr.length,pct:Math.round(val/totAll*100)}; })
+      .filter(c=>c.cnt>0);   // <-- clave: SOLO categorías con al menos 1 insumo
+
     // Título
     ws.mergeCells('H4:N4');
     let pt=ws.getCell('H4'); pt.value='TU PIR\u00c1MIDE ABC';
     pt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0E8C8C'}};
     pt.font={bold:true,size:11,color:white}; pt.alignment={horizontal:'center',vertical:'middle'};
     ws.getRow(4).height=20;
-    // Pirámide: niveles progresivamente más anchos (A angosto arriba, C ancho abajo)
+
+    // Anchos de nivel segun CUANTAS categorias hay (para que siempre parezca piramide)
+    // 1 cat -> [4]; 2 cats -> [2,4]; 3 cats -> [2,4,6]
+    const widthMap={1:[4],2:[2,4],3:[2,4,6]};
+    const levelW=widthMap[catInfo.length] || [2,4,6];
     const center=11; // col K
-    const levelW=[2,4,6]; // ancho en columnas según posición (arriba->abajo)
     const wbord={style:'medium',color:{argb:'FFFFFFFF'}};
     let pr=6;
     catInfo.forEach((c,idx)=>{
-      const w=levelW[Math.min(idx,2)];
+      const w=levelW[idx];
       const c1=center-Math.floor(w/2), c2=center+Math.ceil(w/2)-1;
       ws.mergeCells(pr,c1,pr+1,c2);
       const cell=ws.getCell(pr,c1);
@@ -781,7 +790,8 @@ async function generarExcelABC(){
       ws.getRow(pr).height=16; ws.getRow(pr+1).height=16;
       pr+=2;
     });
-    // Detalle: nombre, %, monto por grupo
+
+    // Detalle: nombre, %, monto por grupo (solo los que existen)
     pr+=1;
     ws.mergeCells('H'+pr+':N'+pr);
     ws.getCell('H'+pr).value='Nombre \u00b7 % del dinero \u00b7 monto';
@@ -790,13 +800,12 @@ async function generarExcelABC(){
     ws.getRow(pr).height=16;
     pr++;
     catInfo.forEach(c=>{
-      const pct=Math.round(c.val/totAll*100);
       ws.getCell(pr,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:c.color}};
       ws.getCell(pr,8).value=c.cat;
       ws.getCell(pr,8).font={bold:true,color:white,size:11};
       ws.getCell(pr,8).alignment={horizontal:'center',vertical:'middle'};
       ws.mergeCells(pr,9,pr,14);
-      ws.getCell(pr,9).value=c.name+'  \u2014  '+pct+'%  \u2014  S/'+Math.round(c.val).toLocaleString('es-PE');
+      ws.getCell(pr,9).value=c.name+'  \u2014  '+c.pct+'%  \u2014  S/'+Math.round(c.val).toLocaleString('es-PE');
       ws.getCell(pr,9).font={size:10.5,color:ink};
       ws.getCell(pr,9).alignment={horizontal:'left',vertical:'middle'};
       ws.getRow(pr).height=19;

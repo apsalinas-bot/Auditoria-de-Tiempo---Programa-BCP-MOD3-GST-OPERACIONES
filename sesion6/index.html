@@ -1,1 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Manuales para no enloquecer &middot; S6 &middot; BCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
+  --ink:#1C2536;--bg:#F0F2F7;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--coral:#E85D2F;--coral-d:#C2431A;
+  --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
+  --font:'Rubik',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+h1,h2,h3{font-weight:600;letter-spacing:-.2px}
+.top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--coral);border-radius:50%;opacity:.28}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
+.top h1{font-size:24px;margin-top:7px;line-height:1.16;position:relative;z-index:2}
+.top h1 span{color:#FF9E6D}
+.top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
+.wrap{padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--coral);margin-bottom:3px}
+.card h2{font-size:18px;margin-bottom:3px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+.field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
+/* GATE */
+.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
+.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
+.role-list{display:flex;flex-direction:column;gap:10px}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
+.role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.rc-icon.emp{background:var(--coral)}
+.rc-icon.doc{background:var(--navy-d)}
+.rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
+.rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.role-card.selected .rc-label{color:var(--navy)}
+.gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.gate-panel.on{display:block}
+.gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
+.gate-dni-input,.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
+.gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.gate-dni-input:focus,.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px}
+.gate-btn.emp{background:var(--coral);box-shadow:0 5px 18px rgba(232,93,47,.32)}
+.gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
+/* buttons */
+.cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(232,93,47,.28);transition:.15s;white-space:nowrap}
+.cta:active{transform:translateY(1px)}
+.cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
+.cta.green{background:var(--green);box-shadow:0 5px 16px rgba(47,158,95,.25)}
+.cta.full{width:100%;text-align:center}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;width:100%;text-align:center}
+.ghost:hover{border-color:var(--navy);color:var(--navy)}
+.bridge-msg{font-size:12.5px;color:var(--coral-d);font-weight:600;background:#FDECE4;border-radius:10px;padding:11px 13px;margin-bottom:14px;line-height:1.45}
+.name-tag{font-size:12px;color:var(--muted);background:#F5F7FB;padding:5px 12px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:12px}
+/* tarea suggestions */
+.sug-box{background:#FDECE4;border-left:3px solid var(--coral);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--coral-d);line-height:1.5}
+.sug-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sug-chip{background:#fff;border:1.5px solid var(--coral);color:var(--coral-d);border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.sug-chip:hover{background:var(--coral);color:#fff}
+.tarea-input{width:100%;padding:12px 14px;font-size:15px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;color:var(--ink)}
+.tarea-input:focus{outline:none;border-color:var(--coral)}
+.ex-hint{font-size:11px;color:var(--coral);margin-top:5px;font-style:italic;line-height:1.35;opacity:.9}
+/* pasos POE */
+.poe-step{background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:11px;position:relative}
+.poe-num{position:absolute;left:-8px;top:-8px;width:30px;height:30px;border-radius:50%;background:var(--coral);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(232,93,47,.35)}
+.poe-step-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:7px;padding-left:26px}
+.poe-textarea{width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;color:var(--ink);min-height:52px;resize:vertical}
+.poe-textarea:focus{outline:none;border-color:var(--coral)}
+.poe-ex{font-size:10.5px;color:var(--coral);margin-top:4px;font-style:italic;opacity:.85}
+/* prueba de fuego */
+.fuego-box{background:linear-gradient(135deg,#FFF4E8,#FDECE4);border:1.5px dashed var(--coral);border-radius:12px;padding:16px;margin-top:6px}
+.fuego-box h3{font-size:14px;color:var(--coral-d);margin-bottom:6px}
+.fuego-box p{font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:10px}
+.fuego-check{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px;cursor:pointer}
+.fuego-check input{margin-top:3px;width:17px;height:17px;accent-color:var(--coral);flex-shrink:0}
+.fuego-check label{font-size:13px;color:var(--ink);line-height:1.4;cursor:pointer}
+/* preview receta */
+.receta-preview{background:#fff;border:2px solid var(--coral);border-radius:12px;padding:16px;margin-top:8px}
+.receta-preview h3{font-size:15px;color:var(--coral-d);text-align:center;margin-bottom:4px}
+.receta-preview .rp-sub{font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:12px}
+.rp-step{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
+.rp-num{width:24px;height:24px;border-radius:50%;background:var(--coral);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rp-text{font-size:13px;color:var(--ink);line-height:1.4;padding-top:2px}
+.save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
+.save-status.loading{color:var(--muted)}
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
+.logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+/* docente */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
+.kpi-val{font-size:30px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.3}
+.kpi-box.coral .kpi-val{color:var(--coral)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
+.emp-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
+.tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
+.tag.coral{background:#FDECE4;color:var(--coral-d)}
+.tag.green{background:#E6F8EE;color:var(--green)}
+.tag.gray{background:#F1F5F9;color:var(--muted)}
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--coral))}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+#detailModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px}
+#detailModal.on{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit}
+.modal-name{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+
+/* flujograma vs procedimiento */
+.vs-box{display:flex;align-items:stretch;gap:8px;margin:14px 0 0}
+.vs-col{flex:1;background:#F7F9FC;border:1px solid var(--line);border-radius:11px;padding:12px}
+.vs-tag{font-size:11.5px;font-weight:700;margin-bottom:7px}
+.vs-tag.flow{color:var(--navy)}
+.vs-tag.poe{color:var(--coral-d)}
+.vs-txt{font-size:12px;color:var(--ink);line-height:1.4}
+.vs-note{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic;text-transform:uppercase;letter-spacing:.4px}
+.vs-arrow{display:flex;align-items:center;font-size:22px;font-weight:700;color:var(--coral);padding:0 2px}
+.reload-flow{background:none;border:1.5px solid var(--coral);color:var(--coral-d);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:7px 12px;border-radius:9px;margin-top:10px;width:100%}
+.reload-flow:hover{background:var(--coral);color:#fff}
+/* secciones del procedimiento */
+.poe-section{background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;position:relative;border-left:4px solid var(--coral)}
+.poe-sec-head{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.poe-sec-icon{width:30px;height:30px;border-radius:8px;background:var(--coral);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.poe-sec-title{font-size:14px;font-weight:700;color:var(--navy)}
+.poe-sec-hint{font-size:11.5px;color:var(--muted);margin-bottom:8px;line-height:1.4;padding-left:39px}
+.poe-textarea{width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;color:var(--ink);min-height:64px;resize:vertical}
+.poe-textarea:focus{outline:none;border-color:var(--coral)}
+.poe-ex{font-size:10.5px;color:var(--coral);margin-top:4px;font-style:italic;opacity:.85}
+/* documento preview */
+.doc-preview{background:#fff;border:2px solid var(--coral);border-radius:12px;padding:18px}
+.doc-preview .dp-header{text-align:center;border-bottom:2px solid var(--coral);padding-bottom:12px;margin-bottom:14px}
+.doc-preview .dp-title{font-size:16px;font-weight:700;color:var(--coral-d)}
+.doc-preview .dp-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.doc-preview .dp-sec{margin-bottom:13px}
+.doc-preview .dp-sec-h{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.doc-preview .dp-sec-body{font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-wrap;padding-left:4px}
+
+
+/* semáforo de pasos (heredado de S3) */
+.sem-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.sem-chip{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink);background:#F5F7FB;border-radius:20px;padding:5px 11px}
+.sem-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.sem-dot.g{background:var(--green)}
+.sem-dot.a{background:var(--amber)}
+.sem-dot.r{background:var(--red)}
+.sem-load{font-size:12.5px;color:var(--green);font-weight:600;background:#E6F8EE;border-radius:10px;padding:9px 12px;margin-bottom:12px}
+.sem-load.warn{color:#7C5A00;background:#FFF8E1}
+.step-row{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;border-left:5px solid var(--line)}
+.step-row.g{border-left-color:var(--green)}
+.step-row.a{border-left-color:var(--amber)}
+.step-row.r{border-left-color:var(--red)}
+.step-light{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;transition:.15s;box-shadow:0 2px 5px rgba(0,0,0,.12)}
+.step-light.g{background:var(--green)}
+.step-light.a{background:var(--amber)}
+.step-light.r{background:var(--red)}
+.step-light:active{transform:scale(.9)}
+.step-txt{flex:1;font-size:13.5px;color:var(--ink);line-height:1.3}
+.step-pick{background:none;border:1.5px solid var(--coral);color:var(--coral-d);font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:20px;white-space:nowrap}
+.step-pick:hover{background:var(--coral);color:#fff}
+.step-pick.active{background:var(--coral);color:#fff}
+.step-add-row{display:flex;gap:8px;margin:10px 0}
+.step-add-row input{flex:1;padding:10px 12px;font-size:13.5px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit}
+.step-add-row input:focus{outline:none;border-color:var(--coral)}
+.step-add-row button{background:var(--coral);color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:600;font-family:inherit;cursor:pointer;font-size:13.5px}
+.sem-hint-red{font-size:12px;color:var(--coral-d);background:#FDECE4;border-radius:9px;padding:9px 12px;margin-top:4px;line-height:1.4}
+.chosen-tag{font-size:11px;font-weight:700;color:var(--coral-d);background:#FDECE4;border-radius:6px;padding:2px 8px;margin-left:6px}
+.mini-field label{display:block}
+
+</style>
+</head>
+<body>
+<script>
+const BIN_ID     = '6a6fb7a9f5f4af5e29e274aa';
+const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
+const DOCENTE_PW = '70003700';
+const BIN_ID_S3  = '6a6bfa73f5f4af5e29d83006';  // semaforo de S3 (pasos con colores)
+</script>
+<script>
+const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca"};
+const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "tarea": "armado y prueba de una computadora", "desc": "el proceso técnico que garantiza que la PC funcione"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "tarea": "confección de una bata de lencería", "desc": "el proceso de costura que define la calidad"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "tarea": "montaje de un evento de catering", "desc": "tu proceso estrella de montaje paso a paso"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "tarea": "producción de un evento", "desc": "la coordinación que hace que todo salga perfecto"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "tarea": "despacho de un pedido de material", "desc": "el proceso de preparar y entregar el pedido"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "tarea": "recepción y control de cobertores importados", "desc": "cómo revisas la calidad al recibir mercadería"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "tarea": "elaboración de un instrumento ancestral", "desc": "tu proceso artesanal clave"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "tarea": "preparación de un servicio funerario", "desc": "el protocolo que brinda un servicio impecable"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "tarea": "armado de un arreglo floral", "desc": "tu técnica de armado que fideliza clientes"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "tarea": "atención y venta en tienda", "desc": "el proceso de atención que cierra la venta"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "tarea": "ensamblaje de una máquina de manualidades", "desc": "el proceso técnico de ensamblaje"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "tarea": "preparación de una tanda de snacks", "desc": "tu receta y proceso de producción"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "tarea": "exhibición y venta de prendas", "desc": "cómo organizas y vendes tu ropa"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "tarea": "atención y venta de repuestos", "desc": "el proceso de identificar y vender el repuesto correcto"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "tarea": "despacho de material de construcción", "desc": "el proceso de preparar y entregar el lote"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "tarea": "elaboración de una caja de conservas", "desc": "tu proceso de producción y envasado"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "tarea": "reposición y atención en el minimarket", "desc": "cómo mantienes surtido y atiendes"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "tarea": "dictado de una clase de cocina", "desc": "tu metodología de enseñanza paso a paso"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "tarea": "gestión de un servicio de personal", "desc": "el proceso de coordinar y asignar personal"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "tarea": "despacho de un pedido de ladrillos", "desc": "el proceso de preparar y entregar"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "tarea": "entrega de un servicio empresarial", "desc": "tu metodología de trabajo con clientes"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "tarea": "preparación de una habitación de hospedaje", "desc": "tu estándar de limpieza y preparación"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "tarea": "desarrollo de una asesoría MYPE", "desc": "tu proceso de asesoría paso a paso"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "tarea": "entrega de un servicio profesional", "desc": "tu metodología de trabajo"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "tarea": "preparación de una habitación de hospedaje", "desc": "tu estándar de limpieza y preparación"}};
+</script>
+
+<!-- GATE -->
+<div id="gateScreen">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 6</div>
+    <h1>Manuales para <span>no enloquecer</span></h1>
+    <p>Documenta C&Oacute;MO se hace bien tu tarea clave &mdash; el instructivo que tu flujograma no tiene.</p>
+  </div>
+  <div class="wrap">
+    <div class="card" style="padding:24px 20px">
+      <div class="gate-title">&iquest;C&oacute;mo vas a entrar?</div>
+      <div class="gate-sub">Elige tu perfil para empezar.</div>
+      <div class="role-list">
+        <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
+          <div class="rc-icon emp">&#128221;</div>
+          <div><span class="rc-label">Soy emprendedora / due&ntilde;a de negocio</span><span class="rc-sub">Crea el procedimiento de tu tarea clave</span></div>
+        </button>
+        <button class="role-card" id="cardDoc" onclick="pickRole('doc')">
+          <div class="rc-icon doc">&#9783;</div>
+          <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
+        </button>
+      </div>
+      <div class="gate-panel on" id="panelEmp">
+        <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div class="gate-err" id="errEmp"></div>
+        <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
+      </div>
+      <div class="gate-panel" id="panelDoc">
+        <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div class="gate-err" id="errDoc"></div>
+        <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+    </div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
+  </div>
+</div>
+
+<!-- VISTA EMPRENDEDORA -->
+<div id="empView" style="display:none">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Sesi&oacute;n 6 &middot; Sostener</div>
+    <h1>Manuales para <span>no enloquecer</span></h1>
+    <p id="empWelcome">Documenta c&oacute;mo se hace bien tu tarea clave.</p>
+  </div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
+  <div class="wrap">
+
+    <!-- EXPLICACIÓN: flujograma vs procedimiento -->
+    <div class="card">
+      <div class="bridge-msg">
+        &#128260; En la <b>Sesi&oacute;n 2</b> dibujaste tu <b>flujograma</b>: muestra <b>QU&Eacute; pasos</b> tiene tu proceso y en qu&eacute; orden. Pero un flujograma no explica <b>C&Oacute;MO</b> se hace bien cada paso &mdash; ese conocimiento sigue solo en tu cabeza.
+      </div>
+      <div class="vs-box">
+        <div class="vs-col">
+          <div class="vs-tag flow">&#128506;&#65039; Flujograma (S2)</div>
+          <div class="vs-txt">Recibir pedido &rarr; <b>Hornear</b> &rarr; Decorar &rarr; Entregar</div>
+          <div class="vs-note">Muestra el mapa</div>
+        </div>
+        <div class="vs-arrow">+</div>
+        <div class="vs-col">
+          <div class="vs-tag poe">&#128221; Procedimiento (hoy)</div>
+          <div class="vs-txt">&laquo;Hornear: precalentar a 180&deg;, molde enmantecado, 35 min, NO abrir antes de 25 min...&raquo;</div>
+          <div class="vs-note">Explica el c&oacute;mo</div>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:12px;margin-bottom:0">Hoy escribes el <b>instructivo detallado</b> de un paso clave: los tiempos, trucos y detalles que hacen que salga bien. Eso es lo que permite que otra persona lo haga sin ti.</p>
+    </div>
+
+    <!-- PASO 1: semáforo de pasos (heredado de S3) -->
+    <div class="card">
+      <span class="step-label">Paso 1 &middot; Sem&aacute;foro operativo</span>
+      <h2>Marca cada paso de tu proceso</h2>
+      <p class="hint">Estos son los pasos de tu proceso con los colores que marcaste en la <b>Sesi&oacute;n 3</b>. Rev&iacute;salos: el <b>rojo</b> es tu paso m&aacute;s cr&iacute;tico, el que m&aacute;s se traba. Puedes cambiar un color tocando el c&iacute;rculo.</p>
+      <div class="name-tag" id="nameTag"></div>
+      <div class="sem-load" id="semLoad">Cargando tus pasos de la Sesi&oacute;n 3...</div>
+      <div class="sem-legend">
+        <div class="sem-chip"><span class="sem-dot g"></span> fluye bien</div>
+        <div class="sem-chip"><span class="sem-dot a"></span> a veces se traba</div>
+        <div class="sem-chip"><span class="sem-dot r"></span> siempre se traba</div>
+      </div>
+      <div class="step-add-row no-print">
+        <input type="text" id="newStepInput" placeholder="Agregar un paso manualmente" maxlength="60">
+        <button id="addStepBtn">+ Agregar</button>
+      </div>
+      <div id="stepsList"></div>
+      <div class="sem-hint-red" id="pickHint" style="display:none"></div>
+      <button class="reload-flow no-print" id="reloadFlowBtn" style="margin-top:10px">&#8635; Recargar mis pasos de la Sesi&oacute;n 3</button>
+    </div>
+
+    <!-- PASO 2: EL PROCEDIMIENTO (4 secciones reales) -->
+    <div class="card">
+      <span class="step-label">Paso 2 &middot; El procedimiento</span>
+      <h2>Documenta el paso que elegiste</h2>
+      <p class="hint">Elige arriba el paso a documentar (te sugerimos el <b>rojo</b>). Aqu&iacute; va el <b>conocimiento fino</b>: lo que sabes por experiencia y marca la diferencia entre hacerlo bien o mal.</p>
+      <label class="field-label">Tarea / paso que est&aacute;s documentando</label>
+      <input type="text" class="tarea-input" id="tareaInput" placeholder="Se completa al elegir un paso arriba, o escr&iacute;bela aqu&iacute;" maxlength="70">
+      <div class="ex-hint" id="tareaEx"></div>
+      <div id="poeSections" style="margin-top:14px"></div>
+    </div>
+
+    <!-- PASO 3: FICHA DE VALIDACIÓN -->
+    <div class="card">
+      <span class="step-label">Paso 3 &middot; La prueba de fuego</span>
+      <h2>Valida tu procedimiento</h2>
+      <p class="hint">Entrega tu procedimiento a una compa&ntilde;era. Ella intenta seguirlo <b>sin preguntarte nada</b> y anota lo que no entienda. Esa retroalimentaci&oacute;n mejora tu manual.</p>
+      <div class="fuego-box">
+        <h3>&#128293; &iquest;Qui&eacute;n prob&oacute; tu procedimiento?</h3>
+        <div class="mini-field" style="margin-bottom:10px">
+          <label style="font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:3px">Nombre de la compa&ntilde;era que lo prob&oacute;</label>
+          <input type="text" class="tarea-input" id="validadorInput" placeholder="Nombre de tu compa&ntilde;era" maxlength="50" style="font-size:14px">
+        </div>
+        <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">&iquest;Qu&eacute; no se entendi&oacute; o qu&eacute; hay que mejorar?</label>
+        <textarea class="poe-textarea" id="feedbackInput" placeholder="Anota aqu&iacute; lo que tu compa&ntilde;era no entendi&oacute;, para corregirlo despu&eacute;s..."></textarea>
+        <div class="fuego-check" style="margin-top:12px"><input type="checkbox" id="chkPassed"><label for="chkPassed"><b>Mi compa&ntilde;era pudo seguir el procedimiento sin preguntarme</b></label></div>
+      </div>
+    </div>
+
+    <!-- PREVIEW DEL DOCUMENTO -->
+    <div class="card" id="previewCard" style="display:none">
+      <span class="step-label">Tu procedimiento listo</span>
+      <h2>As&iacute; qued&oacute; tu documento</h2>
+      <div class="doc-preview" id="docPreview"></div>
+    </div>
+
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi trabajo</button>
+    <button class="cta full no-print" id="wordBtn" style="margin-bottom:10px">&#128196; Descargar mi procedimiento (Word)</button>
+    <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar / imprimir (PDF)</button>
+    <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S6</div>
+  </div>
+</div>
+
+<!-- VISTA DOCENTE -->
+<div id="docView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#8a3410 100%)">
+    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 6</div>
+    <h1>Panel de <span style="color:#FF9E6D">Procedimientos</span></h1>
+    <p id="docWelcome">Procedimientos registrados.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Procedimientos guardados</div></div>
+      <div class="kpi-box coral"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kCompletas">-</div><div class="kpi-lbl">Documentos completos</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kFuego">-</div><div class="kpi-lbl">Pasaron prueba de fuego</div></div>
+    </div>
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--coral)" id="kPctLbl">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div id="docAlerts"></div>
+    <div class="section-title">Procedimientos registrados</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="emp-table">
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Tarea</th><th>Estado</th></tr></thead>
+        <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Pendientes</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
+<div id="detailModal"><div class="modal-box">
+  <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+  <div class="modal-name" id="modalName">-</div>
+  <div class="modal-meta" id="modalMeta">-</div>
+  <div id="modalBody"></div>
+  <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const BIN_URL_S3 = 'https://api.jsonbin.io/v3/b/' + BIN_ID_S3;
+const HEADERS_R = { 'X-Master-Key': BIN_KEY };
+const HEADERS_W = { 'Content-Type':'application/json', 'X-Master-Key': BIN_KEY };
+const SESSION_KEY = 'bcp_s6_session';
+const DATA_PREFIX = 'bcp_s6_data_';
+
+let currentDNI=null, currentName=null;
+let steps=[];        // {text, light:'green'/'amber'/'red'}
+let chosenIdx=-1;
+let secciones={ materiales:'', pasos:'', calidad:'', errores:'' };
+let docEntries=[];
+
+async function binRead(url){ try{ const r=await fetch(url||BIN_URL,{headers:HEADERS_R}); if(!r.ok) return null; const j=await r.json(); return j.record||null; }catch(e){ return null; } }
+async function binWrite(d){ try{ const r=await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(d)}); return r.ok; }catch(e){ return false; } }
+
+function pickRole(role){
+  $('cardEmp').classList.toggle('selected',role==='emp');
+  $('cardDoc').classList.toggle('selected',role==='doc');
+  $('panelEmp').classList.toggle('on',role==='emp');
+  $('panelDoc').classList.toggle('on',role==='doc');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+}
+function doLoginEmp(){
+  const v=$('inputEmp').value.trim(); $('errEmp').textContent='';
+  if(!v||v.length<6){ $('errEmp').textContent='Ingresa tu DNI completo.'; return; }
+  if(!ROSTER[v]){ $('errEmp').textContent='DNI no registrado.'; return; }
+  currentDNI=v; currentName=ROSTER[v];
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'emp',dni:v,name:currentName}));
+  showEmpView();
+}
+function doLoginDoc(){
+  const v=$('inputDoc').value.trim(); $('errDoc').textContent='';
+  if(v!==DOCENTE_PW){ $('errDoc').textContent='Contrase\u00f1a incorrecta.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
+  showDocView();
+}
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+}
+function tryResume(){
+  try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
+    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+  }catch(e){}
+}
+function showEmpView(){
+  $('gateScreen').style.display='none'; $('docView').style.display='none'; $('empView').style.display='';
+  $('empWelcome').textContent='Hola, '+(currentName.split(' ')[0])+' \u2014 documenta c\u00f3mo se hace bien tu tarea clave.';
+  $('nameTag').textContent=currentName+' \u00b7 DNI '+currentDNI;
+  cargarDatos();
+}
+function showDocView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='';
+  loadDocData();
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function getTareaEj(){ return (currentDNI && TAREAS[currentDNI]) ? TAREAS[currentDNI] : null; }
+
+const SECTIONS = [
+  { key:'materiales', icon:'\ud83e\uddf0', title:'1. Qu\u00e9 necesitas antes',
+    hint:'Materiales, herramientas, ingredientes o preparaci\u00f3n que debes tener listos ANTES de empezar.',
+    ph:'Ej: horno precalentado, molde enmantecado, 3 huevos a temperatura ambiente...' },
+  { key:'pasos', icon:'\ud83d\udc63', title:'2. El paso a paso del c\u00f3mo',
+    hint:'Las acciones detalladas con tus trucos: tiempos, cantidades, temperaturas, la forma correcta de hacerlo.',
+    ph:'Ej: batir 5 min hasta punto letra, hornear a 180\u00b0 por 35 min, NO abrir el horno antes de 25 min...' },
+  { key:'calidad', icon:'\u2705', title:'3. C\u00f3mo saber que qued\u00f3 bien',
+    hint:'La se\u00f1al de que est\u00e1 bien hecho. \u00bfC\u00f3mo verificas la calidad antes de darlo por terminado?',
+    ph:'Ej: al insertar un palillo sale limpio, el color es dorado parejo, no se hunde al centro...' },
+  { key:'errores', icon:'\u26a0\ufe0f', title:'4. Errores comunes a evitar',
+    hint:'Lo que sale mal si no tienes cuidado. Esos errores que t\u00fa ya sabes evitar por experiencia.',
+    ph:'Ej: si abres el horno antes de tiempo se baja, si bates de m\u00e1s queda duro...' }
+];
+
+async function cargarDatos(){
+  let own=null;
+  try{ const raw=localStorage.getItem(DATA_PREFIX+currentDNI); own=raw?JSON.parse(raw):null; }catch(e){}
+  if(own){
+    if(Array.isArray(own.steps)) steps=own.steps;
+    if(typeof own.chosenIdx==='number') chosenIdx=own.chosenIdx;
+    if(own.tarea && $('tareaInput')) $('tareaInput').value=own.tarea;
+    if(own.secciones) secciones=Object.assign({materiales:'',pasos:'',calidad:'',errores:''}, own.secciones);
+    if(own.validador) $('validadorInput').value=own.validador;
+    if(own.feedback) $('feedbackInput').value=own.feedback;
+    if(own.fuegoPassed) $('chkPassed').checked=true;
+  }
+  const ej=getTareaEj();
+  if(ej){ $('tareaEx').innerHTML='Ej para tu negocio: <b>'+esc(ej.tarea)+'</b> \u2014 documenta el paso m\u00e1s delicado de esa tarea.'; }
+  if(steps.length===0){ await loadStepsFromS3(); } else { renderSteps(); }
+  renderSections();
+  bindInputs();
+  updatePreview();
+}
+
+// Traer los pasos CON COLORES del semáforo de la Sesión 3
+async function loadStepsFromS3(){
+  const ld=$('semLoad');
+  ld.textContent='Cargando tus pasos de la Sesi\u00f3n 3...'; ld.className='sem-load';
+  if(!BIN_ID_S3 || BIN_ID_S3.indexOf('REEMPLAZA')>=0){
+    ld.textContent='\u26a0\ufe0f Configura el BIN de la Sesi\u00f3n 3 para traer tus pasos. Mientras, agr\u00e9galos manualmente abajo.';
+    ld.className='sem-load warn'; steps=[]; renderSteps(); return;
+  }
+  try{
+    const rec=await binRead(BIN_URL_S3+'/latest');
+    if(rec && Array.isArray(rec.entries)){
+      const mine=rec.entries.find(e=>e.dni===currentDNI);
+      if(mine && Array.isArray(mine.semaforo) && mine.semaforo.length){
+        steps=mine.semaforo.map(s=>({ text:s.text||'', light:normLight(s.light) })).filter(s=>s.text);
+        ld.textContent='\u2713 Se recargaron '+steps.length+' pasos de tu Sesi\u00f3n 3, con tus colores.';
+        ld.className='sem-load';
+        const redIdx=steps.findIndex(s=>s.light==='red');
+        if(redIdx>=0 && chosenIdx<0) chosenIdx=redIdx;
+        renderSteps(); save(); return;
+      }
+    }
+    ld.textContent='No encontr\u00e9 tus pasos de la Sesi\u00f3n 3. Agr\u00e9galos manualmente abajo \u2193';
+    ld.className='sem-load warn'; steps=[]; renderSteps();
+  }catch(e){
+    ld.textContent='No pude conectar con la Sesi\u00f3n 3. Agrega tus pasos manualmente \u2193';
+    ld.className='sem-load warn'; steps=[]; renderSteps();
+  }
+}
+function normLight(l){ if(l==='red'||l==='r') return 'red'; if(l==='amber'||l==='a'||l==='yellow') return 'amber'; return 'green'; }
+function lightClass(l){ return l==='red'?'r':l==='amber'?'a':'g'; }
+
+function renderSteps(){
+  const cont=$('stepsList'); cont.innerHTML='';
+  if(steps.length===0){
+    cont.innerHTML='<p style="font-size:13px;color:var(--muted);font-style:italic;text-align:center;padding:14px">A\u00fan no hay pasos. Agr\u00e9galos arriba \u2191</p>';
+    updatePickHint(); return;
+  }
+  steps.forEach((st,i)=>{
+    const lc=lightClass(st.light);
+    const row=document.createElement('div'); row.className='step-row '+lc;
+    row.innerHTML=
+      '<button class="step-light '+lc+'" data-cycle="'+i+'" title="Toca para cambiar el color"></button>'+
+      '<div class="step-txt">'+esc(st.text)+(i===chosenIdx?'<span class="chosen-tag">A DOCUMENTAR</span>':'')+'</div>'+
+      '<button class="step-pick '+(i===chosenIdx?'active':'')+'" data-pick="'+i+'">'+(i===chosenIdx?'\u2713 elegido':'documentar')+'</button>'+
+      '<button class="ins-del" data-delstep="'+i+'" style="position:static;color:var(--muted)">\u2715</button>';
+    cont.appendChild(row);
+  });
+  updatePickHint();
+}
+function updatePickHint(){
+  const hint=$('pickHint');
+  if(chosenIdx>=0 && steps[chosenIdx]){
+    const st=steps[chosenIdx];
+    const why = st.light==='red' ? 'Es tu paso <b>rojo</b>: el que m\u00e1s se traba. Documentarlo bien evita que todo se detenga cuando t\u00fa no est\u00e1s.'
+             : st.light==='amber' ? 'Es un paso <b>amarillo</b>: a veces se traba. Documentarlo ayuda a que salga parejo siempre.'
+             : 'Es un paso <b>verde</b>: fluye bien. Documentarlo lo protege si alg\u00fan d\u00eda lo hace otra persona.';
+    hint.innerHTML='\ud83d\udcdd Vas a documentar: <b>'+esc(st.text)+'</b>. '+why;
+    hint.style.display='';
+    if($('tareaInput') && !$('tareaInput').value.trim()){ $('tareaInput').value=st.text; }
+  } else { hint.style.display='none'; }
+}
+
+function renderSections(){
+  const cont=$('poeSections'); cont.innerHTML='';
+  SECTIONS.forEach((sec)=>{
+    const d=document.createElement('div'); d.className='poe-section';
+    d.innerHTML =
+      '<div class="poe-sec-head"><div class="poe-sec-icon">'+sec.icon+'</div><div class="poe-sec-title">'+sec.title+'</div></div>'+
+      '<div class="poe-sec-hint">'+sec.hint+'</div>'+
+      '<textarea class="poe-textarea" data-key="'+sec.key+'" placeholder="'+sec.ph+'">'+esc(secciones[sec.key]||'')+'</textarea>';
+    cont.appendChild(d);
+  });
+}
+
+function bindInputs(){
+  $('stepsList').addEventListener('click', e=>{
+    const cyc=e.target.closest('[data-cycle]');
+    const pick=e.target.closest('[data-pick]');
+    const del=e.target.closest('[data-delstep]');
+    if(cyc){
+      const i=parseInt(cyc.dataset.cycle,10);
+      const order=['green','amber','red'];
+      steps[i].light=order[(order.indexOf(steps[i].light)+1)%3];
+      renderSteps(); save();
+    } else if(pick){
+      const i=parseInt(pick.dataset.pick,10);
+      chosenIdx=(chosenIdx===i?-1:i);
+      if(chosenIdx>=0 && $('tareaInput')) $('tareaInput').value=steps[chosenIdx].text;
+      renderSteps(); updatePreview(); save();
+    } else if(del){
+      const i=parseInt(del.dataset.delstep,10);
+      steps.splice(i,1);
+      if(chosenIdx===i) chosenIdx=-1; else if(chosenIdx>i) chosenIdx--;
+      renderSteps(); save();
+    }
+  });
+  $('addStepBtn').addEventListener('click', ()=>{
+    const inp=$('newStepInput'); const v=inp.value.trim(); if(!v) return;
+    steps.push({ text:v, light:'green' }); inp.value='';
+    renderSteps(); save();
+  });
+  $('newStepInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('addStepBtn').click(); } });
+  $('reloadFlowBtn').addEventListener('click', ()=>{ steps=[]; chosenIdx=-1; loadStepsFromS3(); });
+  $('poeSections').addEventListener('input', e=>{
+    const t=e.target.closest('textarea[data-key]'); if(!t) return;
+    secciones[t.dataset.key]=t.value; updatePreview(); save();
+  });
+  $('tareaInput').addEventListener('input', ()=>{ updatePreview(); save(); });
+  $('validadorInput').addEventListener('input', save);
+  $('feedbackInput').addEventListener('input', save);
+  $('chkPassed').addEventListener('change', save);
+}
+
+function filledSections(){ return SECTIONS.filter(s=>secciones[s.key] && secciones[s.key].trim()).length; }
+
+function updatePreview(){
+  const tarea=$('tareaInput').value.trim();
+  const filled=filledSections();
+  if(!tarea || filled<2){ $('previewCard').style.display='none'; return; }
+  $('previewCard').style.display='';
+  let h='<div class="dp-header"><div class="dp-title">\ud83d\udccb PROCEDIMIENTO: '+esc(tarea)+'</div>'+
+        '<div class="dp-meta">'+esc(currentName)+' \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 6 \u00b7 BCP\u00d7UCSP-CENDES</div></div>';
+  SECTIONS.forEach(sec=>{
+    if(secciones[sec.key] && secciones[sec.key].trim()){
+      h+='<div class="dp-sec"><div class="dp-sec-h">'+sec.icon+' '+sec.title+'</div>'+
+         '<div class="dp-sec-body">'+esc(secciones[sec.key])+'</div></div>';
+    }
+  });
+  $('docPreview').innerHTML=h;
+}
+
+function save(){
+  if(!currentDNI) return;
+  try{ localStorage.setItem(DATA_PREFIX+currentDNI, JSON.stringify({
+    steps, chosenIdx, tarea:$('tareaInput').value, secciones,
+    validador:$('validadorInput').value, feedback:$('feedbackInput').value,
+    fuegoPassed:$('chkPassed').checked
+  })); }catch(e){}
+}
+
+// DESCARGAR WORD
+$('wordBtn').addEventListener('click', ()=>{
+  const tarea=$('tareaInput').value.trim();
+  if(!tarea || filledSections()<2){ showStatus('Completa la tarea y al menos 2 secciones.','err'); return; }
+  const secHtml=SECTIONS.filter(s=>secciones[s.key]&&secciones[s.key].trim()).map(sec=>
+    '<h2 style="color:#002A8D;font-size:14pt;margin:16pt 0 4pt">'+sec.title+'</h2>'+
+    '<p style="font-size:11pt;line-height:1.5;white-space:pre-wrap">'+esc(secciones[sec.key])+'</p>'
+  ).join('');
+  const val=$('validadorInput').value.trim(), fb=$('feedbackInput').value.trim();
+  const valHtml=(val||fb)?
+    '<div style="margin-top:20pt;padding-top:10pt;border-top:2pt solid #E85D2F"><h2 style="color:#E85D2F;font-size:13pt">Prueba de fuego</h2>'+
+    (val?'<p style="font-size:11pt"><b>Validado por:</b> '+esc(val)+($('chkPassed').checked?' (pudo seguirlo sin preguntar)':'')+'</p>':'')+
+    (fb?'<p style="font-size:11pt"><b>Mejoras detectadas:</b> '+esc(fb)+'</p>':'')+'</div>':'';
+  const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Procedimiento</title></head>'+
+    '<body style="font-family:Calibri,sans-serif;color:#1C2536">'+
+    '<div style="border-bottom:3pt solid #E85D2F;padding-bottom:8pt;margin-bottom:12pt">'+
+    '<h1 style="color:#E85D2F;font-size:18pt;margin:0">PROCEDIMIENTO: '+esc(tarea)+'</h1>'+
+    '<p style="font-size:9pt;color:#6B7688;margin:4pt 0 0">'+esc(currentName)+' &middot; M\u00f3dulo 3 &middot; Sesi\u00f3n 6 &middot; Programa BCP \u00d7 UCSP-CENDES</p></div>'+
+    secHtml+valHtml+'</body></html>';
+  const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Procedimiento_'+currentName.split(' ')[0]+'_S6.doc'; a.click();
+  showStatus('\u2705 Documento Word descargado.','ok');
+  setTimeout(()=>showStatus('',''),4000);
+});
+
+$('printBtn').addEventListener('click', ()=>window.print());
+
+let clearArmed=false;
+$('clearBtn').addEventListener('click', ()=>{
+  const b=$('clearBtn');
+  if(!clearArmed){ clearArmed=true; b.textContent='\u00bfSeguro? Toca de nuevo'; b.style.color='var(--red)'; b.style.borderColor='var(--red)';
+    setTimeout(()=>{ clearArmed=false; b.textContent='Limpiar mis datos de este dispositivo'; b.style.color=''; b.style.borderColor=''; },4000); return; }
+  try{ localStorage.removeItem(DATA_PREFIX+currentDNI); }catch(e){}
+  location.reload();
+});
+
+$('saveCloudBtn').addEventListener('click', async ()=>{
+  const tarea=$('tareaInput').value.trim();
+  const filled=filledSections();
+  if(!tarea){ showStatus('Elige o escribe primero tu tarea clave.','err'); return; }
+  if(filled<2){ showStatus('Completa al menos 2 secciones del procedimiento.','err'); return; }
+  showStatus('Guardando...','loading');
+  const rec=await binRead();
+  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); return; }
+  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  const payload={
+    dni:currentDNI, name:currentName, tarea:tarea,
+    chosenLight:(chosenIdx>=0 && steps[chosenIdx])?steps[chosenIdx].light:'',
+    stepsCount:steps.length, redCount:steps.filter(s=>s.light==='red').length,
+    secciones:secciones, sectionCount:filled, complete:filled>=4,
+    validador:$('validadorInput').value.trim(), feedback:$('feedbackInput').value.trim(),
+    fuegoPassed:$('chkPassed').checked,
+    savedAt:new Date().toISOString()
+  };
+  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  if(idx>=0) entries[idx]=payload; else entries.push(payload);
+  const ok=await binWrite({entries});
+  showStatus(ok?'\u2705 Guardado correctamente.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''),4000);
+});
+function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
+
+async function loadDocData(){
+  $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
+  const rec=await binRead();
+  if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
+  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  const total=docEntries.length, pct=Math.round(total/25*100);
+  const completas=docEntries.filter(e=>e.complete).length;
+  const fuego=docEntries.filter(e=>e.fuegoPassed).length;
+  $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
+  $('kCompletas').textContent=completas; $('kFuego').textContent=fuego;
+  $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras escribieron su procedimiento.';
+  let al='';
+  if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay procedimientos guardados.</b></div>';
+  else if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
+  $('docAlerts').innerHTML=al;
+  if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
+  else {
+    let rows='';
+    docEntries.forEach((e,idx)=>{
+      const first=(e.name||e.dni).split(' ')[0];
+      let estado='';
+      if(e.fuegoPassed) estado='<span class="tag green">prueba \u2713</span>';
+      else if(e.complete) estado='<span class="tag coral">completo</span>';
+      else estado='<span class="tag gray">'+(e.sectionCount||0)+'/4 secc.</span>';
+      rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
+        '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
+        '<td style="font-size:12px">'+esc((e.tarea||'').substring(0,40))+'</td>'+
+        '<td>'+estado+'</td></tr>';
+    });
+    $('docTableBody').innerHTML=rows;
+  }
+  const reg=new Set(docEntries.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas escribieron su procedimiento!</b></div>';
+  else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,nm])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(nm.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }
+}
+function openModal(idx){
+  const e=docEntries[idx]; if(!e) return;
+  $('modalName').textContent=e.name||e.dni;
+  $('modalMeta').textContent='Tarea: '+(e.tarea||'-')+' \u00b7 '+(e.sectionCount||0)+'/4 secciones'+(e.fuegoPassed?' \u00b7 prueba \u2713':'');
+  const SEC_T={materiales:'\ud83e\uddf0 Qu\u00e9 necesitas antes',pasos:'\ud83d\udc63 Paso a paso',calidad:'\u2705 C\u00f3mo saber que qued\u00f3 bien',errores:'\u26a0\ufe0f Errores a evitar'};
+  let b='<div style="background:#FDECE4;border-radius:10px;padding:12px;margin-bottom:10px"><b style="font-size:13px;color:var(--coral-d)">\ud83d\udccb '+esc(e.tarea||'')+'</b></div>';
+  const sc=e.secciones||{};
+  ['materiales','pasos','calidad','errores'].forEach(k=>{
+    if(sc[k] && sc[k].trim()){
+      b+='<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px">'+SEC_T[k]+'</div>'+
+         '<div style="font-size:12.5px;line-height:1.45;white-space:pre-wrap;color:var(--ink)">'+esc(sc[k])+'</div></div>';
+    }
+  });
+  if(e.validador || e.feedback){
+    b+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:700;color:var(--coral-d);margin-bottom:4px">\ud83d\udd25 Prueba de fuego</div>';
+    if(e.validador) b+='<div style="font-size:12.5px;color:var(--ink)">Probado por: <b>'+esc(e.validador)+'</b>'+(e.fuegoPassed?' \u2705':'')+'</div>';
+    if(e.feedback) b+='<div style="font-size:12.5px;color:var(--muted);margin-top:3px">Mejoras: '+esc(e.feedback)+'</div>';
+    b+='</div>';
+  }
+  $('modalBody').innerHTML=b;
+  $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('detailModal').classList.remove('on'); document.body.style.overflow=''; }
+$('detailModal').addEventListener('click',e=>{ if(e.target===$('detailModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click',()=>window.print());
+$('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
+
+pickRole('emp');
+tryResume();
+</script>
+</body>
+</html>
 

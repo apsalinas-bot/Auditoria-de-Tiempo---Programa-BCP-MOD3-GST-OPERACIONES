@@ -6,6 +6,7 @@
 <title>La Limpieza &middot; Optimizaci&oacute;n &middot; S4 &middot; BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -312,7 +313,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
     </div>
 
     <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi trabajo</button>
-    <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Excel con Solver listo</button>
+    <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Excel (.xlsx) con Solver</button>
     <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF resumen</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -679,42 +680,75 @@ $('actionPlan').addEventListener('input', save);
 $('excelBtn').addEventListener('click', ()=>{
   const valid=products.filter(p=>p.name&&p.price);
   const rName=$('recursoName').value.trim()||'Recurso';
-  const rTotal=$('recursoTotal').value.trim()||'0';
+  const rTotal=parseFloat($('recursoTotal').value.trim())||0;
   if(valid.length<1){ showStatus('Completa al menos un producto con precio.','err'); return; }
+  if(typeof XLSX==='undefined'){ showStatus('No se pudo cargar el generador de Excel. Verifica tu internet.','err'); return; }
 
-  const letters=valid.map((p,i)=>'X'+(i+1));
-  let csv='OPTIMIZADOR DE MIX - Sesion 4 - '+currentName+'\\n';
-  csv+='Tu cuello: '+($('cuelloBox')._cuello||'-')+'\\n\\n';
+  const n=valid.length;
+  const firstRow=7, lastRow=firstRow+n-1, totalRow=lastRow+1, resRow=totalRow+3;
 
-  // Tabla de datos
-  csv+='Variable,Producto,Precio venta (S/),Costo (S/),Ganancia (S/),'+rName+' que usa,Maximo a vender,CANTIDAD A PRODUCIR\\n';
+  const rows=[];
+  rows.push(['OPTIMIZADOR DE MEZCLA - SOLVER']);
+  rows.push(['Modulo 3 - Sesion 4 - '+currentName+'  |  Cuello: '+($('cuelloBox')._cuello||'-')]);
+  rows.push([]);
+  rows.push(['AMARILLO = tu ya lo llenaste   |   Columna CANTIDAD = Solver la calcula   |   Ganancia total = tu resultado']);
+  rows.push([]);
+  rows.push(['Variable','Producto','Precio venta (S/)','Costo (S/)','Ganancia (S/)',rName+' que usa c/u','Maximo a vender','CANTIDAD (Solver)']);
   valid.forEach((p,i)=>{
-    const g=(parseFloat(p.price)-parseFloat(p.cost))||0;
-    csv+=letters[i]+','+esc(p.name)+','+(p.price||0)+','+(p.cost||0)+','+g+','+(p.resourcePerUnit||0)+','+(p.maxDemand||'sin limite')+',0\\n';
+    const g=(Number(p.price)-Number(p.cost))||0;
+    rows.push([
+      'X'+(i+1), p.name, Number(p.price)||0, Number(p.cost)||0, g,
+      Number(p.resourcePerUnit)||0,
+      p.maxDemand!==''?(Number(p.maxDemand)||0):'(sin limite)',
+      0
+    ]);
   });
-  csv+='\\nRECURSO TOTAL ('+rName+'),'+rTotal+'\\n\\n';
+  // Totales (valores 0 porque Solver aun no corre; se recalculan al meter cantidades)
+  const t=['','TOTALES ->','','','','','',''];
+  t[5]=0;  // recurso usado (Solver lo llena)
+  t[7]=0;  // ganancia total (Solver lo llena)
+  rows.push(t);
+  rows.push(['','','','','','(recurso usado)','','(ganancia total)']);
+  rows.push([]);
+  rows.push(['RECURSO DISPONIBLE POR SEMANA ('+rName+'):', '', '', '', '', '', rTotal, '']);
+  rows.push([]);
+  // Ecuacion
+  const objTerms=valid.map((p,i)=>{ const g=(Number(p.price)-Number(p.cost))||0; return g+'*X'+(i+1); });
+  const resTerms=valid.map((p,i)=>(Number(p.resourcePerUnit)||0)+'*X'+(i+1));
+  rows.push(['===== TU ECUACION =====']);
+  rows.push(['MAXIMIZAR:  Ganancia = '+objTerms.join(' + ')]);
+  rows.push(['SUJETO A:']);
+  rows.push(['   '+resTerms.join(' + ')+'  <=  '+rTotal+'   ('+rName+')']);
+  valid.forEach((p,i)=>{ if(p.maxDemand!=='') rows.push(['   X'+(i+1)+'  <=  '+p.maxDemand+'   (max '+p.name+')']); });
+  rows.push(['   Todas las cantidades  >=  0']);
+  rows.push([]);
+  // Pasos Solver con celdas reales
+  rows.push(['===== PASOS EN SOLVER (pestana Datos > Solver) =====']);
+  rows.push(['PRIMERO: en la celda H'+totalRow+' escribe: =SUMAPRODUCTO(E'+firstRow+':E'+lastRow+';H'+firstRow+':H'+lastRow+')']);
+  rows.push(['         en la celda F'+totalRow+' escribe: =SUMAPRODUCTO(F'+firstRow+':F'+lastRow+';H'+firstRow+':H'+lastRow+')']);
+  rows.push(['1. Establecer objetivo:  $H$'+totalRow+'   ->  marca (o) Max']);
+  rows.push(['2. Cambiando las celdas de variables:  $H$'+firstRow+':$H$'+lastRow]);
+  rows.push(['3. Sujeto a las restricciones (Agregar cada una):']);
+  rows.push(['      $F$'+totalRow+'  <=  $G$'+resRow]);
+  rows.push(['      $H$'+firstRow+':$H$'+lastRow+'  <=  $G$'+firstRow+':$G$'+lastRow+'   (los maximos)']);
+  rows.push(['      $H$'+firstRow+':$H$'+lastRow+'  >=  0']);
+  rows.push(['4. Metodo de resolucion:  LP Simplex']);
+  rows.push(['5. Resolver  ->  las cantidades optimas apareceran en la columna CANTIDAD.']);
 
-  // La ecuacion escrita
-  csv+='===== TU ECUACION (para configurar Solver) =====\\n';
-  const objTerms=valid.map((p,i)=>{ const g=(parseFloat(p.price)-parseFloat(p.cost))||0; return g+'*'+letters[i]; });
-  csv+='MAXIMIZAR: Ganancia = '+objTerms.join(' + ')+'\\n';
-  csv+='SUJETO A:\\n';
-  const resTerms=valid.map((p,i)=>(p.resourcePerUnit||0)+'*'+letters[i]);
-  csv+='  '+resTerms.join(' + ')+' <= '+rTotal+'   ('+rName+')\\n';
-  valid.forEach((p,i)=>{ if(p.maxDemand){ csv+='  '+letters[i]+' <= '+p.maxDemand+'   (max '+esc(p.name)+')\\n'; } });
-  csv+='  '+letters.join(', ')+' >= 0   (nada negativo)\\n\\n';
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:11},{wch:24},{wch:15},{wch:11},{wch:13},{wch:20},{wch:14},{wch:16}];
+  ws['!merges']=[
+    {s:{r:0,c:0},e:{r:0,c:7}},
+    {s:{r:1,c:0},e:{r:1,c:7}},
+    {s:{r:3,c:0},e:{r:3,c:7}},
+    {s:{r:resRow-1,c:0},e:{r:resRow-1,c:5}}
+  ];
 
-  // Pasos Solver
-  csv+='===== PASOS EN EXCEL SOLVER =====\\n';
-  csv+='1. Datos > Solver\\n';
-  csv+='2. Objetivo: la celda de Ganancia total -> Maximizar\\n';
-  csv+='3. Cambiando celdas: la columna CANTIDAD A PRODUCIR\\n';
-  csv+='4. Restricciones: copia las de arriba (recurso, maximos, >=0)\\n';
-  csv+='5. Metodo: LP Simplex -> Resolver\\n';
-
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='Optimizador_'+currentName.split(' ')[0]+'_S4.csv'; a.click();
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Solver');
+  XLSX.writeFile(wb,'Optimizador_'+currentName.split(' ')[0]+'_S4.xlsx');
+  showStatus('\u2705 Excel (.xlsx) descargado. Sigue los pasos de Solver dentro del archivo.','ok');
+  setTimeout(()=>showStatus('',''),5000);
 });
 
 $('printBtn').addEventListener('click', ()=>window.print());

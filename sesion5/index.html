@@ -706,7 +706,7 @@ async function generarExcelABC(){
   const bAll={top:thin,left:thin,bottom:thin,right:thin};
   const white={argb:'FFFFFFFF'}, ink={argb:'FF1C2536'}, gray={argb:'FF6B7688'};
 
-  ws.columns=[{width:5},{width:30},{width:14},{width:14},{width:16},{width:14}];
+  ws.columns=[{width:5},{width:28},{width:13},{width:13},{width:15},{width:13},{width:2.5},{width:6},{width:6},{width:6},{width:6},{width:6},{width:6},{width:6}];
 
   // Título
   ws.mergeCells('A1:F1');
@@ -745,6 +745,64 @@ async function generarExcelABC(){
   ws.getCell(tr,2).value='TOTAL'; ws.getCell(tr,2).font={bold:true,color:{argb:NAVY}}; ws.getCell(tr,2).alignment={horizontal:'right'};
   ws.getCell(tr,5).value={formula:'SUM(E'+(r0+1)+':E'+(tr-1)+')'}; ws.getCell(tr,5).font={bold:true,size:12,color:{argb:TEAL}}; ws.getCell(tr,5).alignment={horizontal:'center'}; ws.getCell(tr,5).border=bAll;
   ws.getRow(tr).height=24;
+
+  // ── PIRÁMIDE ABC (columnas H-N, al lado de la tabla) ──
+  {
+    const grp={A:[],B:[],C:[]}; abcData.forEach(it=>grp[it.cat].push(it));
+    const totAll=abcData.reduce((s,it)=>s+it.value,0);
+    const sumCat=cat=>grp[cat].reduce((s,i)=>s+i.value,0);
+    const catInfo=[
+      {cat:'A',color:'FF0E8C8C',name:'Cr\u00edticos',val:sumCat('A'),cnt:grp.A.length},
+      {cat:'B',color:'FFE8A800',name:'Valor medio',val:sumCat('B'),cnt:grp.B.length},
+      {cat:'C',color:'FF8AACBD',name:'Liberar dinero',val:sumCat('C'),cnt:grp.C.length}
+    ].filter(c=>c.cnt>0);
+    const wb2={};
+    // Título
+    ws.mergeCells('H4:N4');
+    let pt=ws.getCell('H4'); pt.value='TU PIR\u00c1MIDE ABC';
+    pt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0E8C8C'}};
+    pt.font={bold:true,size:11,color:white}; pt.alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(4).height=20;
+    // Pirámide: niveles progresivamente más anchos (A angosto arriba, C ancho abajo)
+    const center=11; // col K
+    const levelW=[2,4,6]; // ancho en columnas según posición (arriba->abajo)
+    const wbord={style:'medium',color:{argb:'FFFFFFFF'}};
+    let pr=6;
+    catInfo.forEach((c,idx)=>{
+      const w=levelW[Math.min(idx,2)];
+      const c1=center-Math.floor(w/2), c2=center+Math.ceil(w/2)-1;
+      ws.mergeCells(pr,c1,pr+1,c2);
+      const cell=ws.getCell(pr,c1);
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:c.color}};
+      cell.value=c.cat;
+      cell.font={bold:true,size:18,color:white};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:wbord,bottom:wbord,left:wbord,right:wbord};
+      ws.getRow(pr).height=16; ws.getRow(pr+1).height=16;
+      pr+=2;
+    });
+    // Detalle: nombre, %, monto por grupo
+    pr+=1;
+    ws.mergeCells('H'+pr+':N'+pr);
+    ws.getCell('H'+pr).value='Nombre \u00b7 % del dinero \u00b7 monto';
+    ws.getCell('H'+pr).font={bold:true,size:9.5,color:{argb:'FF002A8D'}};
+    ws.getCell('H'+pr).alignment={horizontal:'center'};
+    ws.getRow(pr).height=16;
+    pr++;
+    catInfo.forEach(c=>{
+      const pct=Math.round(c.val/totAll*100);
+      ws.getCell(pr,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:c.color}};
+      ws.getCell(pr,8).value=c.cat;
+      ws.getCell(pr,8).font={bold:true,color:white,size:11};
+      ws.getCell(pr,8).alignment={horizontal:'center',vertical:'middle'};
+      ws.mergeCells(pr,9,pr,14);
+      ws.getCell(pr,9).value=c.name+'  \u2014  '+pct+'%  \u2014  S/'+Math.round(c.val).toLocaleString('es-PE');
+      ws.getCell(pr,9).font={size:10.5,color:ink};
+      ws.getCell(pr,9).alignment={horizontal:'left',vertical:'middle'};
+      ws.getRow(pr).height=19;
+      pr++;
+    });
+  }
 
   // Resumen por categoría
   const groups={A:[],B:[],C:[]}; abcData.forEach(it=>groups[it.cat].push(it));
@@ -792,4 +850,3 @@ tryResume();
 </script>
 </body>
 </html>
-

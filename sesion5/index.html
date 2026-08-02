@@ -1,1 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Insumos e Inventario &middot; S5 &middot; BCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{
+  --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
+  --ink:#1C2536;--bg:#F0F2F7;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--teal:#0E8C8C;--teal-d:#0A6A6A;
+  --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
+  --font:'Rubik',system-ui,'Segoe UI',sans-serif;
+  --A:#0E8C8C;--B:#E8A800;--C:#8AACBD;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+h1,h2,h3{font-weight:600;letter-spacing:-.2px}
+.top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--teal);border-radius:50%;opacity:.25}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
+.top h1{font-size:24px;margin-top:7px;line-height:1.16;position:relative;z-index:2}
+.top h1 span{color:#5FD4D4}
+.top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
+.wrap{padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal);margin-bottom:3px}
+.card h2{font-size:18px;margin-bottom:3px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+.field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
+/* GATE */
+.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
+.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
+.role-list{display:flex;flex-direction:column;gap:10px}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
+.role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.rc-icon.emp{background:var(--teal)}
+.rc-icon.doc{background:var(--navy-d)}
+.rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
+.rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.role-card.selected .rc-label{color:var(--navy)}
+.gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.gate-panel.on{display:block}
+.gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
+.gate-dni-input,.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
+.gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.gate-dni-input:focus,.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px}
+.gate-btn.emp{background:var(--teal);box-shadow:0 5px 18px rgba(14,140,140,.32)}
+.gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
+/* buttons */
+.cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--teal);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(14,140,140,.28);transition:.15s;white-space:nowrap}
+.cta:active{transform:translateY(1px)}
+.cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
+.cta.green{background:var(--green);box-shadow:0 5px 16px rgba(47,158,95,.25)}
+.cta.full{width:100%;text-align:center}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;width:100%;text-align:center}
+.ghost:hover{border-color:var(--navy);color:var(--navy)}
+.bridge-msg{font-size:12.5px;color:var(--teal-d);font-weight:600;background:#E3F5F5;border-radius:10px;padding:11px 13px;margin-bottom:14px;line-height:1.45}
+.name-tag{font-size:12px;color:var(--muted);background:#F5F7FB;padding:5px 12px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:12px}
+/* insumos */
+.ins-intro{background:#E3F5F5;border-left:3px solid var(--teal);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--teal-d);line-height:1.5}
+.ins-card{background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:11px;position:relative}
+.ins-card h3{font-size:13.5px;color:var(--navy);font-weight:700;margin-bottom:10px}
+.ins-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;font-family:inherit}
+.mini-field{margin-bottom:9px}
+.mini-field label{font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.mini-field .unit{font-weight:400;color:var(--muted);font-size:10px;text-transform:none}
+.mini-field input{width:100%;padding:9px 11px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;color:var(--ink)}
+.mini-field input:focus{outline:none;border-color:var(--teal)}
+.mini-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ex-hint{font-size:10.5px;color:var(--teal);margin-top:3px;font-style:italic;line-height:1.35;opacity:.9}
+.val-calc{font-size:12.5px;color:var(--teal-d);font-weight:600;background:#E3F5F5;border-radius:8px;padding:6px 10px;margin:2px 0 10px}
+/* matriz ABC */
+.abc-empty{color:var(--muted);font-style:italic;font-size:13.5px;text-align:center;padding:20px 8px}
+.abc-bar-wrap{margin:14px 0}
+.abc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.abc-badge{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+.abc-badge.A{background:var(--A)}
+.abc-badge.B{background:var(--B)}
+.abc-badge.C{background:var(--C)}
+.abc-info{flex:1;min-width:0}
+.abc-name{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.2}
+.abc-meta{font-size:11.5px;color:var(--muted)}
+.abc-val{font-size:13px;font-weight:700;color:var(--navy);text-align:right;white-space:nowrap}
+.abc-legend{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.abc-cat{border-radius:11px;padding:13px 14px;border-left:5px solid}
+.abc-cat.A{background:#E3F5F5;border-color:var(--A)}
+.abc-cat.B{background:#FFF8E1;border-color:var(--B)}
+.abc-cat.C{background:#F1F5F9;border-color:var(--C)}
+.abc-cat h4{font-size:14px;margin-bottom:3px}
+.abc-cat.A h4{color:var(--teal-d)}
+.abc-cat.B h4{color:#8A6D00}
+.abc-cat.C h4{color:var(--muted)}
+.abc-cat p{font-size:12px;color:var(--ink);line-height:1.5}
+.abc-cat .items{font-size:11.5px;color:var(--muted);margin-top:5px;font-style:italic}
+/* barra pareto visual */
+.pareto{display:flex;height:38px;border-radius:8px;overflow:hidden;margin:12px 0}
+.pareto-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;min-width:24px}
+.pareto-seg.A{background:var(--A)}
+.pareto-seg.B{background:var(--B)}
+.pareto-seg.C{background:var(--C)}
+/* plan */
+.plan-input{width:100%;padding:12px;font-size:14px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;color:var(--ink);min-height:60px;resize:vertical;margin-top:6px}
+.plan-input:focus{outline:none;border-color:var(--teal)}
+.save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
+.save-status.loading{color:var(--muted)}
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
+.logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+/* docente */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
+.kpi-val{font-size:30px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.3}
+.kpi-box.teal .kpi-val{color:var(--teal)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
+.emp-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
+.tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
+.tag.teal{background:#E3F5F5;color:var(--teal-d)}
+.tag.green{background:#E6F8EE;color:var(--green)}
+.tag.gray{background:#F1F5F9;color:var(--muted)}
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--teal))}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+#detailModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px}
+#detailModal.on{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit}
+.modal-name{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<!-- CLAVES -->
+<script>
+const BIN_ID     = '6a6f4d59da38895dfeafbd92';
+const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
+const DOCENTE_PW = '70003700';
+</script>
+<script>
+const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca"};
+const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "insumo": "procesadores / tarjetas de video", "desc": "los componentes caros que casi no rotan pero valen mucho"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "encaje importado", "desc": "la tela fina que usas en las batas premium"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "insumo": "carnes y mariscos", "desc": "los insumos frescos caros de tus eventos"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "insumo": "mobiliario y decoración", "desc": "lo que más invertiste para tus eventos"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "insumo": "fierro de construcción", "desc": "el material de mayor valor de tu ferretería"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "insumo": "cobertores importados premium", "desc": "los modelos caros que tardan en venderse"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "insumo": "madera fina para instrumentos", "desc": "la materia prima costosa de tus instrumentos"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "insumo": "ataúdes de gama alta", "desc": "los productos de mayor valor de tu inventario"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "insumo": "flores importadas", "desc": "las flores caras que se marchitan rápido"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "insumo": "material de construcción de alto valor", "desc": "los insumos caros de tu tienda"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "insumo": "máquinas de manualidades", "desc": "los equipos de mayor valor que vendes"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "insumo": "insumos gourmet para snacks", "desc": "los ingredientes premium de tus productos"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "prendas de temporada", "desc": "la ropa de moda que más invertiste"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "insumo": "repuestos originales caros", "desc": "las piezas de alto valor de tu stock"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "insumo": "material de construcción premium", "desc": "los insumos caros de tu negocio"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "insumo": "pescado fresco de calidad", "desc": "la materia prima cara de tus conservas"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "insumo": "productos de marca", "desc": "los ítems caros de tu minimarket"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "insumo": "insumos gourmet para clases", "desc": "los ingredientes premium de tu escuela"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "insumo": "insumos médicos especializados", "desc": "el material clínico de mayor valor"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "insumo": "ladrillos y cemento premium", "desc": "los materiales de mayor valor"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "insumo": "equipos / software especializado", "desc": "las herramientas caras de tu servicio"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "insumo": "amoblado de habitaciones", "desc": "lo que más invertiste en tu hospedaje"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "insumo": "material de asesoría especializada", "desc": "los recursos de mayor valor"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "insumo": "equipos profesionales", "desc": "las herramientas caras de tu servicio"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "insumo": "amoblado y ropa de cama premium", "desc": "lo que más invertiste en tu hospedaje"}};
+</script>
+
+<!-- GATE -->
+<div id="gateScreen">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 5</div>
+    <h1>Insumos e <span>Inventario</span></h1>
+    <p>Cuida lo cr&iacute;tico y libera el dinero atrapado en lo que no rota.</p>
+  </div>
+  <div class="wrap">
+    <div class="card" style="padding:24px 20px">
+      <div class="gate-title">&iquest;C&oacute;mo vas a entrar?</div>
+      <div class="gate-sub">Elige tu perfil para empezar.</div>
+      <div class="role-list">
+        <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
+          <div class="rc-icon emp">&#9670;</div>
+          <div><span class="rc-label">Soy emprendedora / due&ntilde;a de negocio</span><span class="rc-sub">Clasifica tus insumos con la Matriz ABC</span></div>
+        </button>
+        <button class="role-card" id="cardDoc" onclick="pickRole('doc')">
+          <div class="rc-icon doc">&#9783;</div>
+          <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
+        </button>
+      </div>
+      <div class="gate-panel on" id="panelEmp">
+        <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div class="gate-err" id="errEmp"></div>
+        <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
+      </div>
+      <div class="gate-panel" id="panelDoc">
+        <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div class="gate-err" id="errDoc"></div>
+        <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+    </div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
+  </div>
+</div>
+
+<!-- VISTA EMPRENDEDORA -->
+<div id="empView" style="display:none">
+  <div class="top">
+    <div class="eyebrow">M&oacute;dulo 3 &middot; Sesi&oacute;n 5 &middot; Sostener</div>
+    <h1>Insumos e <span>Inventario</span></h1>
+    <p id="empWelcome">Clasifica tus insumos y libera dinero.</p>
+  </div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
+  <div class="wrap">
+
+    <!-- PUENTE CON S4 -->
+    <div class="card">
+      <div class="bridge-msg">
+        &#128260; <b>En la Sesi&oacute;n 4</b> dejaste tu proceso &aacute;gil. Pero un proceso r&aacute;pido no sirve si te quedas sin material a medio camino &mdash; o si tu dinero est&aacute; atrapado en cosas que no se venden. <b>Hoy ordenamos tus insumos.</b>
+      </div>
+      <span class="step-label">Paso 1 &middot; Lista tus insumos</span>
+      <h2>&iquest;Qu&eacute; compras para tu negocio?</h2>
+      <p class="hint">Escribe tus insumos o productos de inventario. Para cada uno: cu&aacute;nto cuesta y cu&aacute;ntos usas o vendes al mes. La app calcula cu&aacute;nto dinero representa cada uno.</p>
+      <div class="name-tag" id="nameTag"></div>
+      <div class="ins-intro">
+        <b>&iquest;Por qu&eacute; esto importa?</b> No todos tus insumos valen lo mismo. Algunos pocos se llevan la mayor parte de tu dinero. Esos son los que debes cuidar m&aacute;s.
+      </div>
+      <div id="insList"></div>
+      <button class="ghost no-print" id="addInsBtn" style="margin-bottom:6px">+ Agregar otro insumo</button>
+    </div>
+
+    <!-- PASO 2: MATRIZ ABC -->
+    <div class="card">
+      <span class="step-label">Paso 2 &middot; Tu Matriz ABC</span>
+      <h2>As&iacute; se reparte tu dinero</h2>
+      <p class="hint">La app orden&oacute; tus insumos de mayor a menor valor y los agrup&oacute; con la regla 80-20: pocos insumos concentran la mayor parte del dinero.</p>
+      <div id="abcResult"><p class="abc-empty">Agrega insumos con su costo y cantidad, y aqu&iacute; aparecer&aacute; tu clasificaci&oacute;n ABC.</p></div>
+    </div>
+
+    <!-- PASO 3: PLAN -->
+    <div class="card" id="planCard" style="display:none">
+      <span class="step-label">Paso 3 &middot; Tu plan de acci&oacute;n</span>
+      <h2>&iquest;Qu&eacute; vas a hacer con cada grupo?</h2>
+      <p class="hint">Ahora que sabes qu&eacute; insumos son cr&iacute;ticos (A) y cu&aacute;les inmovilizan dinero (C), define tu plan.</p>
+      <label class="field-label">Tus insumos A (cr&iacute;ticos): &iquest;c&oacute;mo asegurar que nunca falten?</label>
+      <textarea class="plan-input" id="planA" placeholder="Ej: tener siempre un stock m&iacute;nimo, buscar un segundo proveedor..."></textarea>
+      <label class="field-label">Tus insumos C (poco valor): &iquest;c&oacute;mo liberar ese dinero?</label>
+      <textarea class="plan-input" id="planC" placeholder="Ej: comprar menos cantidad, solo cuando se necesite..."></textarea>
+    </div>
+
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi trabajo</button>
+    <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Matriz ABC (.xlsx)</button>
+    <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF resumen</button>
+    <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S5</div>
+  </div>
+</div>
+
+<!-- VISTA DOCENTE -->
+<div id="docView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#0a5b5b 100%)">
+    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 5</div>
+    <h1>Panel de <span style="color:#5FD4D4">Inventario</span></h1>
+    <p id="docWelcome">Matrices ABC registradas.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Matrices guardadas</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kInsumos">-</div><div class="kpi-lbl">Insumos analizados (total)</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kPlan">-</div><div class="kpi-lbl">Definieron plan</div></div>
+    </div>
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--teal)" id="kPctLbl">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div id="docAlerts"></div>
+    <div class="section-title">Matrices registradas</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="emp-table">
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Insumos</th><th>Plan</th></tr></thead>
+        <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Pendientes</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
+<div id="detailModal"><div class="modal-box">
+  <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+  <div class="modal-name" id="modalName">-</div>
+  <div class="modal-meta" id="modalMeta">-</div>
+  <div id="modalBody"></div>
+  <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const HEADERS_R = { 'X-Master-Key': BIN_KEY };
+const HEADERS_W = { 'Content-Type':'application/json', 'X-Master-Key': BIN_KEY };
+const SESSION_KEY = 'bcp_s5_session';
+const DATA_PREFIX = 'bcp_s5_data_';
+
+let currentDNI=null, currentName=null;
+let insumos=[];   // {name, cost, qty}
+let abcData=[];   // resultado clasificado
+let docEntries=[];
+
+async function binRead(){ try{ const r=await fetch(BIN_URL,{headers:HEADERS_R}); if(!r.ok) return null; const j=await r.json(); return j.record||null; }catch(e){ return null; } }
+async function binWrite(d){ try{ const r=await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(d)}); return r.ok; }catch(e){ return false; } }
+
+// GATE
+function pickRole(role){
+  $('cardEmp').classList.toggle('selected',role==='emp');
+  $('cardDoc').classList.toggle('selected',role==='doc');
+  $('panelEmp').classList.toggle('on',role==='emp');
+  $('panelDoc').classList.toggle('on',role==='doc');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+}
+function doLoginEmp(){
+  const v=$('inputEmp').value.trim(); $('errEmp').textContent='';
+  if(!v||v.length<6){ $('errEmp').textContent='Ingresa tu DNI completo.'; return; }
+  if(!ROSTER[v]){ $('errEmp').textContent='DNI no registrado.'; return; }
+  currentDNI=v; currentName=ROSTER[v];
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'emp',dni:v,name:currentName}));
+  showEmpView();
+}
+function doLoginDoc(){
+  const v=$('inputDoc').value.trim(); $('errDoc').textContent='';
+  if(v!==DOCENTE_PW){ $('errDoc').textContent='Contrase\u00f1a incorrecta.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
+  showDocView();
+}
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+}
+function tryResume(){
+  try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
+    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+  }catch(e){}
+}
+function showEmpView(){
+  $('gateScreen').style.display='none'; $('docView').style.display='none'; $('empView').style.display='';
+  $('empWelcome').textContent='Hola, '+(currentName.split(' ')[0])+' \u2014 clasifica tus insumos y libera dinero.';
+  $('nameTag').textContent=currentName+' \u00b7 DNI '+currentDNI;
+  cargarDatos();
+}
+function showDocView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='';
+  loadDocData();
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function getEjemplo(){ return (currentDNI && INSUMOS[currentDNI]) ? INSUMOS[currentDNI] : null; }
+
+function cargarDatos(){
+  let own=null;
+  try{ const raw=localStorage.getItem(DATA_PREFIX+currentDNI); own=raw?JSON.parse(raw):null; }catch(e){}
+  if(own){
+    insumos=Array.isArray(own.insumos)?own.insumos:[];
+    if(own.planA) $('planA').value=own.planA;
+    if(own.planC) $('planC').value=own.planC;
+  }
+  if(insumos.length===0){ insumos=[emptyIns(), emptyIns(), emptyIns()]; }
+  renderInsumos();
+  bindInsInputs();
+}
+
+// ── INSUMOS ──
+function emptyIns(){ return { name:'', cost:'', qty:'' }; }
+function renderInsumos(){
+  const list=$('insList'); list.innerHTML='';
+  const ej=getEjemplo();
+  insumos.forEach((it,i)=>{
+    const c=document.createElement('div'); c.className='ins-card';
+    const first=(i===0 && ej);
+    const exN=first?'<div class="ex-hint">Ej: '+esc(ej.insumo)+'</div>':'';
+    const exC=first?'<div class="ex-hint">Ej: cu\u00e1nto te cuesta UNA unidad</div>':'';
+    const exQ=first?'<div class="ex-hint">Ej: cu\u00e1ntas usas o vendes al mes</div>':'';
+    const val=(it.cost!=='' && it.qty!=='')?(parseFloat(it.cost)*parseFloat(it.qty)):null;
+    const valTxt=(val!==null && !isNaN(val))?'<div class="val-calc">\u2713 Este insumo mueve <b>S/ '+val.toFixed(0)+'</b> al mes</div>':'';
+    c.innerHTML=
+      '<h3>Insumo '+(i+1)+'</h3>'+
+      (insumos.length>1?'<button class="ins-del" data-del="'+i+'">&#10005; quitar</button>':'')+
+      '<div class="mini-field"><label>&iquest;Qu&eacute; insumo o producto es?</label><input type="text" data-i="'+i+'" data-f="name" value="'+esc(it.name)+'" placeholder="Nombre del insumo" maxlength="40">'+exN+'</div>'+
+      '<div class="mini-2col">'+
+        '<div class="mini-field"><label>Costo por unidad <span class="unit">(S/)</span></label><input type="number" data-i="'+i+'" data-f="cost" value="'+esc(it.cost)+'" placeholder="costo" inputmode="decimal">'+exC+'</div>'+
+        '<div class="mini-field"><label>Cantidad al mes <span class="unit">(uso/venta)</span></label><input type="number" data-i="'+i+'" data-f="qty" value="'+esc(it.qty)+'" placeholder="cantidad" inputmode="decimal">'+exQ+'</div>'+
+      '</div>'+
+      valTxt;
+    list.appendChild(c);
+  });
+  computeABC();
+}
+function bindInsInputs(){
+  $('insList').addEventListener('input', e=>{
+    const inp=e.target.closest('input[data-i]'); if(!inp) return;
+    const i=parseInt(inp.dataset.i,10), f=inp.dataset.f;
+    insumos[i][f]=inp.value;
+    // actualizar valor sin re-render
+    if(f==='cost'||f==='qty'){
+      const card=inp.closest('.ins-card');
+      let vc=card.querySelector('.val-calc');
+      const v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
+      if(v!==null&&!isNaN(v)){
+        if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; card.appendChild(vc); }
+        vc.innerHTML='\u2713 Este insumo mueve <b>S/ '+v.toFixed(0)+'</b> al mes';
+      } else if(vc){ vc.remove(); }
+    }
+    computeABC(); save();
+  });
+  $('insList').addEventListener('click', e=>{
+    const del=e.target.closest('[data-del]'); if(!del) return;
+    insumos.splice(parseInt(del.dataset.del,10),1); renderInsumos(); save();
+  });
+  $('planA').addEventListener('input', save);
+  $('planC').addEventListener('input', save);
+}
+$('addInsBtn').addEventListener('click', ()=>{ insumos.push(emptyIns()); renderInsumos(); save(); });
+
+// ── MATRIZ ABC (Pareto 80-20) ──
+function computeABC(){
+  const valid=insumos.filter(it=>it.name && it.cost!=='' && it.qty!=='' && !isNaN(parseFloat(it.cost)) && !isNaN(parseFloat(it.qty)));
+  const cont=$('abcResult');
+  if(valid.length<2){
+    cont.innerHTML='<p class="abc-empty">Agrega al menos 2 insumos con costo y cantidad para ver tu Matriz ABC.</p>';
+    $('planCard').style.display='none';
+    abcData=[];
+    return;
+  }
+  // calcular valor y ordenar desc
+  const items=valid.map(it=>({ name:it.name, value:parseFloat(it.cost)*parseFloat(it.qty), cost:parseFloat(it.cost), qty:parseFloat(it.qty) }));
+  items.sort((a,b)=>b.value-a.value);
+  const total=items.reduce((s,it)=>s+it.value,0);
+  // Clasificacion ABC (Pareto 80-20) robusta tambien para pocos insumos.
+  // Regla: por % acumulado (A<=80, B<=95, C resto), PERO garantizando que
+  // un insumo con peso individual alto no caiga injustamente en C/B.
+  let acc=0;
+  items.forEach(it=>{
+    acc+=it.value;
+    it.pct=it.value/total*100;
+    it.cumPct=acc/total*100;
+    if(it.cumPct<=80) it.cat='A';
+    else if(it.cumPct<=95) it.cat='B';
+    else it.cat='C';
+  });
+  // Ajuste 1: el insumo #1 (mayor valor) siempre es A.
+  if(items.length) items[0].cat='A';
+  // Ajuste 2: un insumo que por si solo pesa >=15% no puede ser C (minimo B).
+  items.forEach(it=>{ if(it.cat==='C' && it.pct>=12) it.cat='B'; });
+  // Ajuste 3: un insumo que por si solo pesa >=40% es A.
+  items.forEach(it=>{ if(it.pct>=40) it.cat='A'; });
+  abcData=items;
+  renderABC();
+  $('planCard').style.display='';
+}
+
+
+// Dibuja la pirámide ABC: A arriba (pocos insumos, mucho dinero), C abajo (muchos, poco)
+function buildPyramid(groups, pctA, pctB, pctC, total){
+  const nA=groups.A.length, nB=groups.B.length, nC=groups.C.length, nTot=nA+nB+nC;
+  const cntPctA=Math.round(nA/nTot*100), cntPctB=Math.round(nB/nTot*100), cntPctC=Math.round(nC/nTot*100);
+  // SVG pirámide: 3 trapecios apilados. Ancho crece hacia abajo.
+  const W=300, H=210, cx=W/2;
+  // alturas proporcionales fijas para legibilidad (no por dato, para que se vea pirámide)
+  const hA=54, hB=64, hC=74, gap=4;
+  // anchos (mitad) por nivel
+  const wA=42, wB=90, wC=140;
+  let y=6;
+  const A_top_y=y, A_bot_y=y+hA;
+  y=A_bot_y+gap; const B_top_y=y, B_bot_y=y+hB;
+  y=B_bot_y+gap; const C_top_y=y, C_bot_y=y+hC;
+  // ancho superior de cada trapecio = ancho inferior del de arriba
+  const wA_top=14;
+  function trap(topY,botY,wTop,wBot,fill,cat){
+    return '<polygon points="'+(cx-wTop)+','+topY+' '+(cx+wTop)+','+topY+' '+(cx+wBot)+','+botY+' '+(cx-wBot)+','+botY+'" fill="'+fill+'"/>';
+  }
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:340px;display:block;margin:0 auto 6px" xmlns="http://www.w3.org/2000/svg">';
+  // trapecios
+  svg+=trap(A_top_y,A_bot_y,wA_top,wA,'#0E8C8C');
+  svg+=trap(B_top_y,B_bot_y,wA,wB,'#E8A800');
+  svg+=trap(C_top_y,C_bot_y,wB,wC,'#8AACBD');
+  // etiquetas dentro (letra grande)
+  svg+='<text x="'+cx+'" y="'+(A_top_y+hA/2+7)+'" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">A</text>';
+  svg+='<text x="'+cx+'" y="'+(B_top_y+hB/2+7)+'" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">B</text>';
+  svg+='<text x="'+cx+'" y="'+(C_top_y+hC/2+7)+'" text-anchor="middle" font-size="26" font-weight="700" fill="#fff" font-family="Rubik,sans-serif">C</text>';
+  svg+='</svg>';
+  // Leyenda de dos lados: insumos vs dinero
+  let box='<div style="background:#F7F9FC;border:1px solid var(--line);border-radius:12px;padding:14px 12px;margin-bottom:14px">';
+  box+='<div style="text-align:center;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Tu pir\u00e1mide de inventario</div>';
+  box+='<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">Pocos insumos arriba (A) valen mucho \u00b7 muchos abajo (C) valen poco</div>';
+  box+=svg;
+  // fila comparativa por nivel
+  box+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">';
+  const rows=[['A','#0E8C8C',nA,pctA],['B','#E8A800',nB,pctB],['C','#8AACBD',nC,pctC]];
+  rows.forEach(([cat,col,cnt,pctDin])=>{
+    if(cnt===0) return;
+    box+='<div style="display:flex;align-items:center;gap:8px;font-size:11.5px">'+
+      '<span style="width:18px;height:18px;border-radius:4px;background:'+col+';color:#fff;text-align:center;font-weight:700;line-height:18px;flex-shrink:0">'+cat+'</span>'+
+      '<span style="flex:1;color:var(--ink)"><b>'+cnt+'</b> insumo'+(cnt>1?'s':'')+'</span>'+
+      '<span style="color:var(--muted)">se lleva</span>'+
+      '<span style="font-weight:700;color:'+col+'">'+pctDin+'% del dinero</span></div>';
+  });
+  box+='</div></div>';
+  return box;
+}
+
+function renderABC(){
+  const cont=$('abcResult');
+  const total=abcData.reduce((s,it)=>s+it.value,0);
+  const groups={A:[],B:[],C:[]};
+  abcData.forEach(it=>groups[it.cat].push(it));
+  const valA=groups.A.reduce((s,i)=>s+i.value,0);
+  const valB=groups.B.reduce((s,i)=>s+i.value,0);
+  const valC=groups.C.reduce((s,i)=>s+i.value,0);
+  const pctA=Math.round(valA/total*100), pctB=Math.round(valB/total*100), pctC=Math.round(valC/total*100);
+
+  let h='';
+  // barra pareto
+  h+='<div class="pareto">';
+  if(pctA>0) h+='<div class="pareto-seg A" style="width:'+pctA+'%">'+(pctA>=8?pctA+'%':'')+'</div>';
+  if(pctB>0) h+='<div class="pareto-seg B" style="width:'+pctB+'%">'+(pctB>=8?pctB+'%':'')+'</div>';
+  if(pctC>0) h+='<div class="pareto-seg C" style="width:'+pctC+'%">'+(pctC>=8?pctC+'%':'')+'</div>';
+  h+='</div>';
+  h+='<p style="font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:14px">Cada barra = % del dinero que concentra ese grupo</p>';
+
+  // ── PIRÁMIDE ABC ──
+  h+=buildPyramid(groups, pctA, pctB, pctC, total);
+
+  // lista de insumos ordenados
+  h+='<div class="abc-bar-wrap">';
+  abcData.forEach(it=>{
+    h+='<div class="abc-row">'+
+       '<div class="abc-badge '+it.cat+'">'+it.cat+'</div>'+
+       '<div class="abc-info"><div class="abc-name">'+esc(it.name)+'</div>'+
+       '<div class="abc-meta">S/'+it.cost.toFixed(0)+' \u00d7 '+it.qty+' = '+it.pct.toFixed(0)+'% de tu dinero</div></div>'+
+       '<div class="abc-val">S/'+it.value.toFixed(0)+'</div></div>';
+  });
+  h+='</div>';
+
+  // leyenda de las 3 categorías (texto Unicode directo, sin entities en JS)
+  h+='<div class="abc-legend">';
+  if(groups.A.length){
+    h+='<div class="abc-cat A"><h4>\u{1F3C6} Grupo A \u2014 tus insumos cr\u00edticos</h4>'+
+       '<p>Son <b>'+groups.A.length+' insumo(s)</b> que concentran el <b>'+pctA+'% de tu dinero</b>. Si uno de estos falta, tu negocio se detiene o pierdes mucho. <b>Cu\u00eddalos: nunca deben faltar.</b></p>'+
+       '<div class="items">'+groups.A.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
+  }
+  if(groups.B.length){
+    h+='<div class="abc-cat B"><h4>\u2696\uFE0F Grupo B \u2014 valor medio</h4>'+
+       '<p><b>'+groups.B.length+' insumo(s)</b> con el <b>'+pctB+'%</b> de tu dinero. Contr\u00f3lalos con moderaci\u00f3n.</p>'+
+       '<div class="items">'+groups.B.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
+  }
+  if(groups.C.length){
+    h+='<div class="abc-cat C"><h4>\u{1F4B0} Grupo C \u2014 libera este dinero</h4>'+
+       '<p>Son <b>'+groups.C.length+' insumo(s)</b> y solo son el <b>'+pctC+'%</b> de tu dinero. No necesitas tener mucho stock de estos. <b>Compra menos y libera efectivo.</b></p>'+
+       '<div class="items">'+groups.C.map(i=>esc(i.name)).join(' \u00b7 ')+'</div></div>';
+  }
+  h+='</div>';
+  cont.innerHTML=h;
+}
+
+function save(){
+  if(!currentDNI) return;
+  try{ localStorage.setItem(DATA_PREFIX+currentDNI, JSON.stringify({ insumos, planA:$('planA').value, planC:$('planC').value })); }catch(e){}
+}
+
+// PDF
+$('printBtn').addEventListener('click', ()=>window.print());
+
+// LIMPIAR
+let clearArmed=false;
+$('clearBtn').addEventListener('click', ()=>{
+  const b=$('clearBtn');
+  if(!clearArmed){ clearArmed=true; b.textContent='\u00bfSeguro? Toca de nuevo'; b.style.color='var(--red)'; b.style.borderColor='var(--red)';
+    setTimeout(()=>{ clearArmed=false; b.textContent='Limpiar mis datos de este dispositivo'; b.style.color=''; b.style.borderColor=''; },4000); return; }
+  try{ localStorage.removeItem(DATA_PREFIX+currentDNI); }catch(e){}
+  location.reload();
+});
+
+// GUARDAR NUBE
+$('saveCloudBtn').addEventListener('click', async ()=>{
+  if(abcData.length<2){ showStatus('Agrega al menos 2 insumos con costo y cantidad.','err'); return; }
+  showStatus('Guardando...','loading');
+  const rec=await binRead();
+  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); return; }
+  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  const total=abcData.reduce((s,it)=>s+it.value,0);
+  const groupA=abcData.filter(i=>i.cat==='A');
+  const payload={
+    dni:currentDNI, name:currentName,
+    insumos:abcData.map(it=>({name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat})),
+    insumoCount:abcData.length,
+    totalValue:total,
+    countA:groupA.length,
+    planA:$('planA').value.trim(), planC:$('planC').value.trim(),
+    hasPlan: !!($('planA').value.trim() || $('planC').value.trim()),
+    savedAt:new Date().toISOString()
+  };
+  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  if(idx>=0) entries[idx]=payload; else entries.push(payload);
+  const ok=await binWrite({entries});
+  showStatus(ok?'\u2705 Guardado correctamente.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''),4000);
+});
+function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
+
+// DOCENTE
+async function loadDocData(){
+  $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
+  const rec=await binRead();
+  if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
+  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  const total=docEntries.length, pct=Math.round(total/25*100);
+  const totalIns=docEntries.reduce((s,e)=>s+(e.insumoCount||0),0);
+  const conPlan=docEntries.filter(e=>e.hasPlan).length;
+  $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
+  $('kInsumos').textContent=totalIns; $('kPlan').textContent=conPlan;
+  $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras guardaron su matriz.';
+  let al='';
+  if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay matrices guardadas.</b></div>';
+  else if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
+  $('docAlerts').innerHTML=al;
+  if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
+  else {
+    let rows='';
+    docEntries.forEach((e,idx)=>{
+      const first=(e.name||e.dni).split(' ')[0];
+      const nA=e.countA||0;
+      rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
+        '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
+        '<td><span class="tag teal">'+(e.insumoCount||0)+' insumos</span>'+(nA?' <span class="tag gray">'+nA+' cr\u00edticos</span>':'')+'</td>'+
+        '<td>'+(e.hasPlan?'<span class="tag green">s\u00ed</span>':'<span class="tag gray">no</span>')+'</td></tr>';
+    });
+    $('docTableBody').innerHTML=rows;
+  }
+  const reg=new Set(docEntries.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas guardaron su matriz!</b></div>';
+  else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,nm])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(nm.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }
+}
+function openModal(idx){
+  const e=docEntries[idx]; if(!e) return;
+  $('modalName').textContent=e.name||e.dni;
+  $('modalMeta').textContent=(e.insumoCount||0)+' insumos \u00b7 S/'+Math.round(e.totalValue||0)+' en inventario \u00b7 '+(e.savedAt?e.savedAt.slice(0,16).replace('T',' '):'-');
+  let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Insumos por categor\u00eda</b>';
+  ['A','B','C'].forEach(cat=>{
+    const list=(e.insumos||[]).filter(i=>i.cat===cat);
+    if(list.length){
+      const col=cat==='A'?'var(--teal)':cat==='B'?'var(--amber)':'var(--muted)';
+      b+='<div style="margin-top:8px"><span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:'+col+';color:#fff;text-align:center;font-size:12px;font-weight:700;line-height:20px">'+cat+'</span> ';
+      b+=list.map(i=>esc(i.name)+' (S/'+Math.round(i.value)+')').join(', ')+'</div>';
+    }
+  });
+  b+='</div>';
+  if(e.planA) b+='<div style="margin-bottom:8px"><b style="font-size:12px;color:var(--teal-d)">Plan A (cr\u00edticos):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planA)+'</div></div>';
+  if(e.planC) b+='<div><b style="font-size:12px;color:var(--muted)">Plan C (liberar):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planC)+'</div></div>';
+  $('modalBody').innerHTML=b;
+  $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('detailModal').classList.remove('on'); document.body.style.overflow=''; }
+$('detailModal').addEventListener('click',e=>{ if(e.target===$('detailModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click',()=>window.print());
+$('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
+
+
+// ── GENERAR EXCEL MATRIZ ABC ──
+$('excelBtn').addEventListener('click', async ()=>{
+  if(abcData.length<2){ showStatus('Agrega al menos 2 insumos para el Excel.','err'); return; }
+  if(typeof ExcelJS==='undefined'){ showStatus('No se pudo cargar el generador de Excel.','err'); return; }
+  showStatus('Generando tu Excel...','loading');
+  try{
+    const wb=await generarExcelABC();
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Matriz_ABC_'+currentName.split(' ')[0]+'_S5.xlsx'; a.click();
+    showStatus('\u2705 Excel descargado con tu Matriz ABC.','ok');
+    setTimeout(()=>showStatus('',''),5000);
+  }catch(e){ showStatus('\u26a0\ufe0f Error: '+e.message,'err'); }
+});
+
+async function generarExcelABC(){
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Matriz ABC',{views:[{showGridLines:false}]});
+  const TEAL='FF0E8C8C', NAVY='FF002A8D', AMBER='FFE8A800', GRAY='FF8AACBD';
+  const fillTeal={type:'pattern',pattern:'solid',fgColor:{argb:TEAL}};
+  const fillNavy={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const fillHdr={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const fillA={type:'pattern',pattern:'solid',fgColor:{argb:'FFE3F5F5'}};
+  const fillB={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF8E1'}};
+  const fillC={type:'pattern',pattern:'solid',fgColor:{argb:'FFF1F5F9'}};
+  const thin={style:'thin',color:{argb:'FFC8D4E8'}};
+  const bAll={top:thin,left:thin,bottom:thin,right:thin};
+  const white={argb:'FFFFFFFF'}, ink={argb:'FF1C2536'}, gray={argb:'FF6B7688'};
+
+  ws.columns=[{width:5},{width:30},{width:14},{width:14},{width:16},{width:14}];
+
+  // Título
+  ws.mergeCells('A1:F1');
+  let c=ws.getCell('A1'); c.value='MATRIZ ABC DE INVENTARIO';
+  c.fill=fillTeal; c.font={bold:true,size:18,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(1).height=36;
+  ws.mergeCells('A2:F2');
+  c=ws.getCell('A2'); c.value='M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 '+currentName;
+  c.fill=fillNavy; c.font={size:10.5,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(2).height=20;
+
+  // Encabezado tabla
+  const r0=4;
+  const heads=['Cat','Insumo','Costo unit.\n(S/)','Cantidad\n/mes','Valor total\n(S/)','% del dinero'];
+  heads.forEach((h,j)=>{ const cc=ws.getCell(r0,j+1); cc.value=h; cc.fill=fillHdr; cc.font={bold:true,size:10.5,color:white}; cc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cc.border=bAll; });
+  ws.getRow(r0).height=32;
+
+  // Filas de insumos (ya ordenados desc por abcData)
+  const total=abcData.reduce((s,it)=>s+it.value,0);
+  abcData.forEach((it,i)=>{
+    const r=r0+1+i;
+    const fill=it.cat==='A'?fillA:it.cat==='B'?fillB:fillC;
+    ws.getCell(r,1).value=it.cat; ws.getCell(r,1).font={bold:true,color:(it.cat==='A'?{argb:TEAL}:it.cat==='B'?{argb:'FF8A6D00'}:gray)}; ws.getCell(r,1).alignment={horizontal:'center'};
+    ws.getCell(r,2).value=it.name;
+    ws.getCell(r,3).value=it.cost;
+    ws.getCell(r,4).value=it.qty;
+    ws.getCell(r,5).value={formula:'C'+r+'*D'+r};
+    ws.getCell(r,5).font={bold:true};
+    ws.getCell(r,6).value=(it.value/total);
+    ws.getCell(r,6).numFmt='0%';
+    for(let col=1;col<=6;col++){ ws.getCell(r,col).fill=fill; ws.getCell(r,col).border=bAll; if(col>=3) ws.getCell(r,col).alignment={horizontal:'center'}; }
+    ws.getRow(r).height=20;
+  });
+  // Total
+  const tr=r0+1+abcData.length;
+  ws.getCell(tr,2).value='TOTAL'; ws.getCell(tr,2).font={bold:true,color:{argb:NAVY}}; ws.getCell(tr,2).alignment={horizontal:'right'};
+  ws.getCell(tr,5).value={formula:'SUM(E'+(r0+1)+':E'+(tr-1)+')'}; ws.getCell(tr,5).font={bold:true,size:12,color:{argb:TEAL}}; ws.getCell(tr,5).alignment={horizontal:'center'}; ws.getCell(tr,5).border=bAll;
+  ws.getRow(tr).height=24;
+
+  // Resumen por categoría
+  const groups={A:[],B:[],C:[]}; abcData.forEach(it=>groups[it.cat].push(it));
+  const sr=tr+2;
+  ws.mergeCells('A'+sr+':F'+sr);
+  c=ws.getCell(sr,1); c.value='QU\u00c9 HACER CON CADA GRUPO'; c.fill=fillTeal; c.font={bold:true,size:12,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(sr).height=22;
+  const cats=[
+    ['A','Cr\u00edticos \u2014 nunca deben faltar. Ten stock de seguridad y un segundo proveedor.',groups.A],
+    ['B','Valor medio \u2014 cont\u00f3lalos con moderaci\u00f3n.',groups.B],
+    ['C','Poco valor \u2014 compra menos, libera ese dinero.',groups.C]
+  ];
+  let rr=sr+1;
+  cats.forEach(([cat,txt,list])=>{
+    if(!list.length) return;
+    const valG=list.reduce((s,i)=>s+i.value,0);
+    const pctG=Math.round(valG/total*100);
+    ws.getCell(rr,1).value=cat; ws.getCell(rr,1).font={bold:true,color:white};
+    ws.getCell(rr,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:(cat==='A'?TEAL:cat==='B'?AMBER:GRAY)}};
+    ws.getCell(rr,1).alignment={horizontal:'center',vertical:'middle'};
+    ws.mergeCells('B'+rr+':F'+rr);
+    ws.getCell(rr,2).value=list.length+' insumo(s) \u00b7 '+pctG+'% del dinero \u2014 '+txt;
+    ws.getCell(rr,2).font={size:10.5,color:ink}; ws.getCell(rr,2).alignment={horizontal:'left',vertical:'middle',wrapText:true};
+    ws.getRow(rr).height=30;
+    rr++;
+  });
+
+  // Plan
+  const planA=$('planA').value.trim(), planC=$('planC').value.trim();
+  if(planA||planC){
+    rr++;
+    ws.mergeCells('A'+rr+':F'+rr);
+    c=ws.getCell(rr,1); c.value='MI PLAN DE ACCI\u00d3N'; c.fill=fillNavy; c.font={bold:true,size:11,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(rr).height=20; rr++;
+    if(planA){ ws.mergeCells('A'+rr+':F'+rr); ws.getCell(rr,1).value='Insumos A (cr\u00edticos): '+planA; ws.getCell(rr,1).font={size:10.5}; ws.getCell(rr,1).alignment={horizontal:'left',wrapText:true}; ws.getRow(rr).height=28; rr++; }
+    if(planC){ ws.mergeCells('A'+rr+':F'+rr); ws.getCell(rr,1).value='Insumos C (liberar): '+planC; ws.getCell(rr,1).font={size:10.5}; ws.getCell(rr,1).alignment={horizontal:'left',wrapText:true}; ws.getRow(rr).height=28; rr++; }
+  }
+
+  ws.views=[{showGridLines:false,state:'frozen',ySplit:r0}];
+  return wb;
+}
+
+pickRole('emp');
+tryResume();
+</script>
+</body>
+</html>
 

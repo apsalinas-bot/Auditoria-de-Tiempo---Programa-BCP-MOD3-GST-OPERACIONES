@@ -94,6 +94,10 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .live .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
   .foot{text-align:center;font-size:12px;color:var(--muted);padding:8px 20px;line-height:1.5}
+  .save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+  .save-status.ok{color:var(--green)}
+  .save-status.err{color:var(--red)}
+  .save-status.loading{color:var(--muted)}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:99;opacity:0;transition:.3s;max-width:90%;text-align:center}
   .toast.show{opacity:1}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -246,7 +250,9 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
         <div class="summary" id="eisPlan" style="display:none"></div>
       </div>
 
-      <button class="cta navy" id="empPdf" style="margin-top:14px">Descargar mi resultado (PDF)</button>
+      <button class="cta" id="saveCloudBtn" style="margin-top:14px">Guardar mis datos</button>
+      <div id="saveStatus" class="save-status"></div>
+      <button class="cta navy" id="empPdf" style="margin-top:10px">Descargar mi resultado (PDF)</button>
       <p class="foot">Guarda tu número. En la Sesión 8 lo volveremos a medir — ya recuperado.</p>
     </div>
   </div>
@@ -328,7 +334,7 @@ $("dniBtn").onclick=async()=>{
   const all=await readAll();
   const mine=all.filter(e=>e.dni===dni).sort((a,b)=>b.ts-a.ts)[0];
   show("scEmp");
-  if(mine){ renderEmpDash(mine); lockForm(); }
+  if(mine){ myEntry=mine; renderEmpDash(mine); }
 };
 $("dni").addEventListener("keydown",e=>{if(e.key==="Enter")$("dniBtn").click();});
 $("pwBtn").onclick=()=>{ if($("pw").value===DOCENTE_PW){show("scDoc");startDoc();} else toast("Contraseña incorrecta"); };
@@ -356,6 +362,7 @@ function refreshRate(){const r=rate();$("rateVal").textContent=r>0?"S/ "+r.toFix
 function lockForm(){$("calcBtn").disabled=true;$("calcBtn").textContent="Ya enviaste tu auditoría";}
 
 /* ---------- submit ---------- */
+let myEntry=null; // entrada actual de la emprendedora (para guardar en la nube)
 $("calcBtn").onclick=async()=>{
   const r=rate(),days=+$("days").value||26;
   if(r<=0){toast("Completa tu sueldo y horas del Paso 1");return;}
@@ -368,24 +375,49 @@ $("calcBtn").onclick=async()=>{
     if(c==="r"||c==="y"){ tasks[i]={txt:(inp.value.trim()||("Tarea de las "+HOURS[i])),color:c}; }
   });
   const lost=red+yel,costMonth=Math.round(lost*days*r);
-  const entry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,rate:+r.toFixed(2),byHour,tasks,eis:{},ts:Date.now()};
-  if(sharedEnabled)await pushEntry(entry);else localBucket.push(entry);
-  renderEmpDash(entry);lockForm();
+  myEntry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,rate:+r.toFixed(2),byHour,tasks,eis:{},ts:Date.now()};
+  renderEmpDash(myEntry);
 };
+
+/* ---------- guardar en la nube (botón explícito, como Sesión 2) ---------- */
+$("saveCloudBtn").onclick=async()=>{
+  if(!myEntry){ toast("Primero calcula tu resultado"); return; }
+  saveStatus("Guardando...","loading");
+  myEntry.eis=Object.assign({},eisState); // incluir clasificación Eisenhower si la hizo
+  myEntry.ts=Date.now();
+  if(!sharedEnabled){ localBucket.push(myEntry); saveStatus("✅ Guardado localmente.","ok"); return; }
+  const ok=await pushEntry(myEntry);
+  if(ok){ saveStatus("✅ Datos guardados correctamente.","ok"); setTimeout(()=>saveStatus("",""),4000); }
+  else{ saveStatus("⚠️ No se pudo guardar. Revisa tu internet e intenta de nuevo.","err"); }
+};
+function saveStatus(msg,cls){ const el=$("saveStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
+
 
 /* ---------- storage ---------- */
 let localBucket=[];
 async function readAll(){
   if(!sharedEnabled)return localBucket;
-  try{const res=await fetch(API+"/latest",{headers:{"X-Master-Key":BIN_KEY}});const j=await res.json();const rec=j.record;return Array.isArray(rec)?rec:(rec.entries||[]);}
+  try{const res=await fetch(API+"/latest",{headers:{"X-Master-Key":BIN_KEY,"X-Bin-Meta":"false"}});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const j=await res.json();const rec=(j&&j.record!==undefined)?j.record:j;return Array.isArray(rec)?rec:((rec&&rec.entries)||[]);}
   catch(e){return localBucket;}
 }
 async function pushEntry(entry){
-  try{const all=await readAll();
-    const others=all.filter(e=>e.dni!==entry.dni); // one answer per DNI (latest wins)
-    others.push(entry);
-    await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":BIN_KEY},body:JSON.stringify({entries:others})});
-  }catch(e){toast("Guardado local (sin conexión)");localBucket.push(entry);}
+  for(let intento=1;intento<=3;intento++){
+    try{const all=await readAll();
+      const others=all.filter(e=>e.dni!==entry.dni); // one answer per DNI (latest wins)
+      others.push(entry);
+      const res=await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":BIN_KEY,"X-Bin-Versioning":"false"},body:JSON.stringify({entries:others})});
+      if(!res.ok)throw new Error("HTTP "+res.status);
+      return true; // guardado en la nube OK
+    }catch(e){
+      if(intento<3){ await new Promise(r=>setTimeout(r,700*intento)); continue; }
+      toast("Guardado local (sin conexión)");
+      const j=localBucket.findIndex(e=>e.dni===entry.dni); if(j>=0)localBucket.splice(j,1);
+      localBucket.push(entry);
+      return false;
+    }
+  }
 }
 
 /* ---------- helpers: pie chart ---------- */
@@ -486,7 +518,7 @@ function showEisPlan(){
 async function saveEis(){
   if(!eisEntry)return;
   eisEntry.eis=Object.assign({},eisState);
-  if(sharedEnabled){ try{ await pushEntry(eisEntry); }catch(e){} }
+  if(myEntry)myEntry.eis=Object.assign({},eisState);
 }
 
 /* ---------- DOCENTE dashboard ---------- */

@@ -411,8 +411,7 @@ function renderEmpDash(e){
   const {pr,py,pg}=pieText(e.red,e.yel,e.grn);
   $("eLostI").textContent = e.lost>=4?"Es bastante: hay mucho espacio para recuperar tiempo.":"Vas bien, pero aún puedes recuperar algo más.";
   $("eRateI").textContent = "Cada hora tuya en tareas de S/ "+e.rate.toFixed(2)+" que no delegas, es dinero que dejas de ganar.";
-  if(ePie)ePie.destroy();
-  ePie=makePie($("ePie").getContext("2d"),e.red,e.yel,e.grn);
+  try{ if(ePie)ePie.destroy(); if(typeof Chart!=="undefined"){ ePie=makePie($("ePie").getContext("2d"),e.red,e.yel,e.grn); } }catch(err){}
   $("ePieI").innerHTML="El <b>"+pr+"%</b> de tu día es apagar incendios y el <b>"+py+"%</b> son tareas repetitivas. Solo el <b>"+pg+"%</b> es trabajo que de verdad solo tú puedes hacer.";
   const worst=Object.entries(e.byHour||{}).filter(([i,c])=>c==="r").map(([i])=>+i);
   const hint = pg<30 ? "muy poco de tu día está en tu verdadero valor" : "ya dedicas una parte a tu verdadero valor";

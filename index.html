@@ -98,6 +98,11 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .save-status.ok{color:var(--green)}
   .save-status.err{color:var(--red)}
   .save-status.loading{color:var(--muted)}
+  .logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
+  .logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+  .clearbtn{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:12px 14px;border-radius:11px;transition:.15s;width:100%;text-align:center;margin-top:10px}
+  .clearbtn.warn{border-color:var(--red);color:var(--red);background:#FDF0F0}
+  .loadbtn{background:var(--navy)!important;box-shadow:0 5px 16px rgba(0,42,141,.25)}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:99;opacity:0;transition:.3s;max-width:90%;text-align:center}
   .toast.show{opacity:1}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -186,7 +191,10 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
     <h1 id="empHi">¿Cuánto cuesta tu tiempo?</h1>
     <p>Toma 5 minutos. Al final verás tu tablero.</p>
   </div>
+  <div class="logout-row"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
   <div class="wrap">
+    <button class="cta loadbtn" id="loadBtn" style="margin-bottom:14px">↺ Traer datos guardados</button>
+    <div id="loadStatus" class="save-status"></div>
     <div class="card">
       <span class="step-label">Paso 1 de 3</span>
       <h2>¿Cuánto vale tu hora?</h2>
@@ -253,6 +261,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
       <button class="cta" id="saveCloudBtn" style="margin-top:14px">Guardar mis datos</button>
       <div id="saveStatus" class="save-status"></div>
       <button class="cta navy" id="empPdf" style="margin-top:10px">Descargar mi resultado (PDF)</button>
+      <button class="clearbtn" id="clearBtn">Vaciar y empezar de nuevo</button>
       <p class="foot">Guarda tu número. En la Sesión 8 lo volveremos a medir — ya recuperado.</p>
     </div>
   </div>
@@ -391,6 +400,94 @@ $("saveCloudBtn").onclick=async()=>{
   else{ saveStatus("⚠️ No se pudo guardar. Revisa tu internet e intenta de nuevo.","err"); }
 };
 function saveStatus(msg,cls){ const el=$("saveStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
+
+/* ---------- cerrar sesión (emprendedora) — como Sesión 2 ---------- */
+function doLogout(){
+  currentUser=null; myEntry=null; eisEntry=null; eisState={};
+  // limpiar formulario y estado
+  for(const k in state) delete state[k];
+  $("hoursList").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+  $("hoursList").querySelectorAll(".htask").forEach(inp=>inp.value="");
+  $("salary").value=""; $("hours").value=""; $("days").value="26";
+  refreshRate();
+  $("empDash").style.display="none";
+  $("saveStatus").textContent=""; $("saveStatus").className="save-status";
+  $("calcBtn").disabled=false; $("calcBtn").textContent="Ver mi resultado";
+  $("dni").value=""; $("empPw").style.display="none"; $("docPw").style.display="none";
+  show("scRole");
+}
+
+/* ---------- traer datos guardados (recuperar última auditoría) ---------- */
+function restoreForm(e){
+  // restaurar días
+  if(e.days)$("days").value=e.days;
+  // restaurar sueldo y horas a partir del rate guardado (horas base 208 si no hay dato)
+  if(e.rate){
+    const h = 208;
+    $("hours").value = h;
+    $("salary").value = Math.round(e.rate*h);
+    refreshRate();
+  }
+  // restaurar colores del día
+  for(const k in state) delete state[k];
+  $("hoursList").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+  if(e.byHour){
+    Object.entries(e.byHour).forEach(([i,c])=>{
+      state[i]=c;
+      $("hoursList").querySelectorAll('.dot[data-i="'+i+'"]').forEach(d=>d.classList.toggle("on",d.dataset.c===c));
+    });
+  }
+  // restaurar textos de las tareas
+  if(e.tasks){
+    Object.entries(e.tasks).forEach(([i,t])=>{
+      const inp=$("hoursList").querySelector('.htask[data-i="'+i+'"]');
+      if(inp&&t&&t.txt&&!t.txt.startsWith("Tarea de las "))inp.value=t.txt;
+    });
+  }
+}
+$("loadBtn").onclick=async()=>{
+  if(!currentUser){ toast("Primero entra con tu DNI"); return; }
+  loadStatus("Buscando tus datos...","loading");
+  const all=await readAll();
+  const mine=all.filter(e=>e.dni===currentUser.dni).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
+  if(!mine){ loadStatus("No encontramos datos guardados con tu DNI.","err"); return; }
+  myEntry=mine;
+  restoreForm(mine);
+  renderEmpDash(mine);
+  loadStatus("✅ Datos recuperados. Puedes seguir editando o descargar tu PDF.","ok");
+  setTimeout(()=>loadStatus("",""),5000);
+};
+function loadStatus(msg,cls){ const el=$("loadStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
+
+
+/* ---------- vaciar y empezar de nuevo — como Sesión 2 (doble confirmación) ---------- */
+let clearArmed=false;
+const _clearBtn=$("clearBtn");
+_clearBtn.addEventListener("click",()=>{
+  if(!clearArmed){
+    clearArmed=true;
+    _clearBtn.textContent="¿Seguro? Toca de nuevo para vaciar";
+    _clearBtn.classList.add("warn");
+    clearTimeout(_clearBtn._t);
+    _clearBtn._t=setTimeout(()=>{ clearArmed=false; _clearBtn.textContent="Vaciar y empezar de nuevo"; _clearBtn.classList.remove("warn"); },4000);
+    return;
+  }
+  // vaciar todo el formulario y el tablero
+  clearArmed=false;
+  _clearBtn.textContent="Vaciar y empezar de nuevo";
+  _clearBtn.classList.remove("warn");
+  for(const k in state) delete state[k];
+  $("hoursList").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
+  $("hoursList").querySelectorAll(".htask").forEach(inp=>inp.value="");
+  $("salary").value=""; $("hours").value=""; $("days").value="26";
+  refreshRate();
+  myEntry=null; eisEntry=null; eisState={};
+  $("empDash").style.display="none";
+  $("saveStatus").textContent=""; $("saveStatus").className="save-status";
+  $("calcBtn").disabled=false; $("calcBtn").textContent="Ver mi resultado";
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
 
 
 /* ---------- storage ---------- */

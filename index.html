@@ -6,12 +6,12 @@
 
    var BIN_ID   = "6a69d494f5f4af5e29d0c297";        // ← pega tu BIN ID de JSONBin
    var BIN_KEY  = "$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm";    // ← pega tu Master Key de JSONBin
-   var DOCENTE_PW = "70003700";             // ← contraseña del acceso Docente (solo tú)
+   var DOCENTE_PW = "Abc123456";             // ← contraseña del acceso Docente (solo tú)
 
 /* =====================================================================
    ▲▲▲  NO TOQUES NADA MÁS ABAJO  ▲▲▲
    ===================================================================== */
-const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'}};
+const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia',b:''}};
 </script>
 <!DOCTYPE html>
 <html lang="es">
@@ -52,7 +52,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .rate .val{font-size:30px;font-weight:700;color:var(--navy);margin-top:2px}
   .hrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
   .hrow:last-child{border-bottom:none}
-  .htime{font-size:11px;font-weight:600;width:70px;line-height:1.2;flex:none}
+  .htime{font-size:12.5px;font-weight:600;width:60px;flex:none}
   .htask{flex:1;padding:8px 9px;font-size:14px;border:1.5px solid var(--line);border-radius:9px;background:#fff;min-width:0;font-family:inherit}
   .dots{display:flex;gap:5px;flex:none}
   .dot{width:25px;height:25px;border-radius:50%;border:2px solid transparent;cursor:pointer;opacity:.32;transition:.15s}
@@ -90,8 +90,6 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .chartcard .i{font-size:12px;color:var(--ink);margin-top:10px;line-height:1.4;background:#F7F9FC;border-radius:8px;padding:9px 11px}
   .summary{background:#EEF2FB;border-left:3px solid var(--navy);border-radius:8px;padding:13px 15px;font-size:13px;color:var(--ink);margin-top:14px;line-height:1.55}
   .summary b{color:var(--navy)}
-  .logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0}
-  .logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
   .live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:12px;justify-content:center;width:100%}
   .live .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -184,7 +182,6 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
     <h1 id="empHi">¿Cuánto cuesta tu tiempo?</h1>
     <p>Toma 5 minutos. Al final verás tu tablero.</p>
   </div>
-  <div class="logout-row"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
   <div class="wrap">
     <div class="card">
       <span class="step-label">Paso 1 de 3</span>
@@ -262,7 +259,6 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
     <h1>Resultados del aula</h1>
     <p>Análisis global de la Auditoría de Tiempo — Sesión 1</p>
   </div>
-  <div class="logout-row"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
   <div class="wrap">
     <div class="kpis">
       <div class="kpi"><div class="n navy" id="kCount">0</div><div class="c">Respuestas</div><div class="i" id="kCountI"></div></div>
@@ -292,6 +288,7 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
     <div class="summary" id="dSummary"></div>
     <button class="cta navy" id="docPdf" style="margin-top:14px">Descargar resumen del aula (PDF)</button>
     <div class="live"><span class="pulse"></span> Actualizando en vivo cada 5 segundos</div>
+    <button class="ghost" id="docExit" style="margin-top:10px">Salir del tablero</button>
   </div>
 </div>
 
@@ -336,18 +333,10 @@ $("dniBtn").onclick=async()=>{
 $("dni").addEventListener("keydown",e=>{if(e.key==="Enter")$("dniBtn").click();});
 $("pwBtn").onclick=()=>{ if($("pw").value===DOCENTE_PW){show("scDoc");startDoc();} else toast("Contraseña incorrecta"); };
 $("pw").addEventListener("keydown",e=>{if(e.key==="Enter")$("pwBtn").click();});
-function doLogout(){
-  stopDoc();
-  currentUser=null;
-  $("empPw").style.display="none";
-  $("docPw").style.display="none";
-  $("dni").value="";
-  $("pw").value="";
-  show("scRole");
-}
+$("docExit").onclick=()=>{stopDoc();$("docPw").style.display="none";$("pw").value="";show("scRole");};
 
 /* ---------- build hour rows ---------- */
-const HOURS=["6 a 7 am","7 a 8 am","8 a 9 am","9 a 10 am","10 a 11 am","11 a 12 m","12 a 1 pm","1 a 2 pm","2 a 3 pm","3 a 4 pm","4 a 5 pm","5 a 6 pm","6 a 7 pm","7 a 8 pm","8 a 9 pm","9 a 10 pm","10 a 11 pm"];
+const HOURS=["6:00","7:00","8:00","9:00","10:00","11:00","12:00","1:00 pm","2:00 pm","3:00 pm","4:00 pm","5:00 pm","6:00 pm","7:00 pm","8:00 pm","9:00 pm","10:00 pm"];
 const state={};
 HOURS.forEach((h,i)=>{
   const row=document.createElement("div");row.className="hrow";

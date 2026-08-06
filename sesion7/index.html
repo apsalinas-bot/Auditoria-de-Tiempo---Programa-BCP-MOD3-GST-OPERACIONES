@@ -1,1 +1,676 @@
+<script>
+/* =====================================================================
+   ▼▼▼  PEGA TUS CLAVES AQUÍ  ▼▼▼
+   (Solo estas líneas. Nada más.)
+   ===================================================================== */
 
+   var BIN_ID     = "6a751d17f5f4af5e29f51b1b";   // ← ⭐️ AQUÍ VA EL BIN_ID DE SESIÓN 7 (crea uno nuevo en jsonbin.io y pega aquí)
+   var BIN_KEY    = "$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm";   // ← tu Master Key de JSONBin (la misma de tus otras apps)
+   var DOCENTE_PW = "Abc123456";                  // ← contraseña del acceso Docente (solo tú)
+
+   // BIN de la Sesión 1 (Auditoría de Tiempo) — de aquí se jalan las actividades amarillas.
+   // Ya está puesto: es el mismo BIN_ID que usa tu app "Auditoría de Tiempo".
+   var BIN_ID_S1  = "6a69d494f5f4af5e29d0c297";
+
+/* =====================================================================
+   ▲▲▲  NO TOQUES NADA MÁS ABAJO  ▲▲▲
+   ===================================================================== */
+const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia Uscca Huamanquispe',b:''}};
+</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Matriz de Delegación · Módulo 3 · Sesión 7 · BCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
+  --ink:#1C2536;--bg:#F0F2F7;--card:#FFFFFF;--line:#E2E7F0;--muted:#6B7688;
+  --red:#D64545;--amber:#E8A800;--green:#2F9E5F;--coral:#E85D2F;--coral-d:#C2431A;
+  --shadow:0 6px 24px rgba(0,20,80,.08);--r:14px;
+  --font:'Rubik',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+h1,h2,h3{font-weight:600;letter-spacing:-.2px}
+.top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--coral);border-radius:50%;opacity:.28}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
+.top h1{font-size:24px;margin-top:7px;line-height:1.16;position:relative;z-index:2}
+.top h1 span{color:#FF9E6D}
+.top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
+.wrap{padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--coral);margin-bottom:3px}
+.card h2{font-size:18px;margin-bottom:3px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+/* GATE */
+.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
+.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
+.role-list{display:flex;flex-direction:column;gap:10px}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
+.role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.rc-icon.emp{background:var(--coral)}
+.rc-icon.doc{background:var(--navy-d)}
+.rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
+.rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.role-card.selected .rc-label{color:var(--navy)}
+.gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.gate-panel.on{display:block}
+.gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
+.gate-dni-input,.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
+.gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.gate-dni-input:focus,.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
+.gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px}
+.gate-btn.emp{background:var(--coral);box-shadow:0 5px 18px rgba(232,93,47,.32)}
+.gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
+/* buttons */
+.cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(232,93,47,.28);transition:.15s;white-space:nowrap}
+.cta:active{transform:translateY(1px)}
+.cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
+.cta.green{background:var(--green);box-shadow:0 5px 16px rgba(47,158,95,.25)}
+.cta.full{width:100%;text-align:center;margin-bottom:10px}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;width:100%;text-align:center}
+.ghost:hover{border-color:var(--navy);color:var(--navy)}
+.bridge-msg{font-size:12.5px;color:var(--coral-d);font-weight:600;background:#FDECE4;border-radius:10px;padding:11px 13px;margin-bottom:0;line-height:1.5}
+.name-tag{font-size:12px;color:var(--muted);background:#F5F7FB;padding:5px 12px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:12px}
+.logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
+.logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+/* estado de carga de S1 */
+.sem-load{font-size:12.5px;color:var(--green);font-weight:600;background:#E6F8EE;border-radius:10px;padding:9px 12px;margin-bottom:12px}
+.sem-load.warn{color:#7C5A00;background:#FFF8E1}
+.reload-flow{background:none;border:1.5px solid var(--coral);color:var(--coral-d);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:7px 12px;border-radius:9px;margin-top:2px;width:100%}
+.reload-flow:hover{background:var(--coral);color:#fff}
+/* pool de actividades (chips) */
+.taskpool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--amber);background:#fff;transition:.15s;font-family:inherit}
+.chip .cdot{width:11px;height:11px;border-radius:50%;background:var(--amber);flex:none}
+.chip.manual{border-color:var(--coral)}
+.chip.manual .cdot{background:var(--coral)}
+.chip.done{opacity:.42;text-decoration:line-through}
+.chip:active{transform:scale(.96)}
+.step-add-row{display:flex;gap:8px;margin:12px 0 4px}
+.step-add-row input{flex:1;padding:10px 12px;font-size:13.5px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit}
+.step-add-row input:focus{outline:none;border-color:var(--coral)}
+.step-add-row button{background:var(--coral);color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:600;font-family:inherit;cursor:pointer;font-size:13.5px}
+.empty-pool{font-size:13px;color:var(--muted);font-style:italic;text-align:center;padding:14px}
+/* leyenda de la matriz */
+.legend2{display:flex;flex-direction:column;gap:6px;margin:12px 0 4px;font-size:12px}
+.legend2 div{display:flex;align-items:center;gap:8px}
+.lg2{width:13px;height:13px;border-radius:4px;flex:none}
+.pend-hint{font-size:12.5px;color:var(--muted);text-align:center;margin:10px 0 4px}
+/* matriz 2x2 */
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.qcell{border-radius:12px;padding:11px;min-height:96px;border:1.5px solid var(--line);background:#F7F9FC}
+.qcell h4{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1.2}
+.qcell .qd{font-size:10px;color:var(--muted);margin-bottom:7px;line-height:1.25}
+.qcell.q1{border-top:4px solid var(--green)}
+.qcell.q2{border-top:4px solid var(--navy)}
+.qcell.q3{border-top:4px solid var(--amber)}
+.qcell.q4{border-top:4px solid var(--red)}
+.qtask{font-size:11px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:6px 8px;margin-bottom:5px;position:relative}
+.qtask .qt-txt{display:block;padding-right:14px;line-height:1.3}
+.qtask .qt-who{display:block;font-size:10px;color:var(--coral-d);margin-top:2px;font-weight:600}
+.qtask .x{position:absolute;top:4px;right:6px;color:var(--muted);cursor:pointer;font-weight:700;font-size:13px;line-height:1}
+.summary{background:#EEF2FB;border-left:3px solid var(--navy);border-radius:8px;padding:13px 15px;font-size:13px;color:var(--ink);margin-top:6px;line-height:1.55}
+.summary b{color:var(--navy)}
+/* documento preview */
+.doc-preview{background:#fff;border:2px solid var(--coral);border-radius:12px;padding:18px}
+.doc-preview .dp-header{text-align:center;border-bottom:2px solid var(--coral);padding-bottom:12px;margin-bottom:14px}
+.doc-preview .dp-title{font-size:16px;font-weight:700;color:var(--coral-d)}
+.doc-preview .dp-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.doc-preview .dp-sec{margin-bottom:13px}
+.doc-preview .dp-sec-h{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.doc-preview .dp-item{font-size:12.5px;color:var(--ink);line-height:1.55;padding-left:4px}
+.doc-preview .dp-item b{color:var(--coral-d)}
+/* picker (bottom sheet) */
+.picker{position:fixed;inset:0;background:rgba(20,30,55,.55);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.picker.on{display:flex}
+.picksheet{background:#fff;width:100%;max-width:600px;border-radius:18px 18px 0 0;padding:18px 18px 26px;max-height:88vh;overflow-y:auto}
+.picksheet h3{font-size:15px;margin-bottom:3px}
+.picksheet .pt{font-size:13px;color:var(--muted);margin-bottom:14px}
+.who-field{margin-bottom:14px}
+.who-field label{font-size:11.5px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:6px}
+.who-field input{width:100%;padding:11px 13px;font-size:14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;color:var(--ink)}
+.who-field input:focus{outline:none;border-color:var(--coral)}
+.pickopt{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#F7F9FC;border:1.5px solid var(--line);border-radius:12px;padding:13px;margin-bottom:9px;cursor:pointer;font-family:inherit}
+.pickopt .pi{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700}
+.pickopt .pl{font-size:14px;font-weight:600}.pickopt .pdd{font-size:11.5px;color:var(--muted)}
+/* guardado / live */
+.save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
+.save-status.loading{color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:6px;justify-content:center;width:100%}
+.live .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* docente */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
+.kpi-val{font-size:30px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.3}
+.kpi-box.coral .kpi-val{color:var(--coral)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.kpi-box.red .kpi-val{color:var(--red)}
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);background:#F8FAFE}
+.emp-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
+.tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
+.tag.coral{background:#FDECE4;color:var(--coral-d)}
+.tag.green{background:#E6F8EE;color:var(--green)}
+.tag.gray{background:#F1F5F9;color:var(--muted)}
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px}
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--coral))}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+#detailModal{display:none;position:fixed;inset:0;background:rgba(0,10,40,.5);z-index:999;overflow-y:auto;padding:20px 12px}
+#detailModal.on{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#fff;border-radius:16px;max-width:500px;width:100%;padding:22px;box-shadow:0 24px 60px rgba(0,20,80,.22);margin:auto}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit}
+.modal-name{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<!-- GATE -->
+<div id="gateScreen">
+  <div class="top">
+    <div class="eyebrow">Módulo 3 · Gestión de Operaciones · Sesión 7</div>
+    <h1>Matriz de <span>Delegación</span></h1>
+    <p>Convierte lo que marcaste en amarillo en un plan real: qué sueltas primero y a quién.</p>
+  </div>
+  <div class="wrap">
+    <div class="card" style="padding:24px 20px">
+      <div class="gate-title">¿Cómo vas a entrar?</div>
+      <div class="gate-sub">Elige tu perfil para empezar.</div>
+      <div class="role-list">
+        <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
+          <div class="rc-icon emp">◆</div>
+          <div><span class="rc-label">Soy emprendedora / dueña de negocio</span><span class="rc-sub">Arma tu matriz de delegación</span></div>
+        </button>
+        <button class="role-card" id="cardDoc" onclick="pickRole('doc')">
+          <div class="rc-icon doc">▦</div>
+          <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
+        </button>
+      </div>
+      <div class="gate-panel on" id="panelEmp">
+        <span class="gate-panel-label">Tu DNI (es tu contraseña)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 dígitos" maxlength="8" inputmode="numeric">
+        <div class="gate-err" id="errEmp"></div>
+        <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
+      </div>
+      <div class="gate-panel" id="panelDoc">
+        <span class="gate-panel-label">Contraseña del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••">
+        <div class="gate-err" id="errDoc"></div>
+        <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+    </div>
+    <div class="foot">Programa BCP · UCSP–CENDES · Módulo 3: Gestión de Operaciones</div>
+  </div>
+</div>
+
+<!-- VISTA EMPRENDEDORA -->
+<div id="empView" style="display:none">
+  <div class="top">
+    <div class="eyebrow">Módulo 3 · Sesión 7 · Ordenar</div>
+    <h1>Matriz de <span>Delegación</span></h1>
+    <p id="empWelcome">Decide qué sueltas primero y a quién.</p>
+  </div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
+  <div class="wrap">
+
+    <div class="card">
+      <div class="bridge-msg">🔄 En la <b>Sesión 1</b> marcaste en <b>amarillo</b> las horas repetitivas — tareas donde otra persona podría estar haciendo tu trabajo. Hoy las conviertes en un plan concreto de delegación.</div>
+    </div>
+
+    <div class="card">
+      <span class="step-label">Paso 1 · Tus actividades amarillas</span>
+      <h2>Esto es lo que puedes soltar</h2>
+      <p class="hint">Cargamos automáticamente las tareas que marcaste en amarillo en tu Auditoría de Tiempo (Sesión 1). Toca cada una para decidir qué hacer con ella.</p>
+      <div class="name-tag" id="nameTag"></div>
+      <div class="sem-load" id="semLoad">Cargando tus actividades amarillas de la Sesión 1...</div>
+      <div class="taskpool" id="taskPool"></div>
+      <div class="step-add-row no-print">
+        <input type="text" id="newTaskInput" placeholder="Agregar otra actividad manualmente" maxlength="70">
+        <button id="addTaskBtn">+ Agregar</button>
+      </div>
+      <button class="reload-flow no-print" id="reloadBtn" style="margin-top:8px">↻ Recargar mis actividades amarillas de la Sesión 1</button>
+    </div>
+
+    <div class="card" id="matrizCard" style="display:none">
+      <span class="step-label">Paso 2 · Ubica cada actividad</span>
+      <h2>¿Delegar ya o preparar antes?</h2>
+      <p class="hint">Toca cada actividad de la lista de arriba y ubícala según qué tan fácil es explicarla y qué tan grave sería un error al principio.</p>
+      <div class="legend2">
+        <div><span class="lg2" style="background:var(--coral)"></span> <b>Hazlo tú:</b>&nbsp;importante para el negocio + eres buena en esto</div>
+        <div><span class="lg2" style="background:var(--navy)"></span> <b>Delega con guía:</b>&nbsp;importante para el negocio + necesitas entrenar</div>
+        <div><span class="lg2" style="background:var(--green)"></span> <b>Delega ya:</b>&nbsp;NO es crítico + eres buena en esto</div>
+        <div><span class="lg2" style="background:#9CA3AF"></span> <b>Elimina / Automatiza:</b>&nbsp;NO es crítico + requiere capacitación</div>
+      </div>
+      <div class="pend-hint" id="pendHint"></div>
+      <div class="quad">
+        <div class="qcell q3"><h4>🌟 Hazlo tú</h4><div class="qd">Importante · eres buena</div><div id="q3"></div></div>
+        <div class="qcell q2"><h4>📋 Delega con guía</h4><div class="qd">Importante · entrenar</div><div id="q2"></div></div>
+        <div class="qcell q1"><h4>✓ Delega ya</h4><div class="qd">No crítico · eres buena</div><div id="q1"></div></div>
+        <div class="qcell q4"><h4>🗑 Elimina / Automatiza</h4><div class="qd">No crítico · no necesaria</div><div id="q4"></div></div>
+      </div>
+      <div class="summary" id="planSummary" style="display:none"></div>
+    </div>
+
+    <div class="card" id="previewCard" style="display:none">
+      <span class="step-label">Tu matriz lista</span>
+      <h2>Así queda tu plan de delegación</h2>
+      <div class="doc-preview" id="docPreview"></div>
+    </div>
+
+    <button class="cta navy full no-print" id="saveCloudBtn">☁ Guardar mi matriz</button>
+    <button class="cta full no-print" id="wordBtn">📄 Descargar mi matriz (Word)</button>
+    <button class="cta green full no-print" id="printBtn">🖨 Descargar / imprimir (PDF)</button>
+    <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Programa BCP · UCSP–CENDES · Módulo 3 · Sesión 7</div>
+  </div>
+</div>
+
+<!-- VISTA DOCENTE -->
+<div id="docView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#8a3410 100%)">
+    <div class="eyebrow">Docente · Módulo 3 · Sesión 7</div>
+    <h1>Tablero de <span style="color:#FF9E6D">Delegación</span></h1>
+    <p id="docWelcome">Matrices de delegación registradas.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">↻ Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Matrices guardadas</div></div>
+      <div class="kpi-box coral"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 26)</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kYa">-</div><div class="kpi-lbl">Actividades listas para delegar ya</div></div>
+      <div class="kpi-box red"><div class="kpi-val" id="kFinal">-</div><div class="kpi-lbl">Actividades que necesitan más apoyo</div></div>
+    </div>
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participación del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--coral)" id="kPctLbl">0 / 26</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div id="docAlerts"></div>
+    <div class="section-title">Matrices registradas</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="emp-table">
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Actividades</th><th>Estado</th></tr></thead>
+        <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Pendientes</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">🖨 Imprimir panel</button>
+    <div class="live no-print"><span class="pulse"></span> Actualizando en vivo cada 8 segundos</div>
+    <div class="foot" style="margin-top:10px">Programa BCP · UCSP–CENDES · Módulo 3</div>
+  </div>
+</div>
+
+<!-- PICKER -->
+<div class="picker" id="picker">
+  <div class="picksheet">
+    <h3 id="pickTask">Actividad</h3>
+    <div class="pt">¿Qué vas a hacer con esta actividad?</div>
+    <div class="who-field">
+      <label for="whoInput">¿A quién se la vas a delegar? (opcional)</label>
+      <input type="text" id="whoInput" placeholder="Ej: mi hija, un colaborador, un aprendiz...">
+    </div>
+    <button class="pickopt" data-q="3"><span class="pi" style="background:var(--coral)">🌟</span><span><span class="pl">Hazlo tú</span><br><span class="pdd">Es importante + eres buena en esto · quédatela</span></span></button>
+    <button class="pickopt" data-q="2"><span class="pi" style="background:var(--navy)">📋</span><span><span class="pl">Delega con guía</span><br><span class="pdd">Es importante + necesita entrenamiento · delega pero supervisa</span></span></button>
+    <button class="pickopt" data-q="1"><span class="pi" style="background:var(--green)">✓</span><span><span class="pl">Delega ya</span><br><span class="pdd">No es crítico + eres buena · suéltalo sin miedo</span></span></button>
+    <button class="pickopt" data-q="4"><span class="pi" style="background:#9CA3AF">🗑</span><span><span class="pl">Elimina / Automatiza</span><br><span class="pdd">No es crítico + no necesaria · quitala de tu día</span></span></button>
+    <button class="ghost" id="pickCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="detailModal"><div class="modal-box">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <div class="modal-name" id="modalName">-</div>
+  <div class="modal-meta" id="modalMeta">-</div>
+  <div id="modalBody"></div>
+  <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
+const BIN_URL_S1='https://api.jsonbin.io/v3/b/'+BIN_ID_S1;
+const HEADERS_R={'X-Master-Key':BIN_KEY,'X-Bin-Meta':'false'};
+const HEADERS_W={'Content-Type':'application/json','X-Master-Key':BIN_KEY,'X-Bin-Versioning':'false'};
+const SESSION_KEY='bcp_s4_session';
+const DATA_PREFIX='bcp_s4_data_';
+const QLABEL={1:'Delega ya',2:'Delega con guía',3:'Hazlo tú',4:'Elimina / Automatiza'};
+
+let currentDNI=null,currentName=null;
+let pool=[]; // {id, txt, quad:null|'1'..'4', who:''}
+let manualCount=0;
+let docEntries=[];
+let docTimer=null;
+
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+async function binRead(url){try{const r=await fetch(url,{headers:HEADERS_R});if(!r.ok)return null;const j=await r.json();return (j&&j.record!==undefined)?j.record:j;}catch(e){return null;}}
+async function binWrite(url,d){try{const r=await fetch(url,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(d)});return r.ok;}catch(e){return false;}}
+
+/* ---------- GATE ---------- */
+function pickRole(role){
+  $('cardEmp').classList.toggle('selected',role==='emp');
+  $('cardDoc').classList.toggle('selected',role==='doc');
+  $('panelEmp').classList.toggle('on',role==='emp');
+  $('panelDoc').classList.toggle('on',role==='doc');
+  setTimeout(()=>{const i=role==='emp'?$('inputEmp'):$('inputDoc');if(i)i.focus();},50);
+}
+function doLoginEmp(){
+  const v=$('inputEmp').value.trim();$('errEmp').textContent='';
+  if(!v||v.length<6){$('errEmp').textContent='Ingresa tu DNI completo.';return;}
+  if(!ROSTER[v]){$('errEmp').textContent='DNI no encontrado en la lista del programa.';return;}
+  currentDNI=v;currentName=ROSTER[v].n;
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'emp',dni:v,name:currentName}));
+  showEmpView();
+}
+function doLoginDoc(){
+  const v=$('inputDoc').value.trim();$('errDoc').textContent='';
+  if(v!==DOCENTE_PW){$('errDoc').textContent='Contraseña incorrecta.';return;}
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc'}));
+  showDocView();
+}
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY);currentDNI=null;currentName=null;
+  if(docTimer){clearInterval(docTimer);docTimer=null;}
+  $('gateScreen').style.display='';$('empView').style.display='none';$('docView').style.display='none';
+  $('inputEmp').value='';$('inputDoc').value='';pickRole('emp');
+}
+function tryResume(){
+  try{const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(!s)return;
+    if(s.role==='doc'){showDocView();}else if(s.role==='emp'&&ROSTER[s.dni]){currentDNI=s.dni;currentName=s.name||ROSTER[s.dni].n;showEmpView();}
+  }catch(e){}
+}
+function showEmpView(){
+  $('gateScreen').style.display='none';$('docView').style.display='none';$('empView').style.display='';
+  $('empWelcome').textContent='Hola, '+currentName.split(' ')[0]+' — decide qué sueltas primero.';
+  $('nameTag').textContent=currentName+' · DNI '+currentDNI;
+  cargarDatos();
+}
+function showDocView(){
+  $('gateScreen').style.display='none';$('empView').style.display='none';$('docView').style.display='';
+  loadDocData();
+  if(docTimer)clearInterval(docTimer);
+  docTimer=setInterval(loadDocData,8000);
+}
+
+/* ---------- CARGA DE DATOS ---------- */
+async function cargarDatos(){
+  let own=null;
+  try{const raw=localStorage.getItem(DATA_PREFIX+currentDNI);own=raw?JSON.parse(raw):null;}catch(e){}
+  if(own&&Array.isArray(own.pool)){pool=own.pool;manualCount=own.manualCount||0;}
+  if(pool.filter(t=>t.id.indexOf('y')===0).length===0){await loadYellowFromS1();}
+  else{$('semLoad').textContent='✓ '+pool.filter(t=>t.id.indexOf('y')===0).length+' actividades amarillas cargadas de tu Sesión 1.';renderPool();renderQuads();updatePending();}
+  bindInputs();
+}
+
+async function loadYellowFromS1(){
+  const ld=$('semLoad');
+  ld.textContent='Cargando tus actividades amarillas de la Sesión 1...';ld.className='sem-load';
+  if(!BIN_ID_S1||BIN_ID_S1.indexOf('REEMPLAZA')>=0){
+    ld.textContent='⚠️ Falta configurar el BIN de la Sesión 1. Mientras, agrega tus actividades manualmente abajo.';
+    ld.className='sem-load warn';renderPool();renderQuads();updatePending();return;
+  }
+  try{
+    const rec=await binRead(BIN_URL_S1+'/latest');
+    const entries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+    const mine=entries.filter(e=>e.dni===currentDNI).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
+    if(mine&&mine.tasks){
+      const yellow=Object.entries(mine.tasks).filter(([i,t])=>t.color==='y');
+      const existingIds=new Set(pool.map(t=>t.id));
+      yellow.forEach(([i,t])=>{const id='y'+i;if(!existingIds.has(id)){pool.push({id,txt:t.txt,quad:null,who:''});}});
+      if(yellow.length){
+        ld.textContent='✓ Se cargaron '+yellow.length+' actividades amarillas de tu Sesión 1.';ld.className='sem-load';
+      }else{
+        ld.textContent='En tu Sesión 1 no marcaste actividades en amarillo. Agrega las que quieras delegar abajo ↓';ld.className='sem-load warn';
+      }
+    }else{
+      ld.textContent='Aún no encuentro tu Auditoría de Tiempo (Sesión 1). Agrega tus actividades manualmente abajo ↓';ld.className='sem-load warn';
+    }
+  }catch(e){
+    ld.textContent='No pude conectar con la Sesión 1. Agrega tus actividades manualmente abajo ↓';ld.className='sem-load warn';
+  }
+  renderPool();renderQuads();updatePending();save();
+}
+
+/* ---------- POOL / CHIPS ---------- */
+function renderPool(){
+  const cont=$('taskPool');cont.innerHTML='';
+  if(pool.length===0){cont.innerHTML='<div class="empty-pool">Aún no hay actividades. Agrégalas arriba ↑</div>';return;}
+  pool.forEach(t=>{
+    const chip=document.createElement('button');
+    chip.className='chip'+(t.id.indexOf('m')===0?' manual':'')+(t.quad?' done':'');
+    chip.dataset.id=t.id;
+    chip.innerHTML='<span class="cdot"></span>'+esc(t.txt);
+    chip.onclick=()=>openPicker(t.id);
+    cont.appendChild(chip);
+  });
+}
+function openPicker(id){
+  const t=pool.find(p=>p.id===id);if(!t)return;
+  $('picker').dataset.id=id;$('pickTask').textContent=t.txt;$('whoInput').value=t.who||'';
+  $('picker').classList.add('on');
+}
+$('pickCancel').onclick=()=>$('picker').classList.remove('on');
+document.querySelectorAll('.pickopt').forEach(btn=>{
+  btn.onclick=()=>{
+    const id=$('picker').dataset.id,q=btn.dataset.q,who=$('whoInput').value.trim();
+    const t=pool.find(p=>p.id===id);if(!t)return;
+    t.quad=q;t.who=who;
+    $('picker').classList.remove('on');
+    renderPool();renderQuads();updatePending();save();
+  };
+});
+function renderQuads(){
+  ['1','2','3','4'].forEach(q=>{
+    const cell=$('q'+q);cell.innerHTML='';
+    pool.filter(t=>t.quad===q).forEach(t=>{
+      const row=document.createElement('div');row.className='qtask';
+      row.innerHTML='<span class="x" data-rm="'+t.id+'">×</span><span class="qt-txt">'+esc(t.txt)+'</span>'+(t.who?'<span class="qt-who">→ '+esc(t.who)+'</span>':'');
+      cell.appendChild(row);
+    });
+  });
+  document.querySelectorAll('[data-rm]').forEach(x=>{
+    x.onclick=()=>{const id=x.dataset.rm;const t=pool.find(p=>p.id===id);if(t){t.quad=null;t.who='';}renderPool();renderQuads();updatePending();save();};
+  });
+}
+function updatePending(){
+  if(pool.length===0){$('matrizCard').style.display='none';return;}
+  $('matrizCard').style.display='block';
+  const done=pool.filter(t=>t.quad).length,total=pool.length,pend=total-done;
+  $('pendHint').textContent=pend>0?('Faltan '+pend+' actividad(es) por ubicar'):'¡Listo! Ubicaste todas tus actividades.';
+  if(pend===0&&total>0){showPlan();}else{$('planSummary').style.display='none';$('previewCard').style.display='none';}
+}
+function showPlan(){
+  const counts={1:0,2:0,3:0,4:0};
+  pool.forEach(t=>{if(t.quad)counts[t.quad]++;});
+  const el=$('planSummary');el.style.display='block';
+  el.innerHTML='<b>Tu plan de delegación:</b> de tus '+pool.length+' actividades, <b>'+counts[1]+'</b> las puedes <b>delegar ya</b>, <b>'+counts[2]+'</b> necesitan un <b>checklist</b> antes de soltarlas, <b>'+counts[3]+'</b> las vas <b>enseñando poco a poco</b>, y <b>'+counts[4]+'</b> te conviene <b>dejarlas para el final</b>. Empieza esta semana por una sola del grupo verde — ese es tu primer paso concreto.';
+  updatePreview(counts);
+}
+function updatePreview(counts){
+  $('previewCard').style.display='block';
+  let h='<div class="dp-header"><div class="dp-title">📋 MATRIZ DE DELEGACIÓN</div><div class="dp-meta">'+esc(currentName)+' · Módulo 3 · Sesión 7 · BCP×UCSP-CENDES</div></div>';
+  [['1','Delega ya'],['2','Delega con checklist'],['3','Enséñala poco a poco'],['4','Déjala para el final']].forEach(([q,label])=>{
+    const items=pool.filter(t=>t.quad===q);
+    if(items.length){
+      h+='<div class="dp-sec"><div class="dp-sec-h">'+label+' ('+items.length+')</div>'+
+        items.map(t=>'<div class="dp-item">• '+esc(t.txt)+(t.who?' <b>→ '+esc(t.who)+'</b>':'')+'</div>').join('')+'</div>';
+    }
+  });
+  $('docPreview').innerHTML=h;
+}
+
+/* ---------- inputs ---------- */
+function bindInputs(){
+  $('addTaskBtn').onclick=()=>{
+    const inp=$('newTaskInput');const v=inp.value.trim();if(!v)return;
+    manualCount++;pool.push({id:'m'+manualCount+'_'+Date.now(),txt:v,quad:null,who:''});
+    inp.value='';renderPool();renderQuads();updatePending();save();
+  };
+  $('newTaskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addTaskBtn').click();}});
+  $('reloadBtn').onclick=()=>loadYellowFromS1();
+}
+
+function save(){
+  if(!currentDNI)return;
+  try{localStorage.setItem(DATA_PREFIX+currentDNI,JSON.stringify({pool,manualCount}));}catch(e){}
+}
+
+/* ---------- guardar en la nube ---------- */
+$('saveCloudBtn').onclick=async()=>{
+  if(pool.length===0){showStatus('Aún no tienes actividades para guardar.','err');return;}
+  showStatus('Guardando...','loading');
+  const rec=await binRead(BIN_URL);
+  const entries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  const counts={1:0,2:0,3:0,4:0};pool.forEach(t=>{if(t.quad)counts[t.quad]++;});
+  const classified=pool.filter(t=>t.quad).length;
+  const payload={
+    dni:currentDNI,name:currentName,biz:(ROSTER[currentDNI]||{}).b||'',
+    tasks:pool.map(t=>({txt:t.txt,quad:t.quad,who:t.who})),
+    counts,total:pool.length,classified,complete:classified===pool.length&&pool.length>0,
+    savedAt:new Date().toISOString()
+  };
+  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  if(idx>=0)entries[idx]=payload;else entries.push(payload);
+  const ok=await binWrite(BIN_URL,{entries});
+  showStatus(ok?'✅ Guardado correctamente.':'⚠️ Error al guardar. Revisa tu conexión o el BIN_ID.',ok?'ok':'err');
+  if(ok)setTimeout(()=>showStatus('',''),4000);
+};
+function showStatus(m,c){$('saveStatus').textContent=m;$('saveStatus').className='save-status '+(c||'');}
+
+/* ---------- Word ---------- */
+$('wordBtn').onclick=()=>{
+  const classified=pool.filter(t=>t.quad).length;
+  if(pool.length===0||classified===0){showStatus('Ubica al menos una actividad antes de descargar.','err');return;}
+  const rubro=(ROSTER[currentDNI]||{}).b||'';
+  const hoy=new Date();const fecha=hoy.getDate()+' / '+(hoy.getMonth()+1)+' / '+hoy.getFullYear();
+  const S='font-family:Calibri,sans-serif;color:#1C2536;';
+  const H2='color:#002A8D;font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1pt solid #C8D4E8;padding-bottom:2pt;';
+  const meta=[['Código','MDL-01'],['Versión','1.0'],['Elaborado por',esc(currentName)],['Negocio',esc(rubro||'—')],['Fecha de elaboración',fecha]];
+  const metaRows=meta.map(r=>'<tr><td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt;font-weight:bold;color:#002A8D;width:38%">'+r[0]+'</td><td style="border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt">'+r[1]+'</td></tr>').join('');
+  const objetivo='Este documento traduce el diagnóstico de la Auditoría de Tiempo (Sesión 1) en un plan de acción: identifica, entre las actividades repetitivas del negocio, cuáles pueden delegarse de inmediato, cuáles requieren preparar un checklist previo, cuáles conviene enseñar de forma gradual y cuáles deben posponerse hasta contar con más tiempo de acompañamiento.';
+  let cuerpo='<div style="'+H2+'">1.  OBJETIVO</div><p style="font-size:11pt;line-height:1.5;text-align:justify">'+objetivo+'</p>';
+  [['1','2.  DELEGAR YA — fácil de explicar, bajo riesgo'],['2','3.  DELEGAR CON CHECKLIST — fácil de explicar, alto riesgo'],['3','4.  ENSEÑAR POCO A POCO — difícil de explicar, bajo riesgo'],['4','5.  DELEGAR AL FINAL — difícil de explicar, alto riesgo']].forEach(([q,title])=>{
+    const items=pool.filter(t=>t.quad===q);
+    if(items.length){
+      cuerpo+='<div style="'+H2+'">'+title+'</div><ul style="margin:0 0 0 18pt;padding:0">'+
+        items.map(t=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(t.txt)+(t.who?' — <i>a delegar en: '+esc(t.who)+'</i>':'')+'</li>').join('')+'</ul>';
+    }
+  });
+  const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>Matriz de Delegación</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]--></head>'+
+    '<body style="'+S+'">'+
+    '<p style="font-size:9pt;color:#6B7688;letter-spacing:1pt;margin:0">PROGRAMA DE IMPULSO PYME  ·  Mujeres Emprendedoras de Arequipa</p>'+
+    '<p style="color:#002A8D;font-size:16pt;font-weight:bold;margin:4pt 0 0">MATRIZ DE DELEGACIÓN</p>'+
+    '<p style="font-size:10pt;color:#6B7688;margin:2pt 0 0">Módulo 3 · Gestión de Operaciones · Sesión 7</p>'+
+    '<div style="border-bottom:2.5pt solid #E85D2F;margin:8pt 0 14pt"></div>'+
+    '<table style="border-collapse:collapse;width:100%;margin-bottom:14pt">'+metaRows+'</table>'+
+    cuerpo+
+    '<div style="border-top:1pt solid #C8D4E8;margin-top:22pt;padding-top:6pt"><p style="font-size:8.5pt;color:#6B7688;text-align:center">Documento elaborado en el marco del Programa de Impulso Pyme · BCP × UCSP–CENDES · Módulo 3: Gestión de Operaciones · Sesión 7.</p></div>'+
+    '</body></html>';
+  const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='MatrizDelegacion_'+currentName.split(' ')[0]+'_S7.doc';a.click();
+  showStatus('✅ Matriz (formato ejecutivo) descargada.','ok');
+  setTimeout(()=>showStatus('',''),4000);
+};
+$('printBtn').onclick=()=>window.print();
+
+let clearArmed=false;
+$('clearBtn').onclick=()=>{
+  const b=$('clearBtn');
+  if(!clearArmed){clearArmed=true;b.textContent='¿Seguro? Toca de nuevo';b.style.color='var(--red)';b.style.borderColor='var(--red)';
+    setTimeout(()=>{clearArmed=false;b.textContent='Limpiar mis datos de este dispositivo';b.style.color='';b.style.borderColor='';},4000);return;}
+  try{localStorage.removeItem(DATA_PREFIX+currentDNI);}catch(e){}
+  location.reload();
+};
+
+/* ---------- DOCENTE ---------- */
+async function loadDocData(){
+  $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docAlerts').innerHTML='';$('docPending').innerHTML='';
+  const rec=await binRead(BIN_URL+'/latest');
+  if(rec===null){$('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexión.</b> Verifica BIN_ID e internet.</div></td></tr>';return;}
+  docEntries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  const total=docEntries.length,rosterSize=Object.keys(ROSTER).length,pct=Math.round(total/rosterSize*100);
+  const completas=docEntries.filter(e=>e.complete).length;
+  let ya=0,fin=0;
+  docEntries.forEach(e=>{ya+=(e.counts&&e.counts['1'])||0;fin+=(e.counts&&e.counts['4'])||0;});
+  $('kTotal').textContent=total;$('kPct').textContent=pct+'%';$('kYa').textContent=ya;$('kFinal').textContent=fin;
+  $('kPctLbl').textContent=total+' / '+rosterSize;$('progressBar').style.width=Math.min(pct,100)+'%';
+  $('docWelcome').textContent=total+' emprendedoras armaron su matriz de delegación.';
+  let al='';
+  if(total===0)al+='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b></div>';
+  else if(pct>=80)al+='<div class="alert-box green"><b>Excelente participación ('+pct+'%).</b></div>';
+  $('docAlerts').innerHTML=al;
+  if(total===0){$('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>';}
+  else{
+    let rows='';
+    docEntries.forEach((e,idx)=>{
+      const first=(e.name||e.dni).split(' ')[0];
+      let estado=e.complete?'<span class="tag green">completo ✓</span>':'<span class="tag gray">'+(e.classified||0)+'/'+(e.total||0)+' ubic.</span>';
+      rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
+        '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
+        '<td style="font-size:12px">'+(e.total||0)+'</td><td>'+estado+'</td></tr>';
+    });
+    $('docTableBody').innerHTML=rows;
+  }
+  const reg=new Set(docEntries.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  if(pend.length===0)$('docPending').innerHTML='<div class="alert-box green"><b>¡Todas armaron su matriz!</b></div>';
+  else{let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,v])=>{ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(v.n.split(' ')[0])+'</span>';});ph+='</div>';$('docPending').innerHTML=ph;}
+}
+function openModal(idx){
+  const e=docEntries[idx];if(!e)return;
+  $('modalName').textContent=e.name||e.dni;
+  $('modalMeta').textContent=(e.total||0)+' actividades · '+(e.classified||0)+' ubicadas'+(e.complete?' · completo ✓':'');
+  let b='';
+  [['3','🌟 Hazlo tú'],['2','📋 Delega con guía'],['1','✓ Delega ya'],['4','🗑 Elimina / Automatiza']].forEach(([q,label])=>{
+    const items=(e.tasks||[]).filter(t=>t.quad===q);
+    if(items.length){
+      b+='<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px">'+label+' ('+items.length+')</div>'+
+        items.map(t=>'<div style="font-size:12.5px;line-height:1.45;color:var(--ink)">• '+esc(t.txt)+(t.who?' <b style="color:var(--coral-d)">→ '+esc(t.who)+'</b>':'')+'</div>').join('')+'</div>';
+    }
+  });
+  if(!b)b='<p style="font-size:13px;color:var(--muted);font-style:italic">Aún no ubicó ninguna actividad.</p>';
+  $('modalBody').innerHTML=b;
+  $('detailModal').classList.add('on');document.body.style.overflow='hidden';
+}
+function closeModal(){$('detailModal').classList.remove('on');document.body.style.overflow='';}
+$('detailModal').addEventListener('click',e=>{if(e.target===$('detailModal'))closeModal();});
+$('docPrintBtn').onclick=()=>window.print();
+$('inputEmp').addEventListener('keydown',e=>{if(e.key==='Enter')doLoginEmp();});
+$('inputDoc').addEventListener('keydown',e=>{if(e.key==='Enter')doLoginDoc();});
+
+pickRole('emp');
+tryResume();
+</script>
+</body>
+</html>

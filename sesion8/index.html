@@ -216,11 +216,11 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
 .hex-text{animation:hexPulse 2.5s ease-in-out infinite}
 
 /* ══ EASTER EGG ═══════════════════════════════════════════════ */
-.login-bottom{padding:4px 16px 0;position:relative;z-index:2}
+.login-bottom{padding:14px 16px 0;position:relative;z-index:2}
 /* Benefit cycle */
 @keyframes cycleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardPulse{0%,100%{box-shadow:0 2px 8px rgba(0,42,141,.08)}50%{box-shadow:0 4px 16px rgba(0,42,141,.15)}}
-.lb-cycle{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:6px}
+.lb-cycle{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:14px}
 .lbc-card{
   flex:1;text-align:center;
   background:rgba(255,255,255,.7);
@@ -266,15 +266,15 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
 /* ── Easter egg panel — refined ── */
 .egg-panel{
   position:fixed;bottom:-120px;left:50%;transform:translateX(-50%);
-  background:rgba(6,10,26,.97);
+  background:rgba(6,10,26,.96);
   border:1px solid rgba(255,255,255,.09);border-bottom:none;
   border-radius:20px 20px 0 0;
-  padding:12px 20px 22px;
+  padding:16px 24px 22px;
   display:flex;flex-direction:column;align-items:center;gap:12px;
-  transition:bottom .5s cubic-bezier(.34,1.25,.64,1);
-  z-index:999;backdrop-filter:blur(24px);
-  width:260px;
-  box-shadow:0 -16px 48px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+  transition:bottom .8s cubic-bezier(.22,.61,.36,1);
+  z-index:999;backdrop-filter:blur(20px);
+  width:280px;
+  box-shadow:0 -12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
 }
 .egg-panel.show{bottom:0}
 .egg-handle{width:30px;height:2.5px;background:rgba(255,255,255,.14);border-radius:2px}

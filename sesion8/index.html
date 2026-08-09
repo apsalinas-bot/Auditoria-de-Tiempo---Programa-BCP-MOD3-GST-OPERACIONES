@@ -271,11 +271,13 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
   background:rgba(6,10,26,.97);
   border:2px dashed rgba(255,255,255,.18);
   border-radius:16px;
-  padding:14px 22px 18px;
+  padding:12px 18px 16px;
   display:flex;flex-direction:column;align-items:center;gap:10px;
   transition:bottom 1s cubic-bezier(.16,1,.3,1);
   z-index:9999;backdrop-filter:blur(20px);
-  width:280px;
+  width:auto;
+  min-width:220px;
+  max-width:260px;
   box-shadow:0 -8px 32px rgba(0,0,0,.5),0 8px 32px rgba(0,0,0,.5);
 }
 .egg-panel.show{transition:bottom .65s cubic-bezier(.25,.46,.45,.94)}
@@ -343,7 +345,7 @@ body.dark #loginWrap::before{
   pointer-events:none;opacity:.82;
 }
 .card-shield{display:none}
-.login-card{position:relative;overflow:visible;padding:20px}
+.login-card{position:relative;overflow:visible;padding:14px 20px 16px}
 .login-card h2{font-size:16px;font-weight:800;color:var(--navy-d);line-height:1.25;margin-bottom:3px;padding-right:68px}
 .login-card p{font-size:12px;color:var(--muted);margin-bottom:12px;padding-right:68px}
 
@@ -360,8 +362,8 @@ body.dark #loginWrap::before{
 .login-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px}
 .login-card h2{font-size:17px;font-weight:700;margin-bottom:3px}
 .login-card p{font-size:13px;color:var(--muted);margin-bottom:18px}
-label.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px}
-.inp{width:100%;padding:13px 15px;font-size:16px;background:var(--bg);border:1.5px solid var(--line);border-radius:11px;color:var(--ink);font-family:var(--font);letter-spacing:2px;transition:.2s}
+label.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+.inp{width:100%;padding:10px 14px;font-size:15px;background:var(--bg);border:1.5px solid var(--line);border-radius:11px;color:var(--ink);font-family:var(--font);letter-spacing:2px;transition:.2s}
 .inp::placeholder{letter-spacing:.5px;color:var(--dim);font-size:14px}
 .inp:focus{outline:none;border-color:var(--navy);background:#fff}
 .err{font-size:12px;color:var(--crim);min-height:16px;margin-top:5px;font-weight:500}
@@ -665,8 +667,8 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
       <label class="fl" for="dniI">Tu DNI</label>
       <input class="inp" type="password" id="dniI" inputmode="numeric" placeholder="8 dígitos" autocomplete="off">
       <div class="err" id="dniErr"></div>
-      <button class="btn btn-navy btn-full" id="loginBtn" style="margin-top:13px">Entrar →</button>
-      <div class="badges" style="margin-top:14px">
+      <button class="btn btn-navy btn-full" id="loginBtn" style="margin-top:8px">Entrar →</button>
+      <div class="badges" style="margin-top:8px">
         <span class="chip chip-navy">Módulo 3 · Gestión Comercial</span>
         <span class="chip chip-gold">BCP × UCSP-CENDES</span>
       </div>
@@ -1275,7 +1277,7 @@ function hexTap(){
       const qr=quote.getBoundingClientRect();
       const panelH=110; // approximate panel height
       const midQuote=qr.top + qr.height/2;
-      const targetBottom=window.innerHeight-midQuote-panelH/2;
+      const targetBottom=window.innerHeight-midQuote+panelH*0.3;
       panel.style.bottom=Math.max(targetBottom,8)+'px';
     }
     panel.style.height='';

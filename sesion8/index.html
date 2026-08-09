@@ -216,11 +216,11 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
 .hex-text{animation:hexPulse 2.5s ease-in-out infinite}
 
 /* ══ EASTER EGG ═══════════════════════════════════════════════ */
-.login-bottom{padding:8px 16px 0;position:relative;z-index:2}
+.login-bottom{padding:4px 16px 0;position:relative;z-index:2}
 /* Benefit cycle */
 @keyframes cycleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardPulse{0%,100%{box-shadow:0 2px 8px rgba(0,42,141,.08)}50%{box-shadow:0 4px 16px rgba(0,42,141,.15)}}
-.lb-cycle{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:10px}
+.lb-cycle{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:6px}
 .lbc-card{
   flex:1;text-align:center;
   background:rgba(255,255,255,.7);
@@ -240,7 +240,7 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
   box-shadow:0 4px 16px rgba(201,151,43,.12);
   animation:cycleIn .5s ease forwards
 }
-.lbc-icon{display:block;font-size:20px;margin-bottom:4px}
+.lbc-icon{display:block;font-size:18px;margin-bottom:2px}
 .lbc-title{display:block;font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.3px}
 .lbc-desc{display:block;font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3;letter-spacing:.2px}
 .lbc-arrow{font-size:16px;color:rgba(0,42,141,.35);flex-shrink:0;font-weight:800;letter-spacing:-1px;align-self:center;padding:0 2px}
@@ -250,11 +250,11 @@ body.dark .lbc-title{color:#E2E8F0}
 body.dark .lbc-arrow{color:rgba(255,255,255,.28)}
 body.dark .lbc-card.active{border-color:rgba(201,151,43,.4);background:rgba(201,151,43,.1);box-shadow:0 4px 16px rgba(201,151,43,.15)}
 /* Quote block */
-.lb-quote-wrap{text-align:center;padding:10px 8px 16px}
+.lb-quote-wrap{text-align:center;padding:6px 8px 10px}
 .lb-q1{display:none}.lb-q1-author{display:none}
-.lb-qdiv{width:28px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(201,151,43,.4),transparent);margin:10px auto}
-.lb-q2{font-size:14px;font-weight:500;color:rgba(0,28,94,.45);line-height:1.6}
-.lb-q2 strong{font-size:19px;font-weight:900;color:var(--navy);letter-spacing:1px;display:block;margin-top:4px}
+.lb-qdiv{width:28px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(201,151,43,.4),transparent);margin:6px auto}
+.lb-q2{font-size:13px;font-weight:500;color:rgba(0,28,94,.45);line-height:1.5}
+.lb-q2 strong{font-size:17px;font-weight:900;color:var(--navy);letter-spacing:1px;display:block;margin-top:2px}
 body.dark .lb-q2{color:rgba(255,255,255,.3)}
 body.dark .lb-q2 strong{color:#E2E8F0}
 body.dark .lb-q1{color:rgba(255,255,255,.3)}
@@ -312,7 +312,7 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
     radial-gradient(ellipse 50% 40% at 80% 20%, rgba(201,151,43,.04) 0%, transparent 60%),
     linear-gradient(160deg,#E8EBF4 0%,#EEF0F8 40%,#E5E8F3 100%);
   position:relative;overflow:visible;
-  padding-bottom:20px;
+  padding-bottom:10px;
 }
 body.dark #loginWrap{
   background:radial-gradient(ellipse 60% 50% at 20% 80%,rgba(37,99,235,.06) 0%,transparent 70%),linear-gradient(160deg,#0A0D18 0%,#0D1120 100%);
@@ -341,7 +341,7 @@ body.dark #loginWrap::before{
   pointer-events:none;opacity:.82;
 }
 .card-shield{display:none}
-.login-card{position:relative;overflow:visible;padding:16px 18px}
+.login-card{position:relative;overflow:visible;padding:20px}
 .login-card h2{font-size:16px;font-weight:800;color:var(--navy-d);line-height:1.25;margin-bottom:3px;padding-right:68px}
 .login-card p{font-size:12px;color:var(--muted);margin-bottom:12px;padding-right:68px}
 
@@ -354,7 +354,7 @@ body.dark #loginWrap::before{
 .login-top h1 em{color:var(--gold-l);font-style:normal}
 .login-top p{font-size:13px;color:rgba(255,255,255,.65);margin-top:6px;position:relative;z-index:2}
 .gold-stripe{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-l),var(--gold))}
-.login-wrap{padding:20px}
+.login-wrap{padding:10px 20px 20px}
 .login-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px}
 .login-card h2{font-size:17px;font-weight:700;margin-bottom:3px}
 .login-card p{font-size:13px;color:var(--muted);margin-bottom:18px}

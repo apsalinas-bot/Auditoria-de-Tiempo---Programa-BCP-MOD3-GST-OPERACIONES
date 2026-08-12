@@ -230,7 +230,9 @@ const ROSTER = {
   "72772991":"Jessica Jenny Romero Torres",
   "29646340":"Patricia del Pilar Tinta Chambi",
   "74943408":"Dayana Vargas Arizaca",
-  "46884965":"Silvia Uscca Huamanquispe"
+  "46884965":"Silvia Uscca Huamanquispe",
+  "71509678":"Franchesca Quezada Cabrera",
+  "74250220":"Beatriz Palacios Espinoza"
 };
 </script>
 
@@ -699,7 +701,7 @@ function renderFlow() {
       '<button data-action="down" data-i="' + i + '" ' + (i===steps.length-1 ? 'disabled' : '') + '>↓</button>' +
       '<button data-action="edit" data-i="' + i + '">✎</button>' +
       '<button class="del" data-action="del" data-i="' + i + '">✕</button>' +
-      (step.type === 'decision' ? '<button data-action="addbranch_to_decision" data-i="' + i + '" title="Agregar rama" style="background:#EEF2FB;color:var(--navy);border-color:var(--navy);font-size:14px;padding:0 5px;width:auto"><i class=\"ti ti-plus-equal\" style=\"font-size:13px\"></i></button>' : '');
+      (step.type === 'decision' ? '<button data-action="addbranch_to_decision" data-i="' + i + '" title="Agregar rama" style="background:#fff;color:var(--navy);border-color:var(--line);font-size:8px;font-weight:700;padding:0;width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center">+/-</button>' : '');
     fw.appendChild(ctrl);
 
     // Decisión: SIEMPRE mostrar ramas (incluso si es el último paso)

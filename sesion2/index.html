@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>El Esqueleto del Negocio &middot; S2 &middot; BCP</title>
+<title>El Esqueleto del Negocio · S2 · BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -18,8 +18,6 @@
 html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
 body{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:40px}
 h1,h2,h3{font-weight:600;letter-spacing:-.2px}
-
-/* top bar */
 .top{background:var(--navy);color:#fff;padding:22px 22px 24px;position:relative;overflow:hidden}
 .top:after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:var(--orange);border-radius:50%;opacity:.16}
 .eyebrow{font-size:11px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;position:relative;z-index:2}
@@ -28,61 +26,38 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .top p{font-size:13.5px;color:#C6D2F5;margin-top:8px;position:relative;z-index:2;max-width:440px}
 .top.doc-top{background:linear-gradient(135deg,var(--navy-d) 0%,#0a3d6b 100%)}
 .top.doc-top:after{background:var(--teal)}
-
-/* layout */
 .wrap{padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
 .step-label{display:inline-block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--orange);margin-bottom:3px}
 .card h2{font-size:18px;margin-bottom:3px}
 .hint{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.45}
 .field-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px}
-
-/* ═══════════════════════════════
-   GATE SCREEN — identico a S1
-═══════════════════════════════ */
-.gate-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center}
-.gate-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center}
-
 .role-list{display:flex;flex-direction:column;gap:10px}
-.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;
-  border:1.5px solid var(--line);border-radius:14px;background:#fff;
-  cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;
-  box-shadow:0 1px 6px rgba(0,20,80,.05)}
+.role-card{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;width:100%;box-shadow:0 1px 6px rgba(0,20,80,.05)}
 .role-card:hover{border-color:#9EB3E8;background:#FAFBFF}
 .role-card.selected{border-color:var(--navy);border-width:2px;background:#EEF3FF}
-.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;
-  align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
 .rc-icon.emp{background:var(--orange)}
 .rc-icon.doc{background:var(--navy-d)}
 .rc-texts{flex:1}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
 .role-card.selected .rc-label{color:var(--navy)}
-
-/* Panel de entrada (paso 2 del gate) */
 .gate-panel{display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
 .gate-panel.on{display:block}
 .gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
-.gate-dni-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);
-  border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);
-  letter-spacing:4px}
+.gate-dni-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
 .gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
 .gate-dni-input:focus{outline:none;border-color:var(--navy);border-width:2px}
-.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);
-  border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:3px}
+.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:3px}
 .gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
 .gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
-.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;
-  border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px;transition:.15s}
+.gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px;transition:.15s}
 .gate-btn:active{transform:translateY(1px)}
 .gate-btn.emp{background:var(--orange);box-shadow:0 5px 18px rgba(236,102,7,.32)}
 .gate-btn.doc{background:var(--navy);box-shadow:0 5px 18px rgba(0,42,141,.28)}
-.gate-back{display:block;text-align:center;margin-top:14px;font-size:13.5px;
-  color:var(--muted);text-decoration:underline;background:none;border:none;
-  font-family:inherit;cursor:pointer}
+.gate-back{display:block;text-align:center;margin-top:14px;font-size:13.5px;color:var(--muted);text-decoration:underline;background:none;border:none;font-family:inherit;cursor:pointer}
 .gate-back:hover{color:var(--navy)}
-
-/* buttons */
 .cta{padding:13px 18px;font-size:14.5px;font-weight:600;color:#fff;background:var(--orange);border:none;border-radius:11px;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(236,102,7,.28);transition:.15s;white-space:nowrap}
 .cta:active{transform:translateY(1px)}
 .cta.navy{background:var(--navy);box-shadow:0 5px 16px rgba(0,42,141,.25)}
@@ -90,8 +65,6 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .ghost{background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 14px;border-radius:11px;transition:.15s;width:100%;text-align:center}
 .ghost:hover{border-color:var(--navy);color:var(--navy)}
 .ghost.warn{border-color:var(--red);color:var(--red);background:#FDF0F0}
-
-/* legend */
 .legend{display:flex;gap:10px;margin-top:6px}
 .legend-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .legend-shape{width:100%;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700}
@@ -100,17 +73,12 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .legend-shape.diamond{background:#FFF6EA;border:1.5px solid var(--amber);color:var(--orange-d);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
 .legend-item p{font-size:11px;color:var(--muted);line-height:1.3}
 .legend-item b{display:block;color:var(--ink);font-size:12px;margin-bottom:1px}
-
-/* type chips */
 .type-row{display:flex;gap:7px;margin:14px 0 10px}
 .type-chip{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:1.5px solid var(--line);border-radius:11px;background:#fff;cursor:pointer;font-family:inherit;transition:.15s}
 .type-chip .ic{font-size:16px}
 .type-chip .tx{font-size:10.5px;font-weight:600;color:var(--muted)}
 .type-chip.active{border-color:var(--navy);background:#EEF2FB}
 .type-chip.active .tx{color:var(--navy)}
-.type-hint{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4}
-
-/* builder */
 .process-name-input{width:100%;padding:12px 13px;font-size:15px;font-weight:600;border:1.5px solid var(--line);border-radius:11px;background:#EEF2FB;font-family:inherit;color:var(--navy)}
 .process-name-input:focus{outline:none;border-color:var(--navy);background:#fff}
 .process-name-input::placeholder{color:var(--muted);font-weight:500}
@@ -120,13 +88,12 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .builder-row{display:flex;gap:8px}
 input[type=text]{flex:1;min-width:0;padding:12px 13px;font-size:15px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font-family:inherit;color:var(--ink)}
 input[type=text]:focus{outline:none;border-color:var(--navy)}
-.option-row{display:none;gap:8px;margin-top:8px}
+.option-row{display:none;flex-direction:column;gap:6px;margin-top:8px}
 .option-row.on{display:flex}
-.option-row input{flex:1;min-width:0;padding:9px 11px;font-size:13px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;color:var(--ink)}
-.option-row input:focus{outline:none;border-color:var(--navy)}
+.option-input{width:100%;padding:9px 11px;font-size:13px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;color:var(--ink)}
+.option-input:focus{outline:none;border-color:var(--navy)}
+.add-opt-btn{font-size:11px;color:var(--navy);background:#EEF2FB;border:1px dashed var(--navy);border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit;width:100%;margin-top:2px}
 .empty-hint{color:var(--muted);font-style:italic;font-size:13.5px;text-align:center;padding:18px 8px}
-
-/* flow */
 #flowWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center}
 .node{position:relative;max-width:92%;font-size:14px;line-height:1.35}
 .node.oval{background:var(--navy);color:#fff;border-radius:50px;padding:12px 24px;font-weight:700;text-align:center;min-width:120px}
@@ -143,36 +110,42 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .connector .lbl{margin-top:2px;font-size:11px;font-weight:600;color:var(--navy);background:#EEF2FB;border-radius:20px;padding:3px 10px;min-width:20px;text-align:center;outline:none}
 .connector .lbl:empty:before{content:'+ etiqueta';color:var(--muted);font-weight:500;opacity:.6}
 .connector .lbl:focus{background:#fff;border:1px solid var(--navy)}
-.fork-wrap{width:100%;max-width:460px}
+.fork-wrap{width:100%;max-width:480px}
 .fork{position:relative;height:42px}
 .fork-line{position:absolute;top:0;left:50%;width:2px;height:42px;background:#C7CFDE;margin-left:-1px;transform-origin:top center}
 .fork-line.l{transform:rotate(-36deg)}
 .fork-line.r{transform:rotate(36deg)}
 .fork-line .dot{position:absolute;bottom:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--orange)}
-.branch-row{display:flex;gap:14px;width:100%;align-items:flex-start}
-.branch-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
-.branch-head{background:var(--navy);color:#fff;font-size:11.5px;font-weight:700;text-align:center;padding:6px 8px;border-radius:20px;word-break:break-word}
+.fork-n{height:28px;display:flex;justify-content:center}
+.fork-n-line{width:2px;height:28px;background:#C7CFDE}
+.branch-row{display:flex;gap:10px;width:100%;align-items:flex-start}
+.branch-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.branch-head{background:var(--navy);color:#fff;font-size:11px;font-weight:700;text-align:center;padding:5px 7px;border-radius:18px;word-break:break-word;outline:none;cursor:text}
+.branch-head:focus{background:var(--navy-d);box-shadow:0 0 0 2px var(--orange)}
 .branch-step{display:flex;align-items:flex-start;gap:5px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px}
 .branch-step span{flex:1;font-size:12px;line-height:1.35;outline:none;word-break:break-word}
 .branch-step button{flex-shrink:0;background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;width:16px;height:16px;font-family:inherit}
 .branch-empty{font-size:11px;color:var(--muted);font-style:italic;text-align:center;padding:2px 0}
 .branch-add{display:flex;gap:4px}
-.branch-add input{flex:1;min-width:0;font-size:11.5px;padding:7px 8px;border:1.5px dashed var(--line);border-radius:9px;background:#FAFBFD;font-family:inherit;color:var(--ink)}
+.branch-add input{flex:1;min-width:0;font-size:11px;padding:6px 7px;border:1.5px dashed var(--line);border-radius:8px;background:#FAFBFD;font-family:inherit;color:var(--ink)}
 .branch-add input:focus{outline:none;border-color:var(--navy);border-style:solid}
-.branch-add button{flex-shrink:0;background:var(--navy);color:#fff;border:none;border-radius:9px;width:26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-.merge{position:relative;height:34px;width:100%;max-width:460px}
+.branch-add button{flex-shrink:0;background:var(--navy);color:#fff;border:none;border-radius:8px;width:26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.branch-add-sub{font-size:10px;color:var(--orange-d);background:none;border:1px dashed var(--amber);border-radius:7px;padding:3px 7px;cursor:pointer;font-family:inherit;width:100%}
+.subdec-form{display:flex;flex-direction:column;gap:5px;padding:8px;background:#FFF6EA;border:1.5px solid #E8A800;border-radius:9px}
+.subdec-form input{font-size:11px;padding:5px 8px;border:1px solid #E8A800;border-radius:7px;font-family:inherit;background:#fff}
+.subdec-form .row{display:flex;gap:4px}
+.subdec-form button{flex:1;padding:5px;font-size:11px;font-weight:700;border:none;border-radius:7px;cursor:pointer;font-family:inherit}
+.subdec-ok{background:#E8A800;color:#fff}
+.subdec-cancel{background:#eee;color:#555}
+.sub-node-decision{background:#FFF6EA;border:1.5px solid var(--amber);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:600;color:var(--orange-d);padding:14px 24px;min-height:60px;width:min(180px,90%);font-size:11px;margin:4px auto}
+.merge{position:relative;height:34px;width:100%;max-width:480px}
 .merge-line{position:absolute;bottom:0;left:50%;width:2px;height:34px;background:#C7CFDE;margin-left:-1px;transform-origin:bottom center}
 .merge-line.l{transform:rotate(36deg)}
 .merge-line.r{transform:rotate(-36deg)}
-.autosave{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-top:12px;justify-content:center;opacity:0;transition:opacity .3s}
-.autosave.on{opacity:1}
-.autosave .dot2{width:6px;height:6px;border-radius:50%;background:var(--green)}
 .save-status{font-size:12.5px;text-align:center;margin-top:8px;min-height:20px;font-weight:500}
 .save-status.ok{color:var(--green)}
 .save-status.err{color:var(--red)}
 .save-status.loading{color:var(--muted)}
-
-/* docente */
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .kpi-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-align:center}
 .kpi-val{font-size:32px;font-weight:700;color:var(--navy);line-height:1}
@@ -204,25 +177,36 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .modal-empname{font-size:17px;font-weight:700;color:var(--navy)}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
 .modal-flow-wrap{display:flex;flex-direction:column;align-items:center}
-.modal-flow-wrap .node{max-width:95%}
 .logout-row{display:flex;justify-content:flex-end;padding:8px 18px 0;gap:10px}
 .logout-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
 .refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.15s}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
 .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
-@media print{body{max-width:none;padding-bottom:0}.top:after{display:none}.no-print{display:none !important}#flowModal{display:none !important}.card{box-shadow:none}}
+@media print{
+  body{max-width:none;padding-bottom:0}
+  .top:after{display:none}
+  .no-print{display:none !important}
+  #flowModal{display:none !important}
+  .card{box-shadow:none}
+  .branch-add,.branch-add-sub,.node-controls,.subdec-form{display:none !important}
+  .branch-row{display:flex !important}
+  .branch-col{flex:1 !important}
+  .branch-step{background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px 7px;margin-bottom:3px}
+  .branch-step span{font-size:11px}
+  .fork-wrap{width:100% !important;max-width:none !important}
+  .branch-head{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--navy) !important;color:#fff !important}
+  .node.decision,.node.oval,.sub-node-decision{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
 <body>
 
-<!-- ▼▼▼ PEGA TUS CLAVES AQUI ▼▼▼ -->
 <script>
 const BIN_ID     = '6a6ab4a3f5f4af5e29d3bc50';
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOCENTE_PW = '70003700';
 </script>
-<!-- ▲▲▲ FIN CLAVES ▲▲▲ -->
 
 <script>
 const ROSTER = {
@@ -255,24 +239,22 @@ const ROSTER = {
 };
 </script>
 
-<!-- ════ PANTALLA GATE ════ -->
+<!-- GATE -->
 <div id="gateScreen">
   <div class="top">
-    <div class="eyebrow">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 2</div>
+    <div class="eyebrow">Módulo 3 · Gestión de Operaciones · Sesión 2</div>
     <h1>El Esqueleto <span>del Negocio</span></h1>
-    <p>Dibuja c&oacute;mo funciona realmente tu negocio, paso a paso.</p>
+    <p>Dibuja cómo funciona realmente tu negocio, paso a paso.</p>
   </div>
   <div class="wrap">
     <div class="card" style="padding:24px 20px">
-
-      <div class="gate-title">&iquest;C&oacute;mo vas a entrar?</div>
-      <div class="gate-sub">Elige tu perfil para empezar.</div>
-
+      <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center">¿Cómo vas a entrar?</div>
+      <div style="font-size:13.5px;color:var(--muted);margin-bottom:20px;text-align:center">Elige tu perfil para empezar.</div>
       <div class="role-list">
         <button class="role-card selected" id="cardEmp" onclick="pickRole('emp')">
           <div class="rc-icon emp">&#9670;</div>
           <div class="rc-texts">
-            <span class="rc-label">Soy emprendedora / due&ntilde;a de negocio</span>
+            <span class="rc-label">Soy emprendedora / dueña de negocio</span>
             <span class="rc-sub">Entra con tu DNI y construye tu flujograma</span>
           </div>
         </button>
@@ -284,42 +266,36 @@ const ROSTER = {
           </div>
         </button>
       </div>
-
-      <!-- Panel emprendedora -->
       <div class="gate-panel on" id="panelEmp">
-        <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
-        <input class="gate-dni-input" type="tel" id="inputEmp"
-          placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <span class="gate-panel-label">Tu DNI (es tu contraseña)</span>
+        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 dígitos" maxlength="8" inputmode="numeric">
         <div class="gate-err" id="errEmp"></div>
         <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
         <button class="gate-back" onclick="resetRole()">Volver</button>
       </div>
-
-      <!-- Panel docente (oculto por defecto) -->
       <div class="gate-panel" id="panelDoc">
-        <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
-        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <span class="gate-panel-label">Contraseña del docente</span>
+        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••">
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
         <button class="gate-back" onclick="resetRole()">Volver</button>
       </div>
-
     </div>
-    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
+    <div class="foot">Programa BCP · UCSP–CENDES · Módulo 3: Gestión de Operaciones</div>
   </div>
 </div>
 
-<!-- ════ VISTA EMPRENDEDORA ════ -->
+<!-- VISTA EMPRENDEDORA -->
 <div id="empView" style="display:none">
   <div class="top">
-    <div class="eyebrow">M&oacute;dulo 3 &middot; Sesi&oacute;n 2</div>
+    <div class="eyebrow">Módulo 3 · Sesión 2</div>
     <h1>El Esqueleto <span>del Negocio</span></h1>
-    <p id="empWelcome">Hola &mdash; dibuja c&oacute;mo opera tu negocio.</p>
+    <p id="empWelcome">Hola — dibuja cómo opera tu negocio.</p>
   </div>
-  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
+  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
   <div class="wrap">
     <div class="card">
-      <span class="step-label">Actividad &middot; Sesi&oacute;n 2</span>
+      <span class="step-label">Actividad · Sesión 2</span>
       <h2>Mapea tu proceso, paso a paso</h2>
       <p class="hint">Escribe cada paso desde que el cliente pide algo hasta que lo recibe. Un paso a la vez, en orden.</p>
       <label class="field-label">Nombre de tu proceso</label>
@@ -331,58 +307,60 @@ const ROSTER = {
       <div class="type-row" id="typeRow">
         <button class="type-chip" data-type="oval"><span class="ic">&#9679;</span><span class="tx">Inicio/Fin</span></button>
         <button class="type-chip active" data-type="rect"><span class="ic">&#9645;</span><span class="tx">Paso</span></button>
-        <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decisi&oacute;n</span></button>
+        <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decisión</span></button>
       </div>
       <div class="builder-row">
         <input type="text" id="stepInput" placeholder="Ej: Recibo el pedido por WhatsApp" maxlength="90">
         <button class="cta" id="addStepBtn">+ Agregar</button>
       </div>
       <div class="option-row" id="optionRow">
-        <input type="text" id="optionAInput" placeholder="Opci&oacute;n 1 (ej: Yape)" maxlength="20">
-        <input type="text" id="optionBInput" placeholder="Opci&oacute;n 2 (ej: Efectivo)" maxlength="20">
+        <div id="optionsList">
+          <input type="text" class="option-input" maxlength="30" placeholder="Opción 1 (Ej: Sí)" data-opt="0">
+          <input type="text" class="option-input" maxlength="30" placeholder="Opción 2 (Ej: No)" data-opt="1">
+        </div>
+        <button class="add-opt-btn" id="addOptionBtn">+ Agregar otra opción</button>
       </div>
-      <p class="type-hint" id="typeHint"></p>
       <div id="flowWrap"></div>
-      <div class="autosave" id="autosaveTag"><span class="dot2"></span><span>Guardado localmente</span></div>
     </div>
     <div class="card no-print">
       <span class="step-label">Recordatorio</span>
-      <h2>Los 3 s&iacute;mbolos</h2>
+      <h2>Los 3 símbolos</h2>
       <div class="legend">
-        <div class="legend-item"><div class="legend-shape oval">&#9679;</div><p><b>&Oacute;valo</b>inicio o fin</p></div>
-        <div class="legend-item"><div class="legend-shape rect">&#9645;</div><p><b>Rect&aacute;ngulo</b>un paso</p></div>
-        <div class="legend-item"><div class="legend-shape diamond">&#9670;</div><p><b>Rombo</b>una decisi&oacute;n</p></div>
+        <div class="legend-item"><div class="legend-shape oval">&#9679;</div><p><b>Óvalo</b>inicio o fin</p></div>
+        <div class="legend-item"><div class="legend-shape rect">&#9645;</div><p><b>Rectángulo</b>un paso</p></div>
+        <div class="legend-item"><div class="legend-shape diamond">&#9670;</div><p><b>Rombo</b>una decisión</p></div>
       </div>
     </div>
     <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi flujograma</button>
+    <button class="ghost no-print" id="loadCloudBtn" style="margin-bottom:10px;border-color:var(--navy);color:var(--navy)">&#8635; Cargar mi último flujo guardado</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn">Vaciar y empezar de nuevo</button>
     <div class="save-status" id="saveStatus"></div>
-    <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S2</div>
+    <div class="foot">Programa BCP · UCSP–CENDES · Módulo 3 · S2</div>
   </div>
 </div>
 
-<!-- ════ VISTA DOCENTE ════ -->
+<!-- VISTA DOCENTE -->
 <div id="docView" style="display:none">
   <div class="top doc-top">
-    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 2</div>
+    <div class="eyebrow">Docente · Módulo 3 · Sesión 2</div>
     <h1>Panel de <span>Seguimiento</span></h1>
     <p id="docWelcome">Flujogramas registrados por las emprendedoras.</p>
   </div>
   <div class="logout-row no-print">
     <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
-    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
   <div class="wrap">
     <div class="kpi-grid">
       <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Flujos guardados</div></div>
       <div class="kpi-box orange"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
-      <div class="kpi-box green"><div class="kpi-val" id="kPctOp">-</div><div class="kpi-lbl">% pasos son Operaci&oacute;n</div></div>
-      <div class="kpi-box teal"><div class="kpi-val" id="kPctDec">-</div><div class="kpi-lbl">% pasos son Decisi&oacute;n</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kPctOp">-</div><div class="kpi-lbl">% pasos son Operación</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kPctDec">-</div><div class="kpi-lbl">% pasos son Decisión</div></div>
     </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participación del grupo</span>
         <span style="font-size:13px;font-weight:700;color:var(--orange)" id="kPctLbl">0 / 25</span>
       </div>
       <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
@@ -401,11 +379,11 @@ const ROSTER = {
     <div class="section-title">Pendientes (sin guardar flujo)</div>
     <div id="docPending" class="card" style="padding:14px 18px"></div>
     <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
-    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+    <div class="foot" style="margin-top:16px">Programa BCP · UCSP–CENDES · Módulo 3</div>
   </div>
 </div>
 
-<!-- ════ MODAL FLUJO ════ -->
+<!-- MODAL -->
 <div id="flowModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
@@ -416,19 +394,15 @@ const ROSTER = {
   </div>
 </div>
 
-
 <script>
-// ════════════════════════════════════════════════════════════
-//  CONFIG DINAMICA
-// ════════════════════════════════════════════════════════════
-const BIN_URL      = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const HEADERS_READ = { 'X-Master-Key': BIN_KEY };
-const HEADERS_WRITE= { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
-const STORAGE_KEY  = 'bcp_s2_flujo_';
-const SESSION_KEY  = 'bcp_s2_session';
-const $            = id => document.getElementById(id);
+// ── CONFIG ───────────────────────────────────────────────────────
+const BIN_URL       = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const HEADERS_READ  = { 'X-Master-Key': BIN_KEY };
+const HEADERS_WRITE = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
+const STORAGE_KEY   = 'bcp_s2_flujo_';
+const SESSION_KEY   = 'bcp_s2_session';
+const $             = id => document.getElementById(id);
 
-// Estado global
 let currentDNI  = null;
 let currentName = null;
 let steps       = [];
@@ -438,12 +412,10 @@ let clearArmed  = false;
 let currentType = 'rect';
 let docEntries  = [];
 
-// ════════════════════════════════════════════════════════════
-//  JSONBIN
-// ════════════════════════════════════════════════════════════
+// ── JSONBIN ──────────────────────────────────────────────────────
 async function binRead() {
   try {
-    const r = await fetch(BIN_URL, { method: 'GET', headers: HEADERS_READ });
+    const r = await fetch(BIN_URL, { method:'GET', headers:HEADERS_READ });
     if (!r.ok) return null;
     const j = await r.json();
     return j.record || null;
@@ -451,24 +423,20 @@ async function binRead() {
 }
 async function binWrite(data) {
   try {
-    const r = await fetch(BIN_URL, { method: 'PUT', headers: HEADERS_WRITE, body: JSON.stringify(data) });
+    const r = await fetch(BIN_URL, { method:'PUT', headers:HEADERS_WRITE, body:JSON.stringify(data) });
     return r.ok;
   } catch(e) { return false; }
 }
 
-// ════════════════════════════════════════════════════════════
-//  GATE — 2 pasos
-// ════════════════════════════════════════════════════════════
+// ── GATE ─────────────────────────────────────────────────────────
 function pickRole(role) {
-  $('cardEmp').classList.toggle('selected', role === 'emp');
-  $('cardDoc').classList.toggle('selected', role === 'doc');
-  $('panelEmp').classList.toggle('on', role === 'emp');
-  $('panelDoc').classList.toggle('on', role === 'doc');
-  setTimeout(() => {
-    const inp = role === 'emp' ? $('inputEmp') : $('inputDoc');
-    if (inp) inp.focus();
-  }, 50);
+  $('cardEmp').classList.toggle('selected', role==='emp');
+  $('cardDoc').classList.toggle('selected', role==='doc');
+  $('panelEmp').classList.toggle('on', role==='emp');
+  $('panelDoc').classList.toggle('on', role==='doc');
+  setTimeout(() => { const inp = role==='emp' ? $('inputEmp') : $('inputDoc'); if(inp) inp.focus(); }, 50);
 }
+function resetRole() { pickRole('emp'); }
 
 function doLoginEmp() {
   const val = $('inputEmp').value.trim();
@@ -477,19 +445,17 @@ function doLoginEmp() {
   if (!ROSTER[val]) { $('errEmp').textContent = 'DNI no registrado en el programa.'; return; }
   currentDNI  = val;
   currentName = ROSTER[val];
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'emp', dni: val, name: currentName }));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role:'emp', dni:val, name:currentName }));
   showEmpView();
 }
-
 function doLoginDoc() {
   const val = $('inputDoc').value.trim();
   $('errDoc').textContent = '';
   if (!val) { $('errDoc').textContent = 'Ingresa la contraseña.'; return; }
   if (val !== DOCENTE_PW) { $('errDoc').textContent = 'Contraseña incorrecta.'; return; }
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role: 'doc', dni: val }));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role:'doc' }));
   showDocView();
 }
-
 function doLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   currentDNI = null; currentName = null;
@@ -500,12 +466,11 @@ function doLogout() {
   $('errEmp').textContent = ''; $('errDoc').textContent = '';
   pickRole('emp');
 }
-
 function tryResume() {
   try {
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
     if (!s) return;
-    if (s.role === 'doc') { showDocView(); }
+    if (s.role === 'doc') showDocView();
     else if (s.role === 'emp' && ROSTER[s.dni]) {
       currentDNI = s.dni; currentName = s.name || ROSTER[s.dni];
       showEmpView();
@@ -513,10 +478,8 @@ function tryResume() {
   } catch(e) {}
 }
 
-// ════════════════════════════════════════════════════════════
-//  VISTAS
-// ════════════════════════════════════════════════════════════
-function showEmpView() {
+// ── VISTAS ───────────────────────────────────────────────────────
+async function showEmpView() {
   $('gateScreen').style.display = 'none';
   $('docView').style.display    = 'none';
   $('empView').style.display    = '';
@@ -525,8 +488,27 @@ function showEmpView() {
   loadLocal();
   selectType('rect');
   renderFlow();
+  // Si no hay nada en local, intentar cargar desde la nube automáticamente
+  if (steps.length === 0) {
+    showStatus('Buscando tu flujo guardado...', 'loading');
+    const rec = await binRead();
+    if (rec) {
+      const entries = Array.isArray(rec.entries) ? rec.entries : [];
+      const entry   = entries.find(e => e.dni === currentDNI);
+      if (entry && Array.isArray(entry.steps) && entry.steps.length > 0) {
+        steps  = entry.steps;
+        arrows = Array.isArray(entry.arrows) ? entry.arrows : [];
+        if (entry.processName) $('processNameInput').value = entry.processName;
+        saveLocal();
+        renderFlow();
+        showStatus('✅ Flujo restaurado desde la nube.', 'ok');
+        setTimeout(() => { $('saveStatus').textContent=''; $('saveStatus').className='save-status'; }, 3000);
+        return;
+      }
+    }
+    showStatus('', '');
+  }
 }
-
 function showDocView() {
   $('gateScreen').style.display = 'none';
   $('empView').style.display    = 'none';
@@ -534,9 +516,7 @@ function showDocView() {
   loadDocData();
 }
 
-// ════════════════════════════════════════════════════════════
-//  EMPRENDEDORA — Local storage
-// ════════════════════════════════════════════════════════════
+// ── LOCAL STORAGE ────────────────────────────────────────────────
 function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY + currentDNI);
@@ -548,64 +528,101 @@ function loadLocal() {
     } else { steps = []; arrows = []; }
   } catch(e) { steps = []; arrows = []; }
 }
-
 function saveLocal() {
   try {
     localStorage.setItem(STORAGE_KEY + currentDNI, JSON.stringify({
       steps, arrows, processName: $('processNameInput').value.trim()
     }));
-    const t = $('autosaveTag');
-    t.classList.add('on');
-    clearTimeout(saveLocal._t);
-    saveLocal._t = setTimeout(() => t.classList.remove('on'), 1600);
   } catch(e) {}
 }
 
-// ════════════════════════════════════════════════════════════
-//  BUILDER — Tipos de paso
-// ════════════════════════════════════════════════════════════
+// ── TIPO DE PASO ─────────────────────────────────────────────────
 const TYPE_META = {
-  oval:     { placeholder: 'Ej: Inicio del proceso',              maxlength: 60,
-              hint: 'Úsalo para marcar donde empieza o termina tu proceso.' },
-  rect:     { placeholder: 'Ej: Recibo el pedido por WhatsApp',   maxlength: 90,
-              hint: 'Úsalo para cualquier acción de tu proceso.' },
-  decision: { placeholder: 'Ej: ¿Yape o efectivo?',              maxlength: 55,
-              hint: 'Una pregunta con dos respuestas. Agrega los pasos de cada camino debajo.' }
+  oval:     { placeholder:'Ej: Inicio del proceso', maxlength:60 },
+  rect:     { placeholder:'Ej: Recibo el pedido por WhatsApp', maxlength:90 },
+  decision: { placeholder:'Ej: ¿Yape o efectivo?', maxlength:55 }
 };
-
 function selectType(type) {
   currentType = type;
-  $('typeRow').querySelectorAll('.type-chip').forEach(c =>
-    c.classList.toggle('active', c.dataset.type === type));
+  $('typeRow').querySelectorAll('.type-chip').forEach(c => c.classList.toggle('active', c.dataset.type===type));
   const m = TYPE_META[type];
   $('stepInput').placeholder = m.placeholder;
   $('stepInput').maxLength   = m.maxlength;
-  $('typeHint').textContent  = m.hint;
-  $('optionRow').classList.toggle('on', type === 'decision');
+  $('optionRow').classList.toggle('on', type==='decision');
 }
 
-// ════════════════════════════════════════════════════════════
-//  BUILDER — Render flujo
-// ════════════════════════════════════════════════════════════
+// ── RENDER ───────────────────────────────────────────────────────
 function esc(str) {
   const d = document.createElement('div');
-  d.textContent = str;
+  d.textContent = str || '';
   return d.innerHTML;
 }
 
-function renderBranchCol(bKey, di, label, list) {
-  let h = '<div class="branch-col"><div class="branch-head">' + esc(label) + '</div>';
-  if (!list.length) h += '<div class="branch-empty">Sin pasos en este camino</div>';
-  else list.forEach((txt, bi) => {
-    h += '<div class="branch-step"><span contenteditable="true" data-decision="' + di +
-         '" data-branch="' + bKey + '" data-bi="' + bi + '">' + esc(txt) + '</span>' +
-         '<button data-action="delbranch" data-decision="' + di +
-         '" data-branch="' + bKey + '" data-bi="' + bi + '">✕</button></div>';
-  });
-  h += '<div class="branch-add"><input type="text" maxlength="80" placeholder="+ paso en este camino"' +
-       ' data-decision="' + di + '" data-branch="' + bKey + '">' +
-       '<button data-action="addbranch" data-decision="' + di + '" data-branch="' + bKey + '">+</button></div>';
-  return h + '</div>';
+// Normaliza un step de decisión al nuevo formato (backward compat)
+function normDecision(step) {
+  if (!step.options) {
+    step.options = [step.optionA || 'Sí', step.optionB || 'No'];
+  }
+  if (!step.branches) {
+    step.branches = step.options.map((_, k) => {
+      const key = String.fromCharCode(65 + k); // A, B, C...
+      return step['branch' + key] || [];
+    });
+  }
+  while (step.branches.length < step.options.length) step.branches.push([]);
+  return step;
+}
+
+function renderBranchCol(bIdx, di, label, list) {
+  // bIdx: número entero del índice de rama (solo ramas de nivel 1 son editables desde el flujo)
+  let h = '<div class="branch-col">';
+  h += '<div class="branch-head" contenteditable="true" data-decision="' + di + '" data-bhead="' + bIdx + '">' + esc(label) + '</div>';
+
+  if (!list || !list.length) {
+    h += '<div class="branch-empty">Sin pasos en este camino</div>';
+  } else {
+    list.forEach((item, bi) => {
+      if (item && typeof item === 'object' && item.type === 'decision') {
+        // Sub-decisión: rombo real
+        h += '<div style="display:flex;flex-direction:column;align-items:center;margin:4px 0">';
+        h += '<div class="sub-node-decision">' + esc(item.text) + '</div>';
+        h += '</div>';
+        const subOpts = item.options || [item.optionA||'Sí', item.optionB||'No'];
+        const subBr   = item.branches || subOpts.map((_,k) => item['branch'+String.fromCharCode(65+k)] || []);
+        h += '<div class="branch-row">';
+        subOpts.forEach((lbl, si) => {
+          h += '<div class="branch-col">';
+          h += '<div class="branch-head" style="font-size:10px;padding:3px 5px">' + esc(lbl) + '</div>';
+          const subList = subBr[si] || [];
+          if (!subList.length) {
+            h += '<div class="branch-empty">Sin pasos</div>';
+          } else {
+            subList.forEach(txt => {
+              const t = typeof txt === 'string' ? txt : (txt.text || '');
+              h += '<div class="branch-step"><span>' + esc(t) + '</span></div>';
+            });
+          }
+          h += '</div>';
+        });
+        h += '</div>';
+        h += '<button data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;width:100%;text-align:center;margin-top:2px">✕ quitar sub-decisión</button>';
+      } else {
+        const txt = typeof item === 'string' ? item : (item && item.text ? item.text : '');
+        h += '<div class="branch-step">';
+        h += '<span contenteditable="true" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '">' + esc(txt) + '</span>';
+        h += '<button data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '">✕</button>';
+        h += '</div>';
+      }
+    });
+  }
+
+  h += '<div class="branch-add">';
+  h += '<input type="text" maxlength="80" placeholder="+ paso en este camino" data-decision="' + di + '" data-branch="' + bIdx + '">';
+  h += '<button data-action="addbranch" data-decision="' + di + '" data-branch="' + bIdx + '">+</button>';
+  h += '</div>';
+  h += '<button class="branch-add-sub" data-action="adddecision" data-decision="' + di + '" data-branch="' + bIdx + '">+ sub-decisión en este camino</button>';
+  h += '</div>';
+  return h;
 }
 
 function renderFlow() {
@@ -616,81 +633,109 @@ function renderFlow() {
     return;
   }
   steps.forEach((step, i) => {
-    // Nodo
+    // Nodo principal
     const node = document.createElement('div');
     node.className = 'node ' + step.type;
     node.textContent = step.text;
     fw.appendChild(node);
+
     // Controles
     const ctrl = document.createElement('div');
     ctrl.className = 'node-controls';
     ctrl.innerHTML =
-      '<button data-action="up"   data-i="' + i + '" ' + (i === 0 ? 'disabled' : '') + '>↑</button>' +
-      '<button data-action="down" data-i="' + i + '" ' + (i === steps.length - 1 ? 'disabled' : '') + '>↓</button>' +
+      '<button data-action="up"   data-i="' + i + '" ' + (i===0 ? 'disabled' : '') + '>↑</button>' +
+      '<button data-action="down" data-i="' + i + '" ' + (i===steps.length-1 ? 'disabled' : '') + '>↓</button>' +
       '<button data-action="edit" data-i="' + i + '">✎</button>' +
       '<button class="del" data-action="del" data-i="' + i + '">✕</button>';
     fw.appendChild(ctrl);
-    // Conector hacia el siguiente
-    if (i < steps.length - 1) {
-      if (step.type === 'decision') {
-        if (!Array.isArray(step.branchA)) step.branchA = [];
-        if (!Array.isArray(step.branchB)) step.branchB = [];
-        const oA = step.optionA || 'Sí', oB = step.optionB || 'No';
-        const fw2 = document.createElement('div');
-        fw2.className = 'fork-wrap';
-        fw2.innerHTML =
-          '<div class="fork"><div class="fork-line l"><span class="dot"></span></div>' +
-          '<div class="fork-line r"><span class="dot"></span></div></div>' +
-          '<div class="branch-row">' +
-            renderBranchCol('A', i, oA, step.branchA) +
-            renderBranchCol('B', i, oB, step.branchB) +
-          '</div>' +
-          '<div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
-        fw.appendChild(fw2);
+
+    // Decisión: SIEMPRE mostrar ramas (incluso si es el último paso)
+    if (step.type === 'decision') {
+      normDecision(step);
+      const nCols = step.options.length;
+      const fw2 = document.createElement('div');
+      fw2.className = 'fork-wrap';
+
+      const forkHtml = nCols <= 2
+        ? '<div class="fork"><div class="fork-line l"><span class="dot"></span></div><div class="fork-line r"><span class="dot"></span></div></div>'
+        : '<div class="fork-n"><div class="fork-n-line"></div></div>';
+
+      let cols = '';
+      step.options.forEach((label, bi) => {
+        cols += renderBranchCol(bi, i, label, step.branches[bi] || []);
+      });
+
+      const mergeHtml = i < steps.length - 1
+        ? '<div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>'
+        : '';
+
+      fw2.innerHTML = forkHtml + '<div class="branch-row">' + cols + '</div>' + mergeHtml;
+      fw.appendChild(fw2);
+
+      if (i < steps.length - 1) {
         const arr = document.createElement('div');
         arr.className = 'connector';
         arr.innerHTML = '<div class="line"></div><div class="arrow">▼</div>';
         fw.appendChild(arr);
-      } else {
-        const conn = document.createElement('div');
-        conn.className = 'connector';
-        conn.innerHTML =
-          '<div class="line"></div><div class="arrow">▼</div>' +
-          '<div class="lbl" contenteditable="true" data-i="' + i + '">' + esc(arrows[i] || '') + '</div>';
-        fw.appendChild(conn);
       }
+
+    } else if (i < steps.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'connector';
+      conn.innerHTML =
+        '<div class="line"></div><div class="arrow">▼</div>' +
+        '<div class="lbl" contenteditable="true" data-i="' + i + '">' + esc(arrows[i] || '') + '</div>';
+      fw.appendChild(conn);
     }
   });
 }
 
-// ════════════════════════════════════════════════════════════
-//  BUILDER — Agregar / editar pasos
-// ════════════════════════════════════════════════════════════
-function curOpts() {
-  return {
-    optionA: $('optionAInput').value.trim() || 'Sí',
-    optionB: $('optionBInput').value.trim() || 'No'
-  };
+// ── AGREGAR / EDITAR PASOS ───────────────────────────────────────
+function getCurOptions() {
+  return Array.from($('optionsList').querySelectorAll('.option-input'))
+    .map((inp, i) => inp.value.trim() || ('Opción ' + (i+1)));
+}
+function addOptionInput() {
+  const ol  = $('optionsList');
+  const idx = ol.children.length;
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.className = 'option-input'; inp.maxLength = 30;
+  inp.placeholder = 'Opción ' + (idx+1); inp.dataset.opt = idx;
+  ol.appendChild(inp);
+}
+function clearOptionInputs() {
+  const ol = $('optionsList');
+  ol.querySelectorAll('.option-input').forEach(inp => { inp.value = ''; });
+  while (ol.children.length > 2) ol.removeChild(ol.lastChild);
 }
 
 function startAdd() {
   const val = $('stepInput').value.trim();
   if (!val) return;
-  const extra = currentType === 'decision'
-    ? Object.assign(curOpts(), { branchA: [], branchB: [] })
-    : {};
+
+  let extra = {};
+  if (currentType === 'decision') {
+    const opts = getCurOptions();
+    extra = { options: opts, branches: opts.map(() => []) };
+  }
+
   if (editingIndex !== null) {
     const prev = steps[editingIndex];
-    const keep = (prev.type === 'decision' && currentType === 'decision')
-      ? { branchA: prev.branchA || [], branchB: prev.branchB || [] } : {};
-    steps[editingIndex] = { text: val, type: currentType, ...extra, ...keep };
+    // Preserve existing branch data when re-editing a decision
+    if (prev.type === 'decision' && currentType === 'decision') {
+      normDecision(prev);
+      const opts = getCurOptions();
+      extra.options  = opts;
+      extra.branches = opts.map((_, i) => (prev.branches[i] || []));
+    }
+    steps[editingIndex] = { text: val, type: currentType, ...extra };
     stopEditing();
   } else {
     steps.push({ text: val, type: currentType, ...extra });
   }
+
   $('stepInput').value = '';
-  $('optionAInput').value = '';
-  $('optionBInput').value = '';
+  clearOptionInputs();
   $('stepInput').focus();
   saveLocal();
   renderFlow();
@@ -701,8 +746,7 @@ function stopEditing() {
   $('editingBar').classList.remove('on');
   $('addStepBtn').textContent = '+ Agregar';
   $('stepInput').value = '';
-  $('optionAInput').value = '';
-  $('optionBInput').value = '';
+  clearOptionInputs();
   selectType('rect');
 }
 
@@ -711,56 +755,108 @@ function editStep(i) {
   const s = steps[i];
   $('stepInput').value = s.text;
   selectType(s.type);
-  $('optionAInput').value = s.type === 'decision' ? (s.optionA || '') : '';
-  $('optionBInput').value = s.type === 'decision' ? (s.optionB || '') : '';
+  if (s.type === 'decision') {
+    normDecision(s);
+    const ol = $('optionsList');
+    // Resize option inputs to match
+    while (ol.children.length < s.options.length) addOptionInput();
+    while (ol.children.length > s.options.length && ol.children.length > 2) ol.removeChild(ol.lastChild);
+    ol.querySelectorAll('.option-input').forEach((inp, k) => { inp.value = s.options[k] || ''; });
+  } else {
+    clearOptionInputs();
+  }
   $('editingNum').textContent = i + 1;
   $('editingBar').classList.add('on');
   $('addStepBtn').textContent = 'Guardar cambios';
   $('stepInput').focus();
 }
 
-// ════════════════════════════════════════════════════════════
-//  EVENT LISTENERS — Builder
-// ════════════════════════════════════════════════════════════
+// ── EVENTOS DEL FLUJO ────────────────────────────────────────────
 $('addStepBtn').addEventListener('click', startAdd);
-$('stepInput').addEventListener('keydown', e => { if (e.key === 'Enter') startAdd(); });
+$('stepInput').addEventListener('keydown', e => { if(e.key==='Enter') startAdd(); });
 $('cancelEditBtn').addEventListener('click', stopEditing);
-$('typeRow').querySelectorAll('.type-chip').forEach(c =>
-  c.addEventListener('click', () => selectType(c.dataset.type)));
-$('inputEmp').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginEmp(); });
-$('inputDoc').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginDoc(); });
+$('typeRow').querySelectorAll('.type-chip').forEach(c => c.addEventListener('click', () => selectType(c.dataset.type)));
+$('inputEmp').addEventListener('keydown', e => { if(e.key==='Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown', e => { if(e.key==='Enter') doLoginDoc(); });
+$('addOptionBtn').addEventListener('click', addOptionInput);
 
 $('flowWrap').addEventListener('click', e => {
-  const btn = e.target.closest('button');
+  const btn = e.target.closest('button[data-action]');
   if (!btn) return;
   const action = btn.dataset.action;
+
   if (action === 'addbranch') {
     const di   = parseInt(btn.dataset.decision, 10);
-    const bKey = btn.dataset.branch;
-    const inp  = $('flowWrap').querySelector('input[data-decision="' + di + '"][data-branch="' + bKey + '"]');
-    const val  = inp.value.trim();
+    const bIdx = parseInt(btn.dataset.branch, 10);
+    if (isNaN(di) || isNaN(bIdx)) return;
+    const inp = $('flowWrap').querySelector(
+      'input[data-decision="' + di + '"][data-branch="' + bIdx + '"]');
+    const val = inp ? inp.value.trim() : '';
     if (!val) return;
-    const ak = bKey === 'A' ? 'branchA' : 'branchB';
-    if (!Array.isArray(steps[di][ak])) steps[di][ak] = [];
-    steps[di][ak].push(val);
+    normDecision(steps[di]);
+    steps[di].branches[bIdx].push(val);
     saveLocal(); renderFlow(); return;
   }
+
   if (action === 'delbranch') {
     const di   = parseInt(btn.dataset.decision, 10);
-    const bKey = btn.dataset.branch;
+    const bIdx = parseInt(btn.dataset.branch, 10);
     const bi   = parseInt(btn.dataset.bi, 10);
-    const ak   = bKey === 'A' ? 'branchA' : 'branchB';
-    steps[di][ak].splice(bi, 1);
+    if (isNaN(di) || isNaN(bIdx) || isNaN(bi)) return;
+    normDecision(steps[di]);
+    steps[di].branches[bIdx].splice(bi, 1);
     saveLocal(); renderFlow(); return;
   }
+
+  if (action === 'adddecision') {
+    const di   = parseInt(btn.dataset.decision, 10);
+    const bIdx = parseInt(btn.dataset.branch, 10);
+    if (isNaN(di) || isNaN(bIdx)) return;
+    // Eliminar form si ya existe
+    const existing = btn.parentElement.querySelector('.subdec-form');
+    if (existing) { existing.remove(); return; }
+    const form = document.createElement('div');
+    form.className = 'subdec-form';
+    form.innerHTML =
+      '<input class="subdec-q" type="text" placeholder="Pregunta de la sub-decisión" maxlength="55">' +
+      '<div class="row">' +
+        '<input class="subdec-a" type="text" placeholder="Opción 1 (Sí)" maxlength="25">' +
+        '<input class="subdec-b" type="text" placeholder="Opción 2 (No)" maxlength="25">' +
+      '</div>' +
+      '<div class="row">' +
+        '<button class="subdec-ok">✓ Agregar</button>' +
+        '<button class="subdec-cancel">Cancelar</button>' +
+      '</div>';
+    btn.parentElement.appendChild(form);
+    form.querySelector('.subdec-q').focus();
+    form.querySelector('.subdec-ok').onclick = () => {
+      const q  = form.querySelector('.subdec-q').value.trim();
+      if (!q) { form.querySelector('.subdec-q').focus(); return; }
+      const a  = form.querySelector('.subdec-a').value.trim() || 'Sí';
+      const b2 = form.querySelector('.subdec-b').value.trim() || 'No';
+      normDecision(steps[di]);
+      normDecision(steps[di]);
+      steps[di].branches[bIdx].push({ type:'decision', text:q, options:[a,b2], branches:[[],[]] });
+      saveLocal(); renderFlow();
+    };
+    form.querySelector('.subdec-cancel').onclick = () => form.remove();
+    return;
+  }
+
   const i = parseInt(btn.dataset.i, 10);
-  if (action === 'del')  { steps.splice(i, 1); arrows.splice(Math.min(i, arrows.length - 1), 1); if (editingIndex === i) stopEditing(); }
-  if (action === 'up'   && i > 0)                { [steps[i-1], steps[i]] = [steps[i], steps[i-1]]; }
-  if (action === 'down' && i < steps.length - 1) { [steps[i+1], steps[i]] = [steps[i], steps[i+1]]; }
-  if (action === 'edit') { editStep(i); }
+  if (isNaN(i)) return;
+  if (action === 'del') {
+    steps.splice(i, 1);
+    arrows.splice(Math.min(i, arrows.length-1), 1);
+    if (editingIndex === i) stopEditing();
+  }
+  if (action === 'up'   && i > 0)                { [steps[i-1],steps[i]] = [steps[i],steps[i-1]]; }
+  if (action === 'down' && i < steps.length-1)   { [steps[i+1],steps[i]] = [steps[i],steps[i+1]]; }
+  if (action === 'edit') { editStep(i); return; }
   saveLocal(); renderFlow();
 });
 
+// Enter en input de rama
 $('flowWrap').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const inp = e.target.closest('.branch-add input');
@@ -772,25 +868,43 @@ $('flowWrap').addEventListener('keydown', e => {
   if (b) b.click();
 });
 
+// Blur: guardar ediciones inline
 $('flowWrap').addEventListener('blur', e => {
+  // Etiqueta del conector
   const lbl = e.target.closest('.lbl');
   if (lbl) { arrows[parseInt(lbl.dataset.i, 10)] = lbl.textContent.trim(); saveLocal(); return; }
+
+  // Texto de un paso de rama
   const sp = e.target.closest('.branch-step span[contenteditable]');
   if (sp) {
     const di   = parseInt(sp.dataset.decision, 10);
-    const bKey = sp.dataset.branch;
+    const bIdx = parseInt(sp.dataset.branch, 10);
     const bi   = parseInt(sp.dataset.bi, 10);
-    const ak   = bKey === 'A' ? 'branchA' : 'branchB';
-    const v    = sp.textContent.trim();
-    if (v) { steps[di][ak][bi] = v; saveLocal(); } else renderFlow();
+    if (isNaN(di) || isNaN(bIdx) || isNaN(bi) || !steps[di]) return;
+    normDecision(steps[di]);
+    const v = sp.textContent.trim();
+    if (v) { steps[di].branches[bIdx][bi] = v; saveLocal(); } else renderFlow();
+    return;
+  }
+
+  // Nombre de la rama (header)
+  const bh = e.target.closest('.branch-head[contenteditable]');
+  if (bh && bh.dataset.decision !== undefined && bh.dataset.bhead !== undefined) {
+    const di   = parseInt(bh.dataset.decision, 10);
+    const bIdx = parseInt(bh.dataset.bhead, 10);
+    if (isNaN(di) || isNaN(bIdx) || !steps[di]) return;
+    const v = bh.textContent.trim();
+    if (v) {
+      normDecision(steps[di]);
+      steps[di].options[bIdx] = v;
+      saveLocal();
+    }
   }
 }, true);
 
+// ── GUARDAR EN NUBE ──────────────────────────────────────────────
 $('printBtn').addEventListener('click', () => window.print());
 
-// ════════════════════════════════════════════════════════════
-//  GUARDAR EN NUBE
-// ════════════════════════════════════════════════════════════
 $('saveCloudBtn').addEventListener('click', async () => {
   if (!steps.length) { showStatus('Agrega al menos un paso antes de guardar.', 'err'); return; }
   showStatus('Guardando...', 'loading');
@@ -802,24 +916,48 @@ $('saveCloudBtn').addEventListener('click', async () => {
     processName: $('processNameInput').value.trim() || '(sin nombre)',
     steps, arrows,
     stepCount:   steps.length,
-    hasDecision: steps.some(s => s.type === 'decision'),
-    hasOval:     steps.some(s => s.type === 'oval'),
+    hasDecision: steps.some(s => s.type==='decision'),
+    hasOval:     steps.some(s => s.type==='oval'),
     savedAt:     new Date().toISOString()
   };
-  const idx = entries.findIndex(e => e.dni === currentDNI);
+  const idx = entries.findIndex(e => e.dni===currentDNI);
   if (idx >= 0) entries[idx] = payload; else entries.push(payload);
   const ok = await binWrite({ entries });
   showStatus(
     ok ? '✅ Flujograma guardado correctamente.' : '⚠️ Error al guardar. Intenta de nuevo.',
     ok ? 'ok' : 'err'
   );
-  if (ok) setTimeout(() => { $('saveStatus').textContent = ''; $('saveStatus').className = 'save-status'; }, 4000);
+  if (ok) setTimeout(() => { $('saveStatus').textContent=''; $('saveStatus').className='save-status'; }, 4000);
 });
 
 function showStatus(msg, cls) {
   $('saveStatus').textContent = msg;
-  $('saveStatus').className = 'save-status ' + (cls || '');
+  $('saveStatus').className   = 'save-status ' + (cls||'');
 }
+
+// ── CARGAR DESDE LA NUBE ─────────────────────────────────────────
+$('loadCloudBtn').addEventListener('click', async () => {
+  showStatus('Buscando tu flujo en la nube...', 'loading');
+  const rec = await binRead();
+  if (rec === null) { showStatus('Error de conexión. Verifica tu internet.', 'err'); return; }
+  const entries = Array.isArray(rec.entries) ? rec.entries : [];
+  const entry   = entries.find(e => e.dni === currentDNI);
+  if (!entry) {
+    showStatus('No encontramos un flujo guardado para tu DNI. Empieza a construir el tuyo.', 'err');
+    return;
+  }
+  // Confirm if there's already local work
+  if (steps.length > 0) {
+    if (!confirm('Tienes pasos en pantalla. ¿Cargar el flujo guardado en la nube? Se reemplazará lo que ves ahora.')) return;
+  }
+  steps  = Array.isArray(entry.steps)  ? entry.steps  : [];
+  arrows = Array.isArray(entry.arrows) ? entry.arrows : [];
+  if (entry.processName) $('processNameInput').value = entry.processName;
+  saveLocal(); // sync to localStorage too
+  renderFlow();
+  showStatus('✅ Flujo cargado correctamente desde la nube.', 'ok');
+  setTimeout(() => { $('saveStatus').textContent=''; $('saveStatus').className='save-status'; }, 4000);
+});
 
 // Vaciar
 const _clearBtn = $('clearBtn');
@@ -837,15 +975,13 @@ _clearBtn.addEventListener('click', () => {
     }, 4000);
     return;
   }
-  steps = []; arrows = []; clearArmed = false;
-  _clearBtn.textContent = 'Vaciar y empezar de nuevo';
+  steps=[]; arrows=[]; clearArmed=false;
+  _clearBtn.textContent='Vaciar y empezar de nuevo';
   _clearBtn.classList.remove('warn');
   stopEditing(); saveLocal(); renderFlow();
 });
 
-// ════════════════════════════════════════════════════════════
-//  DOCENTE — Dashboard
-// ════════════════════════════════════════════════════════════
+// ── PANEL DOCENTE ────────────────────────────────────────────────
 async function loadDocData() {
   $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando datos...</td></tr>';
   $('docAlerts').innerHTML = '';
@@ -855,153 +991,140 @@ async function loadDocData() {
   if (rec === null) {
     $('docTableBody').innerHTML =
       '<tr><td colspan="5" style="padding:16px"><div class="alert-box amber">' +
-      '<b>Error de conexión al servidor.</b><br>' +
-      'Verifica que el BIN_ID esté configurado y tengas internet.</div></td></tr>';
+      '<b>Error de conexión al servidor.</b><br>Verifica que el BIN_ID esté configurado.</div></td></tr>';
     $('docPending').innerHTML = '';
     return;
   }
 
   docEntries = Array.isArray(rec.entries) ? rec.entries : [];
-  const total    = docEntries.length;
-  const pct      = Math.round((total / 25) * 100);
+  const total = docEntries.length;
+  const pct   = Math.round((total/25)*100);
 
-  // Contar solo rect + decision (excluir oval = inicio/fin)
-  // rect + decision = 100%
-  let totalRect = 0, totalDec = 0;
+  let totalRect=0, totalDec=0;
   docEntries.forEach(e => {
     const ss = Array.isArray(e.steps) ? e.steps : [];
-    totalRect += ss.filter(s => s.type === 'rect').length;
-    totalDec  += ss.filter(s => s.type === 'decision').length;
+    totalRect += ss.filter(s => s.type==='rect').length;
+    totalDec  += ss.filter(s => s.type==='decision').length;
   });
-  const base   = totalRect + totalDec;  // denominador: solo operacion + decision
-  const pctOp  = base > 0 ? Math.round((totalRect / base) * 100) : '-';
-  const pctDec = base > 0 ? 100 - pctOp : '-';  // garantiza que sumen exactamente 100
-  const withDec = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'))).length;
+  const base   = totalRect + totalDec;
+  const pctOp  = base>0 ? Math.round((totalRect/base)*100) : '-';
+  const pctDec = base>0 ? 100-pctOp : '-';
+  const withDec = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s=>s.type==='decision'))).length;
 
-  $('kTotal').textContent   = total;
-  $('kPct').textContent     = pct + '%';
-  $('kPctOp').textContent   = base > 0 ? pctOp  + '%' : '-';
-  $('kPctDec').textContent  = base > 0 ? pctDec + '%' : '-';
-  $('kPctLbl').textContent   = total + ' / 25';
-  $('progressBar').style.width = pct + '%';
-  $('docWelcome').textContent  = total + ' emprendedoras han guardado su flujograma.';
+  $('kTotal').textContent  = total;
+  $('kPct').textContent    = pct+'%';
+  $('kPctOp').textContent  = base>0 ? pctOp+'%' : '-';
+  $('kPctDec').textContent = base>0 ? pctDec+'%' : '-';
+  $('kPctLbl').textContent = total+' / 25';
+  $('progressBar').style.width = pct+'%';
+  $('docWelcome').textContent  = total+' emprendedoras han guardado su flujograma.';
 
-  // Alertas pedagógicas
-  let alerts = '';
-  if (total === 0) {
-    alerts += '<div class="alert-box amber"><b>Aún no hay flujogramas guardados.</b> Comparte el QR para que las emprendedoras ingresen.</div>';
+  let alerts='';
+  if (total===0) {
+    alerts+='<div class="alert-box amber"><b>Aún no hay flujogramas guardados.</b> Comparte el QR para que las emprendedoras ingresen.</div>';
   } else {
-    if (pct < 50)  alerts += '<div class="alert-box amber"><b>Participación baja (' + pct + '%).</b> Considera dar unos minutos más para que las demás completen su flujo.</div>';
-    if (pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participación (' + pct + '%).</b></div>';
-    if (withDec === 0) alerts += '<div class="alert-box navy"><b>Ninguna emprendedora incluyó un nodo de decisión aún.</b> Puedes hacer una pausa para mostrar cómo usar el rombo.</div>';
-    const avgN = base > 0 ? ((totalRect + totalDec) / total) : 0;
-    if (avgN > 0 && avgN < 4) alerts += '<div class="alert-box amber"><b>Promedio de pasos bajo (' + avgN.toFixed(1) + ').</b> Algunos flujos pueden estar incompletos.</div>';
-    if (pctDec !== '-' && pctDec < 10 && total >= 3) alerts += '<div class="alert-box navy"><b>Solo el ' + pctDec + '% de los pasos son decisiones.</b> Motiva a las emprendedoras a incluir rombos en sus flujos.</div>';
+    if (pct<50)  alerts+='<div class="alert-box amber"><b>Participación baja ('+pct+'%).</b> Considera dar unos minutos más.</div>';
+    if (pct>=80) alerts+='<div class="alert-box green"><b>Excelente participación ('+pct+'%).</b></div>';
+    if (withDec===0) alerts+='<div class="alert-box navy"><b>Ninguna emprendedora incluyó un rombo de decisión aún.</b></div>';
   }
   $('docAlerts').innerHTML = alerts;
 
-  // Tabla
-  if (total === 0) {
-    $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aún.</td></tr>';
+  if (total===0) {
+    $('docTableBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aún.</td></tr>';
   } else {
-    let rows = '';
-    docEntries.forEach((e, idx) => {
-      const sc    = e.stepCount || (e.steps ? e.steps.length : 0);
-      const hasDec= e.hasDecision || (e.steps && e.steps.some(s => s.type === 'decision'));
-      const hasOv = e.hasOval     || (e.steps && e.steps.some(s => s.type === 'oval'));
-      const scCls = sc < 3 ? 'red' : sc < 6 ? 'amber' : 'green';
-      const first = (e.name || e.dni).split(' ')[0];
-      rows +=
-        '<tr onclick="openModal(' + idx + ')">' +
-        '<td style="color:var(--muted);font-size:12px">' + (idx+1) + '</td>' +
-        '<td><div class="emp-name-cell">' + esc(first) + '</div>' +
-             '<div style="font-size:11px;color:var(--muted)">' + esc(e.name || '') + '</div></td>' +
-        '<td style="font-size:12px">' + esc(e.processName || '(sin nombre)') + '</td>' +
-        '<td><span class="tag ' + scCls + '">' + sc + '</span></td>' +
-        '<td>' + (hasDec ? '<span class="tag green">Decisión</span>' : '<span class="tag gray">Sin decisión</span>') +
-                 (hasOv  ? '<span class="tag green">Inicio/Fin</span>' : '') + '</td>' +
+    let rows='';
+    docEntries.forEach((e,idx) => {
+      const sc     = e.stepCount || (e.steps ? e.steps.length : 0);
+      const hasDec = e.hasDecision || (e.steps && e.steps.some(s=>s.type==='decision'));
+      const hasOv  = e.hasOval     || (e.steps && e.steps.some(s=>s.type==='oval'));
+      const scCls  = sc<3?'red':sc<6?'amber':'green';
+      const first  = (e.name||e.dni).split(' ')[0];
+      rows+=
+        '<tr onclick="openModal('+idx+')">' +
+        '<td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
+        '<td><div class="emp-name-cell">'+esc(first)+'</div>'+
+             '<div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
+        '<td style="font-size:12px">'+esc(e.processName||'(sin nombre)')+'</td>'+
+        '<td><span class="tag '+scCls+'">'+sc+'</span></td>'+
+        '<td>'+(hasDec?'<span class="tag green">Decisión</span>':'<span class="tag gray">Sin decisión</span>')+
+               (hasOv?'<span class="tag green">Inicio/Fin</span>':'')+'</td>'+
         '</tr>';
     });
-    $('docTableBody').innerHTML = rows;
+    $('docTableBody').innerHTML=rows;
   }
 
-  // Pendientes
-  const registered = new Set(docEntries.map(e => e.dni));
-  const pending    = Object.entries(ROSTER).filter(([dni]) => !registered.has(dni));
-  if (pending.length === 0) {
-    $('docPending').innerHTML = '<div class="alert-box green"><b>¡Todas las emprendedoras han guardado su flujograma!</b></div>';
+  const registered = new Set(docEntries.map(e=>e.dni));
+  const pending    = Object.entries(ROSTER).filter(([dni])=>!registered.has(dni));
+  if (pending.length===0) {
+    $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas las emprendedoras han guardado su flujograma!</b></div>';
   } else {
-    let ph = '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + pending.length + ' emprendedoras sin flujo guardado:</p>';
-    ph += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
-    pending.forEach(([, name]) => {
-      ph += '<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">' +
-            esc(name.split(' ')[0]) + '</span>';
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pending.length+' emprendedoras sin flujo guardado:</p>';
+    ph+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pending.forEach(([,name])=>{
+      ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(name.split(' ')[0])+'</span>';
     });
-    ph += '</div>';
-    $('docPending').innerHTML = ph;
+    ph+='</div>';
+    $('docPending').innerHTML=ph;
   }
 }
 
-// Modal detalle flujo
+// Modal flujo emprendedora
 function openModal(idx) {
   const e = docEntries[idx];
   if (!e) return;
   $('modalEmpName').textContent = e.name || e.dni;
-  const sc    = e.steps ? e.steps.length : 0;
-  const saved = e.savedAt ? e.savedAt.slice(0, 16).replace('T', ' ') : '-';
-  $('modalMeta').textContent = 'Proceso: ' + (e.processName || '(sin nombre)') + ' · ' + sc + ' pasos · ' + saved;
+  const sc   = e.steps ? e.steps.length : 0;
+  const saved= e.savedAt ? e.savedAt.slice(0,16).replace('T',' ') : '-';
+  $('modalMeta').textContent = 'Proceso: '+(e.processName||'(sin nombre)')+' · '+sc+' pasos · '+saved;
   const mf = $('modalFlow');
   mf.innerHTML = '';
   if (!e.steps || !e.steps.length) {
-    mf.innerHTML = '<p class="empty-hint">Sin pasos registrados.</p>';
+    mf.innerHTML='<p class="empty-hint">Sin pasos registrados.</p>';
   } else {
-    e.steps.forEach((s, i) => {
+    e.steps.forEach((s,i) => {
       const n = document.createElement('div');
-      n.className = 'node ' + s.type;
+      n.className = 'node '+s.type;
       n.textContent = s.text;
       mf.appendChild(n);
-      if (s.type === 'decision') {
-        if (!Array.isArray(s.branchA)) s.branchA = [];
-        if (!Array.isArray(s.branchB)) s.branchB = [];
-        const fw = document.createElement('div');
-        fw.className = 'fork-wrap';
-        let bh = '<div class="fork"><div class="fork-line l"><span class="dot"></span></div>' +
-                 '<div class="fork-line r"><span class="dot"></span></div></div><div class="branch-row">';
-        ['A','B'].forEach(bKey => {
-          const label = bKey === 'A' ? (s.optionA || 'Sí') : (s.optionB || 'No');
-          const list  = bKey === 'A' ? s.branchA : s.branchB;
-          bh += '<div class="branch-col"><div class="branch-head">' + esc(label) + '</div>';
-          if (list.length) list.forEach(t => { bh += '<div class="branch-step"><span>' + esc(t) + '</span></div>'; });
-          else bh += '<div class="branch-empty">Sin pasos</div>';
-          bh += '</div>';
+      if (s.type==='decision') {
+        normDecision(s);
+        const fw2=document.createElement('div');
+        fw2.className='fork-wrap';
+        let bh='<div class="fork"><div class="fork-line l"><span class="dot"></span></div>'+
+                '<div class="fork-line r"><span class="dot"></span></div></div><div class="branch-row">';
+        s.options.forEach((label,bi)=>{
+          const list = s.branches[bi] || [];
+          bh+='<div class="branch-col"><div class="branch-head">'+esc(label)+'</div>';
+          if (list.length) list.forEach(t=>{
+            const txt=typeof t==='string'?t:(t&&t.text?t.text:'');
+            bh+='<div class="branch-step"><span>'+esc(txt)+'</span></div>';
+          });
+          else bh+='<div class="branch-empty">Sin pasos</div>';
+          bh+='</div>';
         });
-        bh += '</div><div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
-        fw.innerHTML = bh;
-        mf.appendChild(fw);
+        bh+='</div><div class="merge"><div class="merge-line l"></div><div class="merge-line r"></div></div>';
+        fw2.innerHTML=bh;
+        mf.appendChild(fw2);
       }
-      if (i < e.steps.length - 1) {
-        const c = document.createElement('div');
-        c.className = 'connector';
-        c.innerHTML = '<div class="line"></div><div class="arrow">▼</div>';
+      if (i<e.steps.length-1){
+        const c=document.createElement('div');
+        c.className='connector';
+        c.innerHTML='<div class="line"></div><div class="arrow">▼</div>';
         mf.appendChild(c);
       }
     });
   }
   $('flowModal').classList.add('on');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-
 function closeModal() {
   $('flowModal').classList.remove('on');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }
+$('flowModal').addEventListener('click', e=>{ if(e.target===$('flowModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click', ()=>window.print());
 
-$('flowModal').addEventListener('click', e => { if (e.target === $('flowModal')) closeModal(); });
-$('docPrintBtn').addEventListener('click', () => window.print());
-
-// ════════════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════════════
+// ── INIT ─────────────────────────────────────────────────────────
 pickRole('emp');
 tryResume();
 </script>

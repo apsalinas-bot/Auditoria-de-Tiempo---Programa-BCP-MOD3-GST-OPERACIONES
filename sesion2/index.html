@@ -191,6 +191,12 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.15s}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
 .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+.pw-eye-btn{position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:0;line-height:1}
+.pw-eye-btn:hover{color:var(--navy)}
+.pw-eye-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
+input[type=password]::-webkit-credentials-auto-fill-button,input[type=password]::-webkit-textfield-decoration-container{display:none !important}
+input[type=password]{-webkit-appearance:none}
 @media print{body{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
@@ -205,35 +211,39 @@ const DOCENTE_PW = '70003700';
 
 <script>
 const ROSTER = {
-  "40165543":"KAREN PILAR AQUINO SALAS",
-  "73765671":"Nelida Lizbeth Ari Mamani",
-  "29722177":"Sandra Lourdes Calderon Cornejo",
-  "41623431":"Ana Maria Cane Garcia",
-  "45352138":"Marisabel Yesenia Casanova Quezada",
-  "70403483":"Yulisa Choquehuanca Huamani",
-  "46761514":"Maria Lucero Condori Rivera",
-  "75892740":"Andrea Cordova Juarez",
-  "43748147":"Luz Marina Cuello Cora",
-  "29651879":"Selene Gloria Esquia Becerra",
-  "45941843":"Isabel Lizbeth Fuentes Sucantaype",
-  "70571367":"Yomelly Bertha Gordillo Vilca",
-  "74486847":"Edith Ysabel Guzman Mamani",
-  "72891102":"Sol Maria Humpiri Pari",
-  "72942216":"Flor de Maria Hurtado Condorena",
-  "40013470":"Kathia Lucia Lizarraga Macedo",
-  "47685045":"Ruth Raquel Nunez Ccoscco",
-  "43668612":"Maria del Pilar Ochoa Velarde",
-  "29616486":"Monica Paola Pajuelo Macedo",
-  "40826509":"Jessica Jacqueline Palomino de la Cruz",
-  "72463147":"Jenyfer Steysi Pineda Zapana",
-  "41929947":"Silvana Angela Riveros Chavez",
-  "72772991":"Jessica Jenny Romero Torres",
-  "29646340":"Patricia del Pilar Tinta Chambi",
-  "74943408":"Dayana Vargas Arizaca",
-  "46884965":"Silvia Uscca Huamanquispe",
-  "71509678":"Franchesca Quezada Cabrera",
-  "74250220":"Beatriz Palacios Espinoza"
+  "40165543":{n:"Karen Pilar Aquino Salas",      s:"Aquino Salas",      b:"PC Ya Soluciones Tecnológicas S.R.L."},
+  "73765671":{n:"Nelida Lizbeth Ari Mamani",      s:"Ari Mamani",        b:"Limnea Lencería"},
+  "29722177":{n:"Sandra Lourdes Calderon Cornejo",s:"Calderon Cornejo",  b:"El Secreto de la Abuela EIRL"},
+  "41623431":{n:"Ana María Cané García",           s:"Cané García",       b:"Mandarina producciones"},
+  "45352138":{n:"Marisabel Yesenia Casanova Quezada",s:"Casanova Quezada",b:"Corporación Casanova"},
+  "70403483":{n:"Yulisa Choquehuanca Huamani",    s:"Choquehuanca Huamani",b:"GRUPO CHOHUA"},
+  "46761514":{n:"María Lucero Condori Rivera",    s:"Condori Rivera",    b:"Somosancestrales"},
+  "75892740":{n:"Andrea Córdova Juarez",          s:"Córdova Juarez",    b:"Funeraria El Edén"},
+  "43748147":{n:"Luz Marina Cuello Cora",         s:"Cuello Cora",       b:"Lovelia Boutique Floral"},
+  "29651879":{n:"Selene Gloria Esquia Becerra",   s:"Esquia Becerra",    b:"Comercial Ferretera Julissa"},
+  "45941843":{n:"Isabel Lizbeth Fuentes Sucantaype",s:"Fuentes Sucantaype",b:"Clarart Arequipa"},
+  "70571367":{n:"Yomelly Bertha Gordillo Vilca",  s:"Gordillo Vilca",    b:"Corporación Delgado y Gordillo"},
+  "74486847":{n:"Edith Ysabel Guzmán Mamani",     s:"Guzmán Mamani",     b:"Comercial Bamy"},
+  "72891102":{n:"Sol Maria Humpiri Pari",         s:"Humpiri Pari",      b:"Mhera"},
+  "72942216":{n:"Flor de María Hurtado Condorena",s:"Hurtado Condorena", b:"Arkalta"},
+  "40013470":{n:"Kathia Lucia Lizarraga Macedo",  s:"Lizarraga Macedo",  b:"SULLAY DEL MAR"},
+  "47685045":{n:"Ruth Raquel Nuñez Ccoscco",      s:"Nuñez Ccoscco",     b:"Plazza Market"},
+  "43668612":{n:"María del Pilar Ochoa Velarde",  s:"Ochoa Velarde",     b:"La tertulia del chef"},
+  "29616486":{n:"Mónica Paola Pajuelo Macedo",    s:"Pajuelo Macedo",    b:"Activa Salud"},
+  "40826509":{n:"Jessica Jacqueline Palomino de la Cruz",s:"Palomino de la Cruz",b:"Proselmin-Peru Eirl"},
+  "72463147":{n:"Jenyfer Steysi Pineda Zapana",   s:"Pineda Zapana",     b:"YAKUFIL Ecoingeniería SRL"},
+  "41929947":{n:"Silvana Angela Riveros Chávez",  s:"Riveros Chávez",    b:"Posada La Merced"},
+  "72772991":{n:"Jessica Jenny Romero Torres",    s:"Romero Torres",     b:"CER PERU"},
+  "29646340":{n:"Patricia del Pilar Tinta Chambi",s:"Tinta Chambi",      b:"Isolutions Consulting SAC"},
+  "74943408":{n:"Dayana Vargas Arizaca",          s:"Vargas Arizaca",    b:"Cataleya Mirador SRL"},
+  "46884965":{n:"Silvia Uscca Huamanquispe",      s:"Uscca Huamanquispe",b:"Ingeniería y servicios Alba"},
+  "71509678":{n:"Franchesca Quezada Cabrera",     s:"Quezada Cabrera",   b:"APRENDA",     control:true},
+  "74250220":{n:"Beatriz Palacios Espinoza",      s:"Palacios Espinoza", b:"BCP",          control:true}
 };
+// Helper: nombre completo para login
+function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
+// Lista de DNIs solo emprendedoras (excluye control)
+const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 </script>
 
 <!-- GATE -->
@@ -265,14 +275,20 @@ const ROSTER = {
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contraseña)</span>
-        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 dígitos" maxlength="8" inputmode="numeric">
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputEmp" placeholder="8 dígitos" maxlength="8" inputmode="numeric" style="padding-right:46px;letter-spacing:4px">
+          <button type="button" id="toggleDni" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errEmp"></div>
         <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
         <button class="gate-back" onclick="resetRole()">Volver</button>
       </div>
       <div class="gate-panel" id="panelDoc">
         <span class="gate-panel-label">Contraseña del docente</span>
-        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••">
+        <div style="position:relative">
+          <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••" style="padding-right:46px">
+          <button type="button" id="toggleDoc" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
         <button class="gate-back" onclick="resetRole()">Volver</button>
@@ -441,7 +457,7 @@ function doLoginEmp() {
   if (!val || val.length < 6) { $('errEmp').textContent = 'Ingresa tu DNI completo (8 dígitos).'; return; }
   if (!ROSTER[val]) { $('errEmp').textContent = 'DNI no registrado en el programa.'; return; }
   currentDNI  = val;
-  currentName = ROSTER[val];
+  currentName = ROSTER[val].n;
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role:'emp', dni:val, name:currentName }));
   showEmpView();
 }
@@ -469,7 +485,7 @@ function tryResume() {
     if (!s) return;
     if (s.role === 'doc') showDocView();
     else if (s.role === 'emp' && ROSTER[s.dni]) {
-      currentDNI = s.dni; currentName = s.name || ROSTER[s.dni];
+      currentDNI = s.dni; currentName = s.name || (ROSTER[s.dni] ? ROSTER[s.dni].n : s.dni);
       showEmpView();
     }
   } catch(e) {}
@@ -1316,11 +1332,19 @@ async function loadDocData() {
   }
 
   docEntries = Array.isArray(rec.entries) ? rec.entries : [];
-  const total = docEntries.length;
-  const pct   = Math.round((total/25)*100);
+
+  // Separar entradas de control vs emprendedoras reales
+  const ctrlDnis = new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
+  const empEntries  = docEntries.filter(e=>!ctrlDnis.has(e.dni));
+  const ctrlEntries = docEntries.filter(e=>ctrlDnis.has(e.dni));
+
+  // Estadísticas solo sobre emprendedoras reales
+  const TOTAL_EMP = ROSTER_EMP_DNIS.length; // 26 emprendedoras
+  const total = empEntries.length;
+  const pct   = Math.round((total/TOTAL_EMP)*100);
 
   let totalRect=0, totalDec=0;
-  docEntries.forEach(e => {
+  empEntries.forEach(e => {
     const ss = Array.isArray(e.steps) ? e.steps : [];
     totalRect += ss.filter(s => s.type==='rect').length;
     totalDec  += ss.filter(s => s.type==='decision').length;
@@ -1328,15 +1352,18 @@ async function loadDocData() {
   const base   = totalRect + totalDec;
   const pctOp  = base>0 ? Math.round((totalRect/base)*100) : '-';
   const pctDec = base>0 ? 100-pctOp : '-';
-  const withDec = docEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s=>s.type==='decision'))).length;
+  const withDec = empEntries.filter(e => e.hasDecision || (e.steps && e.steps.some(s=>s.type==='decision'))).length;
 
   $('kTotal').textContent  = total;
   $('kPct').textContent    = pct+'%';
   $('kPctOp').textContent  = base>0 ? pctOp+'%' : '-';
   $('kPctDec').textContent = base>0 ? pctDec+'%' : '-';
-  $('kPctLbl').textContent = total+' / 25';
+  $('kPctLbl').textContent = total+' / '+TOTAL_EMP;
   $('progressBar').style.width = pct+'%';
   $('docWelcome').textContent  = total+' emprendedoras han guardado su flujograma.';
+
+  // Actualizar label del KPI "% del grupo"
+  $('kPct').closest('.kpi-box').querySelector('.kpi-lbl').textContent = '% del grupo (de '+TOTAL_EMP+')';
 
   let alerts='';
   if (total===0) {
@@ -1348,39 +1375,69 @@ async function loadDocData() {
   }
   $('docAlerts').innerHTML = alerts;
 
-  if (total===0) {
+  // Helper: primer nombre + primer apellido de un nombre completo guardado
+  function shortName(fullName) {
+    if (!fullName) return '-';
+    const parts = fullName.trim().split(/\s+/);
+    // Detectar si viene en formato "APELLIDO NOMBRE" o "Nombre Apellido"
+    // El ROSTER tiene {n: "Nombre Apellido1 Apellido2"}
+    // Mostrar: primer nombre + primer apellido (2da palabra)
+    if (parts.length >= 2) return parts[0]+' '+parts[1];
+    return parts[0];
+  }
+
+  // Tabla: emprendedoras reales + control al final con líneas punteadas
+  const allForTable = [...empEntries, ...ctrlEntries];
+
+  if (allForTable.length===0) {
     $('docTableBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aún.</td></tr>';
   } else {
     let rows='';
-    docEntries.forEach((e,idx) => {
+    allForTable.forEach((e,idx) => {
       const sc     = e.stepCount || (e.steps ? e.steps.length : 0);
       const hasDec = e.hasDecision || (e.steps && e.steps.some(s=>s.type==='decision'));
       const hasOv  = e.hasOval     || (e.steps && e.steps.some(s=>s.type==='oval'));
       const scCls  = sc<3?'red':sc<6?'amber':'green';
-      const first  = (e.name||e.dni).split(' ')[0];
+      const isCtrl = ctrlDnis.has(e.dni);
+      const rosterEntry = ROSTER[e.dni];
+      // Nombre corto: primer nombre + primer apellido del campo n del ROSTER
+      const fullN = (rosterEntry ? rosterEntry.n : e.name) || e.dni;
+      const nameArr = fullN.trim().split(/\s+/);
+      const displayName = nameArr.length>=2 ? nameArr[0]+' '+nameArr[1] : nameArr[0];
+      const negocio = rosterEntry ? rosterEntry.b : '';
+      const rowStyle = isCtrl
+        ? 'border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0;opacity:0.7;'
+        : '';
+      const ctrlBadge = isCtrl ? '<span class="tag gray" style="font-size:9px;margin-left:4px">control</span>' : '';
       rows+=
-        '<tr onclick="openModal('+idx+')">' +
-        '<td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
-        '<td><div class="emp-name-cell">'+esc(first)+'</div>'+
-             '<div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
-        '<td style="font-size:12px">'+esc(e.processName||'(sin nombre)')+'</td>'+
-        '<td><span class="tag '+scCls+'">'+sc+'</span></td>'+
-        '<td>'+(hasDec?'<span class="tag green">Decisión</span>':'<span class="tag gray">Sin decisión</span>')+
-               (hasOv?'<span class="tag green">Inicio/Fin</span>':'')+'</td>'+
+        '<tr data-midx="'+idx+'" class="doc-row-click" style="cursor:pointer;'+rowStyle+'">' +
+        '<td style="color:var(--muted);font-size:12px'+(isCtrl?';border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0':'')+'">'+
+          (isCtrl?'·':(idx+1-ctrlEntries.length > 0 ? idx+1 : idx+1))+'</td>'+
+        '<td style="'+(isCtrl?'border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0':'')+'">' +
+          '<div class="emp-name-cell">'+esc(displayName)+ctrlBadge+'</div>'+
+          (negocio?'<div style="font-size:11px;color:var(--muted);margin-top:1px">'+esc(negocio)+'</div>':'')+'</td>'+
+        '<td style="font-size:12px'+(isCtrl?';border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0':'')+'">'+esc(e.processName||'(sin nombre)')+'</td>'+
+        '<td style="'+(isCtrl?'border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0':'')+'"><span class="tag '+scCls+'">'+sc+'</span></td>'+
+        '<td style="'+(isCtrl?'border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0':'')+'">'+
+          (hasDec?'<span class="tag green">Decisión</span>':'<span class="tag gray">Sin decisión</span>')+
+          (hasOv?'<span class="tag green">Inicio/Fin</span>':'')+'</td>'+
         '</tr>';
     });
     $('docTableBody').innerHTML=rows;
   }
 
-  const registered = new Set(docEntries.map(e=>e.dni));
-  const pending    = Object.entries(ROSTER).filter(([dni])=>!registered.has(dni));
+  // Pendientes: solo emprendedoras reales, nombre completo
+  const registered = new Set(empEntries.map(e=>e.dni));
+  const pending    = ROSTER_EMP_DNIS.filter(dni=>!registered.has(dni));
   if (pending.length===0) {
     $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas las emprendedoras han guardado su flujograma!</b></div>';
   } else {
     let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pending.length+' emprendedoras sin flujo guardado:</p>';
     ph+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
-    pending.forEach(([,name])=>{
-      ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(name.split(' ')[0])+'</span>';
+    pending.forEach(dni=>{
+      const r = ROSTER[dni];
+      const fullName = r ? r.n : dni;
+      ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(fullName)+'</span>';
     });
     ph+='</div>';
     $('docPending').innerHTML=ph;
@@ -1388,8 +1445,12 @@ async function loadDocData() {
 }
 
 // Modal flujo emprendedora
-function openModal(idx) {
-  const e = docEntries[idx];
+function openModal(source, idx) {
+  const ctrlDnis2 = new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
+  const empEnt = docEntries.filter(e=>!ctrlDnis2.has(e.dni));
+  const ctrlEnt = docEntries.filter(e=>ctrlDnis2.has(e.dni));
+  const allForTable = [...empEnt, ...ctrlEnt];
+  const e = source==='all' ? allForTable[idx] : docEntries[idx];
   if (!e) return;
   $('modalEmpName').textContent = e.name || e.dni;
   const sc   = e.steps ? e.steps.length : 0;
@@ -1443,8 +1504,32 @@ function closeModal() {
 $('flowModal').addEventListener('click', e=>{ if(e.target===$('flowModal')) closeModal(); });
 $('docPrintBtn').addEventListener('click', ()=>window.print());
 
+// ── OJITOS ───────────────────────────────────────────────────────
+function setupEye(btnId, inputId) {
+  const btn = $(btnId), inp = $(inputId);
+  if (!btn || !inp) return;
+  btn.addEventListener('click', () => {
+    const showing = inp.type !== 'password';
+    const SVG_EYE     = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const SVG_EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    inp.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing ? SVG_EYE : SVG_EYE_OFF;
+    inp.focus();
+  });
+}
+
+// ── CLICK EN FILAS DEL PANEL DOCENTE ────────────────────────────
+document.addEventListener('click', e => {
+  const row = e.target.closest('tr.doc-row-click');
+  if (!row) return;
+  const idx = parseInt(row.dataset.midx, 10);
+  if (!isNaN(idx)) openModal('all', idx);
+});
+
 // ── INIT ─────────────────────────────────────────────────────────
 pickRole('emp');
+setupEye('toggleDni', 'inputEmp');
+setupEye('toggleDoc', 'inputDoc');
 tryResume();
 </script>
 </body>

@@ -416,10 +416,24 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
       <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.45" id="kMNote"></div>
     </div>
 
-    <!-- Fila 3: cuello y raíz -->
-    <div class="kpi-grid" style="margin-bottom:10px">
-      <div class="kpi-box red"><div class="kpi-val" id="kRojos">-</div><div class="kpi-lbl">Marcaron cuello (rojo)</div></div>
-      <div class="kpi-box green"><div class="kpi-val" id="kRaiz">-</div><div class="kpi-lbl">Hallaron causa raíz</div></div>
+    <!-- KPIs cuello y raíz expandidos -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="kpi-box red" style="text-align:left;padding:16px">
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">
+          <div class="kpi-val" id="kRojos">-</div>
+          <div style="font-size:11px;color:var(--muted)" id="kRojosOf"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:6px">Marcaron cuello rojo</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.45" id="kRojosNote"></div>
+      </div>
+      <div class="kpi-box green" style="text-align:left;padding:16px">
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">
+          <div class="kpi-val" id="kRaiz">-</div>
+          <div style="font-size:11px;color:var(--muted)" id="kRaizProm"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:6px">Hallaron causa raíz ★</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.45" id="kRaizNote"></div>
+      </div>
     </div>
 
     <div id="docAlerts"></div>
@@ -1049,7 +1063,23 @@ async function loadDocData(){
   $('kPct').textContent=pct+'%';
   $('kRojos').textContent=conRojo;
   $('kRaiz').textContent=conRaiz;
-  $('kRaiz').closest('.kpi-box').querySelector('.kpi-lbl').textContent='Hallaron raíz ★ (prom '+avgRoot+'/emp)';
+
+  // KPIs expandidos cuello y raíz
+  const avgRojo = total>0 ? (empEnt.reduce((s,e)=>s+(e.rojoCount||0),0)/total).toFixed(1) : '0';
+  const avgTotal = total>0 ? (empEnt.reduce((s,e)=>s+(e.totalSteps||0),0)/total).toFixed(1) : '0';
+  const pctRojoPromedio = (avgTotal>0 && avgRojo>0) ? Math.round((avgRojo/avgTotal)*100) : 0;
+
+  $('kRojosOf').textContent = total>0 ? '/ '+total+' respondieron' : '';
+  $('kRaizProm').textContent = '';
+  $('kRaizPromInline').textContent = avgRoot;
+
+  $('kRojosNote').innerHTML = total>0
+    ? 'En promedio, cada proceso tiene <b>'+avgRojo+' pasos en rojo</b> de '+avgTotal+' totales — el <b>'+pctRojoPromedio+'%</b> del flujo se traba. '+(pctRojoPromedio>=30?'Alto nivel de fricción: buen momento para discutir qué tienen en común esos pasos.':'La mayoría fluye bien — enfoca la conversación en quienes tienen más del 30%.') 
+    : 'Aún sin datos.';
+
+  $('kRaizNote').innerHTML = total>0
+    ? 'Quienes marcaron raíz lo hicieron con <b>'+avgRoot+' estrella(s) en promedio</b>. '+(parseFloat(avgRoot)>1?'Varias marcaron más de una raíz — pregúntales si son causas independientes o una lleva a la otra.':'La mayoría apuntó a una sola raíz — ideal para enfocarse en una acción concreta.')
+    : 'Aún sin datos.';
   $('kPctLbl').textContent=total+' / '+TOTAL;
   $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su diagnostico.';

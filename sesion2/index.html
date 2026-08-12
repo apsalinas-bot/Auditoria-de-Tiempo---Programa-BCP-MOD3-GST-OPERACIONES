@@ -6,6 +6,7 @@
 <title>El Esqueleto del Negocio · S2 · BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -131,6 +132,10 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .branch-add input:focus{outline:none;border-color:var(--navy);border-style:solid}
 .branch-add button{flex-shrink:0;background:var(--navy);color:#fff;border:none;border-radius:8px;width:26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 .branch-add-sub{font-size:10px;color:var(--orange-d);background:none;border:1px dashed var(--amber);border-radius:7px;padding:3px 7px;cursor:pointer;font-family:inherit;width:100%}
+.branch-fin-btn{font-size:10px;color:var(--navy);background:#EEF2FB;border:1px solid var(--navy);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit;margin-top:3px;display:inline-block}
+.branch-fin-btn:hover{background:var(--navy);color:#fff}
+.branch-fin-node{background:var(--navy);color:#fff;border-radius:50px;padding:6px 16px;font-size:11px;font-weight:700;text-align:center;margin:4px auto;width:fit-content;min-width:60px}
+.branch-fin-del{font-size:9px;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit;display:block;text-align:center;width:100%;margin-top:1px}
 .subdec-form{display:flex;flex-direction:column;gap:5px;padding:8px;background:#FFF6EA;border:1.5px solid #E8A800;border-radius:9px}
 .subdec-form input{font-size:11px;padding:5px 8px;border:1px solid #E8A800;border-radius:7px;font-family:inherit;background:#fff}
 .subdec-form .row{display:flex;gap:4px}
@@ -607,22 +612,32 @@ function renderBranchCol(bIdx, di, label, list) {
           const subPath = di+'_'+bIdx+'_'+bi+'_'+si;
           const subList = item.branches[si] || [];
           h += '<div class="branch-col">';
-          h += '<div class="branch-head" style="font-size:10px;padding:3px 5px;background:#4A6FA5">' + esc(lbl) + '</div>';
+          h += '<div class="branch-head" contenteditable="true" data-subheadpath="'+subPath+'" style="font-size:10px;padding:3px 5px;background:#4A6FA5;cursor:text;outline:none">' + esc(lbl) + '</div>';
           if (!subList.length) {
             h += '<div class="branch-empty">Sin pasos</div>';
           } else {
             subList.forEach((txt, sbi) => {
-              const t = typeof txt === 'string' ? txt : (txt && txt.text ? txt.text : '');
-              h += '<div class="branch-step">';
-              h += '<span contenteditable="true" data-subpath="'+subPath+'" data-sbi="'+sbi+'">'+esc(t)+'</span>';
-              h += '<button data-action="delsubbranch" data-subpath="'+subPath+'" data-sbi="'+sbi+'">✕</button>';
-              h += '</div>';
+              if (txt && typeof txt === 'object' && txt.type === 'fin') {
+                h += '<div class="branch-fin-node">⬭ ' + esc(txt.text || 'Fin') + '</div>';
+                h += '<button class="branch-fin-del" data-action="delsubbranch" data-subpath="'+subPath+'" data-sbi="'+sbi+'">✕ quitar fin</button>';
+              } else {
+                const t = typeof txt === 'string' ? txt : (txt && txt.text ? txt.text : '');
+                h += '<div class="branch-step">';
+                h += '<span contenteditable="true" data-subpath="'+subPath+'" data-sbi="'+sbi+'">'+esc(t)+'</span>';
+                h += '<button data-action="delsubbranch" data-subpath="'+subPath+'" data-sbi="'+sbi+'">✕</button>';
+                h += '</div>';
+              }
             });
           }
           h += '<div class="branch-add">';
           h += '<input type="text" maxlength="80" placeholder="+ paso" data-subpath="'+subPath+'">';
           h += '<button data-action="addsubbranch" data-subpath="'+subPath+'">+</button>';
           h += '</div>';
+          const subLastItem = subList.length ? subList[subList.length-1] : null;
+          const subHasFin = subLastItem && typeof subLastItem === 'object' && subLastItem.type === 'fin';
+          if (!subHasFin) {
+            h += '<button class="branch-fin-btn" data-action="addsubfin" data-subpath="'+subPath+'">⬭ agregar Fin</button>';
+          }
           h += '</div>';
         });
         h += '</div>';
@@ -635,6 +650,9 @@ function renderBranchCol(bIdx, di, label, list) {
         });
         h += '</div>';
         h += '<button data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;width:100%;text-align:center;margin-top:4px">✕ quitar sub-decisión</button>';
+      } else if (item && typeof item === 'object' && item.type === 'fin') {
+        h += '<div class="branch-fin-node">⬭ ' + esc(item.text || 'Fin') + '</div>';
+        h += '<button class="branch-fin-del" data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '">✕ quitar fin</button>';
       } else {
         const txt = typeof item === 'string' ? item : (item && item.text ? item.text : '');
         h += '<div class="branch-step">';
@@ -650,6 +668,12 @@ function renderBranchCol(bIdx, di, label, list) {
   h += '<button data-action="addbranch" data-decision="' + di + '" data-branch="' + bIdx + '">+</button>';
   h += '</div>';
   h += '<button class="branch-add-sub" data-action="adddecision" data-decision="' + di + '" data-branch="' + bIdx + '">+ sub-decisión en este camino</button>';
+  // Fin button — only show if last item is not already a fin node
+  const lastItem = list && list.length ? list[list.length-1] : null;
+  const hasFin = lastItem && typeof lastItem === 'object' && lastItem.type === 'fin';
+  if (!hasFin) {
+    h += '<button class="branch-fin-btn" data-action="addfin" data-decision="' + di + '" data-branch="' + bIdx + '">⬭ agregar Fin</button>';
+  }
   h += '</div>';
   return h;
 }
@@ -675,7 +699,8 @@ function renderFlow() {
       '<button data-action="up"   data-i="' + i + '" ' + (i===0 ? 'disabled' : '') + '>↑</button>' +
       '<button data-action="down" data-i="' + i + '" ' + (i===steps.length-1 ? 'disabled' : '') + '>↓</button>' +
       '<button data-action="edit" data-i="' + i + '">✎</button>' +
-      '<button class="del" data-action="del" data-i="' + i + '">✕</button>';
+      '<button class="del" data-action="del" data-i="' + i + '">✕</button>' +
+      (step.type === 'decision' ? '<button data-action="addbranch_to_decision" data-i="' + i + '" title="Agregar rama" style="background:#EEF2FB;color:var(--navy);border-color:var(--navy);font-size:14px;padding:0 5px;width:auto"><i class=\"ti ti-plus-equal\" style=\"font-size:13px\"></i></button>' : '');
     fw.appendChild(ctrl);
 
     // Decisión: SIEMPRE mostrar ramas (incluso si es el último paso)
@@ -838,6 +863,26 @@ $('flowWrap').addEventListener('click', e => {
   }
 
   // ── Sub-branch handlers (di_bIdx_bi_si path) ─────────────────
+  if (action === 'addfin') {
+    const di   = parseInt(btn.dataset.decision, 10);
+    const bIdx = parseInt(btn.dataset.branch, 10);
+    if (isNaN(di) || isNaN(bIdx)) return;
+    normDecision(steps[di]);
+    steps[di].branches[bIdx].push({ type:'fin', text:'Fin' });
+    saveLocal(); renderFlow(); return;
+  }
+  if (action === 'addsubfin') {
+    const path = btn.dataset.subpath;
+    if (!path) return;
+    const [di, bIdx, bi, si] = path.split('_').map(Number);
+    normDecision(steps[di]);
+    const subItem = steps[di].branches[bIdx][bi];
+    if (!subItem || subItem.type !== 'decision') return;
+    if (!subItem.branches) subItem.branches = (subItem.options||['Sí','No']).map(()=>[]);
+    while (subItem.branches.length <= si) subItem.branches.push([]);
+    subItem.branches[si].push({ type:'fin', text:'Fin' });
+    saveLocal(); renderFlow(); return;
+  }
   if (action === 'addsubbranch') {
     const path = btn.dataset.subpath; // "di_bIdx_bi_si"
     if (!path) return;
@@ -898,6 +943,16 @@ $('flowWrap').addEventListener('click', e => {
     };
     form.querySelector('.subdec-cancel').onclick = () => form.remove();
     return;
+  }
+
+  if (action === 'addbranch_to_decision') {
+    const i = parseInt(btn.dataset.i, 10);
+    if (isNaN(i)) return;
+    normDecision(steps[i]);
+    const n = steps[i].options.length + 1;
+    steps[i].options.push('Opción ' + n);
+    steps[i].branches.push([]);
+    saveLocal(); renderFlow(); return;
   }
 
   const i = parseInt(btn.dataset.i, 10);
@@ -965,6 +1020,27 @@ $('flowWrap').addEventListener('blur', e => {
     if (!subItem || !subItem.branches || !subItem.branches[si]) return;
     const v = subsp.textContent.trim();
     if (v) { subItem.branches[si][sbi] = v; saveLocal(); } else renderFlow();
+    return;
+  }
+
+  // Sub-rama header (sub-decisión)
+  const subBh = e.target.closest('.branch-head[data-subheadpath]');
+  if (subBh) {
+    const path = subBh.dataset.subheadpath;
+    if (!path) return;
+    const parts = path.split('_');
+    // path = "di_bIdx_bi_si"
+    const di = parseInt(parts[0], 10);
+    const bIdx = parseInt(parts[1], 10);
+    const bi = parseInt(parts[2], 10);
+    const si = parseInt(parts[3], 10);
+    if (isNaN(di)||isNaN(bIdx)||isNaN(bi)||isNaN(si)||!steps[di]) return;
+    normDecision(steps[di]);
+    const subItem = steps[di].branches[bIdx][bi];
+    if (!subItem || subItem.type !== 'decision') return;
+    if (!subItem.options) subItem.options = ['Sí','No'];
+    const v = subBh.textContent.trim();
+    if (v) { subItem.options[si] = v; saveLocal(); }
     return;
   }
 

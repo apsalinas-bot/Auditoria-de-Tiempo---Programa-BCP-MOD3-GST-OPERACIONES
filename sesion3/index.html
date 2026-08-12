@@ -168,6 +168,12 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
 .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
+.pw-eye-btn{position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:0}
+.pw-eye-btn:hover{color:var(--navy)}
+.pw-eye-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
+input[type=password]::-webkit-credentials-auto-fill-button,input[type=password]::-webkit-textfield-decoration-container{display:none !important}
+input[type=password]{-webkit-appearance:none}
 @media print{body{max-width:none}.top:after{display:none}.no-print{display:none !important}#detailModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
@@ -185,32 +191,35 @@ const BIN_ID_S2  = '6a6ab4a3f5f4af5e29d3bc50';              // ← BIN de la Ses
 
 <script>
 const ROSTER = {
-  "40165543":"KAREN PILAR AQUINO SALAS",
-  "73765671":"Nelida Lizbeth Ari Mamani",
-  "29722177":"Sandra Lourdes Calderon Cornejo",
-  "41623431":"Ana Maria Cane Garcia",
-  "45352138":"Marisabel Yesenia Casanova Quezada",
-  "70403483":"Yulisa Choquehuanca Huamani",
-  "46761514":"Maria Lucero Condori Rivera",
-  "75892740":"Andrea Cordova Juarez",
-  "43748147":"Luz Marina Cuello Cora",
-  "29651879":"Selene Gloria Esquia Becerra",
-  "45941843":"Isabel Lizbeth Fuentes Sucantaype",
-  "70571367":"Yomelly Bertha Gordillo Vilca",
-  "74486847":"Edith Ysabel Guzman Mamani",
-  "72891102":"Sol Maria Humpiri Pari",
-  "72942216":"Flor de Maria Hurtado Condorena",
-  "40013470":"Kathia Lucia Lizarraga Macedo",
-  "47685045":"Ruth Raquel Nunez Ccoscco",
-  "43668612":"Maria del Pilar Ochoa Velarde",
-  "29616486":"Monica Paola Pajuelo Macedo",
-  "40826509":"Jessica Jacqueline Palomino de la Cruz",
-  "72463147":"Jenyfer Steysi Pineda Zapana",
-  "41929947":"Silvana Angela Riveros Chavez",
-  "72772991":"Jessica Jenny Romero Torres",
-  "29646340":"Patricia del Pilar Tinta Chambi",
-  "74943408":"Dayana Vargas Arizaca"
+  "40165543":{n:"Karen Pilar Aquino Salas",          b:"PC Ya Soluciones Tecnologicas S.R.L."},
+  "73765671":{n:"Nelida Lizbeth Ari Mamani",          b:"Limnea Lenceria"},
+  "29722177":{n:"Sandra Lourdes Calderon Cornejo",    b:"El Secreto de la Abuela EIRL"},
+  "41623431":{n:"Ana Maria Cane Garcia",              b:"Mandarina producciones"},
+  "45352138":{n:"Marisabel Yesenia Casanova Quezada", b:"Corporacion Casanova"},
+  "70403483":{n:"Yulisa Choquehuanca Huamani",        b:"GRUPO CHOHUA"},
+  "46761514":{n:"Maria Lucero Condori Rivera",        b:"Somosancestrales"},
+  "75892740":{n:"Andrea Cordova Juarez",              b:"Funeraria El Eden"},
+  "43748147":{n:"Luz Marina Cuello Cora",             b:"Lovelia Boutique Floral"},
+  "29651879":{n:"Selene Gloria Esquia Becerra",       b:"Comercial Ferretera Julissa"},
+  "45941843":{n:"Isabel Lizbeth Fuentes Sucantaype",  b:"Clarart Arequipa"},
+  "70571367":{n:"Yomelly Bertha Gordillo Vilca",      b:"Corporacion Delgado y Gordillo"},
+  "72891102":{n:"Sol Maria Humpiri Pari",             b:"Mhera"},
+  "72942216":{n:"Flor de Maria Hurtado Condorena",    b:"Arkalta"},
+  "40013470":{n:"Kathia Lucia Lizarraga Macedo",      b:"SULLAY DEL MAR"},
+  "47685045":{n:"Ruth Raquel Nunez Ccoscco",          b:"Plazza Market"},
+  "43668612":{n:"Maria del Pilar Ochoa Velarde",      b:"La tertulia del chef"},
+  "29616486":{n:"Monica Paola Pajuelo Macedo",        b:"Activa Salud"},
+  "40826509":{n:"Jessica Jacqueline Palomino de la Cruz",b:"Proselmin-Peru Eirl"},
+  "72463147":{n:"Jenyfer Steysi Pineda Zapana",       b:"YAKUFIL Ecoingeniera SRL"},
+  "41929947":{n:"Silvana Angela Riveros Chavez",      b:"Posada La Merced"},
+  "72772991":{n:"Jessica Jenny Romero Torres",        b:"CER PERU"},
+  "29646340":{n:"Patricia del Pilar Tinta Chambi",    b:"Isolutions Consulting SAC"},
+  "74943408":{n:"Dayana Vargas Arizaca",              b:"Cataleya Mirador SRL"},
+  "46884965":{n:"Silvia Uscca Huamanquispe",          b:"Ingenieria y servicios Alba"},
+  "71509678":{n:"Franchesca Quezada Cabrera",         b:"APRENDA", control:true},
+  "74250220":{n:"Beatriz Palacios Espinoza",          b:"BCP",     control:true}
 };
+const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 </script>
 
 <!-- ════ GATE ════ -->
@@ -242,13 +251,19 @@ const ROSTER = {
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
-        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputEmp" placeholder="8 digitos" maxlength="8" inputmode="numeric" style="padding-right:46px;letter-spacing:4px">
+          <button type="button" id="toggleDni" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errEmp"></div>
         <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
       </div>
       <div class="gate-panel" id="panelDoc">
         <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
-        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div style="position:relative">
+          <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••" style="padding-right:46px">
+          <button type="button" id="toggleDoc" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
       </div>
@@ -433,7 +448,7 @@ function doLoginEmp(){
   $('errEmp').textContent = '';
   if(!val || val.length<6){ $('errEmp').textContent = 'Ingresa tu DNI completo (8 d\u00edgitos).'; return; }
   if(!ROSTER[val]){ $('errEmp').textContent = 'DNI no registrado en el programa.'; return; }
-  currentDNI = val; currentName = ROSTER[val];
+  currentDNI = val; currentName = ROSTER[val].n;
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({role:'emp',dni:val,name:currentName}));
   showEmpView();
 }
@@ -457,7 +472,7 @@ function tryResume(){
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');
     if(!s) return;
     if(s.role==='doc'){ showDocView(); }
-    else if(s.role==='emp' && ROSTER[s.dni]){ currentDNI = s.dni; currentName = s.name||ROSTER[s.dni]; showEmpView(); }
+    else if(s.role==='emp' && ROSTER[s.dni]){ currentDNI = s.dni; currentName = s.name||(ROSTER[s.dni]?ROSTER[s.dni].n:s.dni); showEmpView(); }
   }catch(e){}
 }
 
@@ -825,66 +840,81 @@ function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus'
 
 // ── DOCENTE ──
 async function loadDocData(){
-  $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
-  $('docAlerts').innerHTML = ''; $('docPending').innerHTML = '';
-  const rec = await binRead();
-  if(rec === null){
-    $('docTableBody').innerHTML = '<tr><td colspan="5" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica que el BIN_ID est\u00e9 configurado y tengas internet.</div></td></tr>';
-    return;
-  }
-  docEntries = Array.isArray(rec.entries) ? rec.entries : [];
-  const total = docEntries.length;
-  const pct = Math.round((total/25)*100);
-  const conRojo = docEntries.filter(e => (e.rojoCount||0) > 0).length;
-  const conRaiz = docEntries.filter(e => e.hasRoot).length;
-  $('kTotal').textContent = total;
-  $('kPct').textContent = pct + '%';
-  $('kRojos').textContent = conRojo;
-  $('kRaiz').textContent = conRaiz;
-  $('kPctLbl').textContent = total + ' / 25';
-  $('progressBar').style.width = pct + '%';
-  $('docWelcome').textContent = total + ' emprendedoras guardaron su diagn\u00f3stico.';
+  $('docTableBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
+  const rec=await binRead();
+  if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="5" style="padding:16px"><div class="alert-box amber"><b>Error de conexion.</b></div></td></tr>'; return; }
+  docEntries=Array.isArray(rec.entries)?rec.entries:[];
 
-  let alerts = '';
-  if(total === 0){ alerts += '<div class="alert-box amber"><b>A\u00fan no hay diagn\u00f3sticos guardados.</b> Comparte el QR de esta app.</div>'; }
-  else {
-    if(pct < 50) alerts += '<div class="alert-box amber"><b>Participaci\u00f3n baja (' + pct + '%).</b> Da unos minutos m\u00e1s.</div>';
-    else if(pct >= 80) alerts += '<div class="alert-box green"><b>Excelente participaci\u00f3n (' + pct + '%).</b></div>';
-    if(conRojo < total) alerts += '<div class="alert-box navy"><b>' + (total-conRojo) + ' a\u00fan no marcaron su cuello en rojo.</b> Recu\u00e9rdales marcar un solo paso cr\u00edtico.</div>';
-    if(conRaiz < total && total >= 3) alerts += '<div class="alert-box amber"><b>' + (total-conRaiz) + ' a\u00fan no marcaron una causa ra\u00edz (\u2605) en su Ishikawa.</b></div>';
-  }
-  $('docAlerts').innerHTML = alerts;
+  const ctrlDnis=new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
+  const empEnt=docEntries.filter(e=>!ctrlDnis.has(e.dni));
+  const ctrlEnt=docEntries.filter(e=>ctrlDnis.has(e.dni));
+  const TOTAL=ROSTER_EMP_DNIS.length;
+  const total=empEnt.length;
+  const pct=Math.round((total/TOTAL)*100);
+  const conRojo=empEnt.filter(e=>(e.rojoCount||0)>0).length;
+  const conRaiz=empEnt.filter(e=>e.hasRoot).length;
 
-  if(total === 0){ $('docTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
-  else {
-    let rows = '';
-    docEntries.forEach((e, idx) => {
-      const first = (e.name || e.dni).split(' ')[0];
-      const rojo = (e.rojoCount||0) > 0;
-      const raiz = e.hasRoot;
-      rows += '<tr onclick="openModal(' + idx + ')">' +
-        '<td style="color:var(--muted);font-size:12px">' + (idx+1) + '</td>' +
-        '<td><div class="emp-name-cell">' + esc(first) + '</div><div style="font-size:11px;color:var(--muted)">' + esc(e.name||'') + '</div></td>' +
-        '<td style="font-size:12px">' + esc(e.symptom || '(sin s\u00edntoma)') + '</td>' +
-        '<td>' + (rojo ? '<span class="tag red">' + e.rojoCount + ' rojo</span>' : '<span class="tag gray">sin marcar</span>') + '</td>' +
-        '<td>' + (raiz ? '<span class="tag green">\u2605 s\u00ed</span>' : '<span class="tag gray">no</span>') + '</td></tr>';
+  $('kTotal').textContent=total;
+  $('kPct').textContent=pct+'%';
+  $('kRojos').textContent=conRojo;
+  $('kRaiz').textContent=conRaiz;
+  $('kPctLbl').textContent=total+' / '+TOTAL;
+  $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras guardaron su diagnostico.';
+  $('kPct').closest('.kpi-box').querySelector('.kpi-lbl').textContent='% del grupo (de '+TOTAL+')';
+
+  let alerts='';
+  if(total===0){ alerts+='<div class="alert-box amber"><b>Aun no hay diagnosticos guardados.</b> Comparte el QR.</div>'; }
+  else{
+    if(pct<50) alerts+='<div class="alert-box amber"><b>Participacion baja ('+pct+'%).</b> Da unos minutos mas.</div>';
+    else if(pct>=80) alerts+='<div class="alert-box green"><b>Excelente participacion ('+pct+'%).</b></div>';
+    if(conRojo<total) alerts+='<div class="alert-box navy"><b>'+(total-conRojo)+' aun no marcaron su cuello en rojo.</b></div>';
+    if(conRaiz<total&&total>=3) alerts+='<div class="alert-box amber"><b>'+(total-conRaiz)+' aun no marcaron causa raiz en su Ishikawa.</b></div>';
+  }
+  $('docAlerts').innerHTML=alerts;
+
+  const allT=[...empEnt,...ctrlEnt];
+  if(allT.length===0){ $('docTableBody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
+  else{
+    let rows='';
+    allT.forEach((e,idx)=>{
+      const isC=ctrlDnis.has(e.dni);
+      const re=ROSTER[e.dni];
+      const fn=(re?re.n:e.name)||e.dni;
+      const na=fn.trim().split(/[\s]+/);
+      const dn=na.length>=2?na[0]+' '+na[1]:na[0];
+      const neg=re?re.b:'';
+      const rojo=(e.rojoCount||0)>0;
+      const raiz=e.hasRoot;
+      const rs=isC?'opacity:0.7;':'';
+      const td=isC?'border-top:1px dashed #B0BBD0;border-bottom:1px dashed #B0BBD0;':'';
+      const cb=isC?'<span class="tag gray" style="font-size:9px;margin-left:4px">control</span>':'';
+      rows+='<tr data-midx="'+idx+'" class="doc-row-click" style="cursor:pointer;'+rs+'">'+
+        '<td style="color:var(--muted);font-size:12px;'+td+'">'+(isC?'.':idx+1)+'</td>'+
+        '<td style="'+td+'"><div class="emp-name-cell">'+esc(dn)+cb+'</div>'+(neg?'<div style="font-size:11px;color:var(--muted);margin-top:1px">'+esc(neg)+'</div>':'')+'</td>'+
+        '<td style="font-size:12px;'+td+'">'+esc(e.symptom||'(sin sintoma)')+'</td>'+
+        '<td style="'+td+'">'+(rojo?'<span class="tag red">'+e.rojoCount+' rojo</span>':'<span class="tag gray">sin marcar</span>')+'</td>'+
+        '<td style="'+td+'">'+(raiz?'<span class="tag green">* si</span>':'<span class="tag gray">no</span>')+'</td></tr>';
     });
-    $('docTableBody').innerHTML = rows;
+    $('docTableBody').innerHTML=rows;
   }
 
-  const reg = new Set(docEntries.map(e => e.dni));
-  const pend = Object.entries(ROSTER).filter(([dni]) => !reg.has(dni));
-  if(pend.length === 0){ $('docPending').innerHTML = '<div class="alert-box green"><b>\u00a1Todas guardaron su diagn\u00f3stico!</b></div>'; }
-  else {
-    let ph = '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + pend.length + ' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
-    pend.forEach(([, name]) => { ph += '<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">' + esc(name.split(' ')[0]) + '</span>'; });
-    ph += '</div>';
-    $('docPending').innerHTML = ph;
+  const reg=new Set(empEnt.map(e=>e.dni));
+  const pend=ROSTER_EMP_DNIS.filter(d=>!reg.has(d));
+  if(pend.length===0){ $('docPending').innerHTML='<div class="alert-box green"><b>Todas guardaron su diagnostico!</b></div>'; }
+  else{
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(d=>{ const r=ROSTER[d]; ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(r?r.n:d)+'</span>'; });
+    ph+='</div>';
+    $('docPending').innerHTML=ph;
   }
 }
 
-function openModal(idx){
-  const e = docEntries[idx]; if(!e) return;
+function openModal(src,idx){
+  const cd=new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
+  const at=[...docEntries.filter(e=>!cd.has(e.dni)),...docEntries.filter(e=>cd.has(e.dni))];
+  const e=src==='all'?at[idx]:docEntries[idx]; if(!e) return;
   $('modalName').textContent = e.name || e.dni;
   const saved = e.savedAt ? e.savedAt.slice(0,16).replace('T',' ') : '-';
   $('modalMeta').textContent = 'S\u00edntoma: ' + (e.symptom||'(sin s\u00edntoma)') + ' \u00b7 ' + saved;
@@ -915,8 +945,18 @@ $('docPrintBtn').addEventListener('click', () => window.print());
 $('inputEmp').addEventListener('keydown', e => { if(e.key==='Enter') doLoginEmp(); });
 $('inputDoc').addEventListener('keydown', e => { if(e.key==='Enter') doLoginDoc(); });
 
+// ── OJITOS ──
+function setupEye(bId,iId){
+  const b=$(bId),i=$(iId); if(!b||!i) return;
+  const EO='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EC='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  b.addEventListener('click',()=>{ const s=i.type!=='password'; i.type=s?'password':'text'; b.innerHTML=s?EO:EC; i.focus(); });
+}
+document.addEventListener('click',ev=>{ const r=ev.target.closest('tr.doc-row-click'); if(!r) return; const ix=parseInt(r.dataset.midx,10); if(!isNaN(ix)) openModal('all',ix); });
 // ── INIT ──
 pickRole('emp');
+setupEye('toggleDni','inputEmp');
+setupEye('toggleDoc','inputDoc');
 tryResume();
 </script>
 </body>

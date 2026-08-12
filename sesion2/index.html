@@ -188,19 +188,117 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
 .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
 @media print{
-  body{max-width:none;padding-bottom:0}
+  /* ── Page setup ── */
+  @page{margin:18mm 14mm;size:A4 portrait}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  body{max-width:none !important;padding:0 !important;background:#fff !important;font-family:'Rubik',sans-serif}
+
+  /* ── Hide everything except empView ── */
+  #gateScreen,#docView,#flowModal,.no-print,.logout-row,.logout-btn,.foot{display:none !important}
+  #empView{display:block !important}
+
+  /* ── Hide builder controls, keep only flow ── */
+  .card:not(#print-target-card){box-shadow:none;border:none}
+  .branch-add,.branch-add-sub,.node-controls,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn{display:none !important}
+  #saveCloudBtn,#loadCloudBtn,#printBtn,#clearBtn,#saveStatus,#optionRow,#typeRow,#editingBar,.editing-bar{display:none !important}
+  .step-label,h2.hint,.hint,label.field-label,.process-name-input+*{display:none !important}
+
+  /* ── Print header: nombre del proceso ── */
+  #processNameInput{
+    display:block !important;
+    font-size:20px !important;
+    font-weight:700 !important;
+    color:#002A8D !important;
+    border:none !important;
+    background:transparent !important;
+    padding:0 !important;
+    margin:0 0 4px 0 !important;
+    width:100% !important;
+    pointer-events:none;
+  }
+
+  /* ── Top bar simplified ── */
+  .top{padding:14px 18px 12px !important;page-break-inside:avoid}
   .top:after{display:none}
-  .no-print{display:none !important}
-  #flowModal{display:none !important}
-  .card{box-shadow:none}
-  .branch-add,.branch-add-sub,.node-controls,.subdec-form{display:none !important}
-  .branch-row{display:flex !important}
-  .branch-col{flex:1 !important}
-  .branch-step{background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px 7px;margin-bottom:3px}
-  .branch-step span{font-size:11px}
-  .fork-wrap{width:100% !important;max-width:none !important}
-  .branch-head{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--navy) !important;color:#fff !important}
-  .node.decision,.node.oval,.sub-node-decision{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .top h1{font-size:16px !important;margin-top:4px !important}
+  .top p{font-size:11px !important;margin-top:4px !important}
+
+  /* ── Flow area ── */
+  #flowWrap{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    width:100% !important;
+    margin-top:12px !important;
+    gap:0 !important;
+  }
+
+  /* ── Nodes ── */
+  .node{max-width:75% !important;page-break-inside:avoid}
+  .node.oval{
+    background:#002A8D !important;color:#fff !important;
+    border-radius:50px;padding:8px 22px;font-size:13px;font-weight:700;
+    text-align:center;
+  }
+  .node.rect{
+    background:#fff !important;border:1.5px solid #C7CFDE !important;
+    border-radius:10px;padding:10px 14px;font-size:12px;
+    width:min(340px,80%);
+  }
+  .node.decision{
+    background:#FFF6EA !important;border:1.5px solid #E8A800 !important;
+    color:#C9540B !important;font-weight:700;font-size:12px;
+    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+    padding:22px 48px;min-height:88px;width:min(280px,70%);
+    display:flex;align-items:center;justify-content:center;text-align:center;
+  }
+
+  /* ── Fork / Branch layout ── */
+  .fork-wrap{width:100% !important;max-width:none !important;page-break-inside:avoid}
+  .branch-row{display:flex !important;gap:8px !important;width:100% !important;align-items:flex-start !important}
+  .branch-col{flex:1 !important;min-width:0 !important;display:flex !important;flex-direction:column !important;gap:4px !important}
+  .branch-head{
+    background:#002A8D !important;color:#fff !important;
+    font-size:10px;font-weight:700;text-align:center;
+    padding:4px 6px;border-radius:16px;
+  }
+  .branch-step{background:#fff !important;border:1px solid #E2E7F0 !important;border-radius:6px;padding:5px 7px;margin-bottom:2px;page-break-inside:avoid}
+  .branch-step span{font-size:11px;color:#1C2536}
+  .branch-empty{display:none !important}
+
+  /* ── Sub-decision diamond ── */
+  .sub-node-decision{
+    background:#FFF6EA !important;border:1.5px solid #E8A800 !important;
+    color:#C9540B !important;font-weight:700;font-size:10px;
+    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+    padding:12px 24px;min-height:52px;width:min(160px,90%);
+    display:flex;align-items:center;justify-content:center;text-align:center;margin:4px auto;
+  }
+
+  /* ── Fin node ── */
+  .branch-fin-node{
+    background:#002A8D !important;color:#fff !important;
+    border-radius:50px;padding:4px 14px;font-size:10px;font-weight:700;
+    text-align:center;margin:3px auto;width:fit-content;
+  }
+
+  /* ── Connectors ── */
+  .connector .lbl{display:none}
+  .merge,.fork{page-break-inside:avoid}
+
+  /* ── Card wrapper — keep only flow card visible ── */
+  .card{border:none !important;padding:0 !important;margin:0 !important;box-shadow:none !important}
+  .wrap{padding:0 14px !important}
+
+  /* ── Process name above flow ── */
+  #processNameInput{
+    font-size:18px !important;font-weight:700 !important;
+    color:#002A8D !important;border:none !important;
+    background:none !important;padding:6px 0 2px !important;
+    width:100% !important;display:block !important;
+    border-bottom:2px solid #002A8D !important;
+    margin-bottom:10px !important;
+  }
 }
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>

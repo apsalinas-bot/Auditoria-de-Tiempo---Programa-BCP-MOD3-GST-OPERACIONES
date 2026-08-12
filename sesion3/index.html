@@ -174,6 +174,24 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 input[type=password]::-webkit-credentials-auto-fill-button,input[type=password]::-webkit-textfield-decoration-container{display:none !important}
 input[type=password]{-webkit-appearance:none}
+.analisis-m{margin-top:10px;padding:10px 13px;background:#EEF2FB;border-left:3px solid #002A8D;border-radius:0 8px 8px 0;font-size:12.5px;color:#1C2536;line-height:1.55;display:none}
+.analisis-m.visible{display:block}
+.analisis-global{background:#fff;border:1.5px solid #002A8D;border-radius:12px;padding:18px;margin-bottom:12px}
+.analisis-global .ag-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#002A8D;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.analisis-global .ag-label::before{content:"";display:inline-block;width:16px;height:3px;background:#002A8D;border-radius:2px}
+.analisis-global .ag-body{font-size:13.5px;color:#1C2536;line-height:1.7}
+.analisis-global .ag-body b{color:#002A8D;font-weight:700}
+.analisis-cierre{background:#001C5E;border-radius:12px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.analisis-cierre::before{content:"";position:absolute;right:-24px;top:-24px;width:100px;height:100px;background:#EC6607;border-radius:50%;opacity:.15}
+.analisis-cierre .ac-eyebrow{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#EC6607;margin-bottom:6px}
+.analisis-cierre .ac-label{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.2}
+.analisis-cierre .ac-body{font-size:14px;color:#C6D2F5;line-height:1.75}
+.analisis-cierre .ac-body b{color:#fff;font-weight:700}
+.loading-dots{display:inline-flex;align-items:center;gap:4px;padding:6px 0}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:#002A8D;display:inline-block;animation:pulse 1.2s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 @media print{body{max-width:none}.top:after{display:none}.no-print{display:none !important}#detailModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
@@ -324,7 +342,19 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
       <div class="fb-legend" id="fbLegend"></div>
     </div>
 
-    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagn&oacute;stico</button>
+    <!-- ANÁLISIS IA -->
+    <div id="analisisWrap" style="display:none;margin-bottom:4px">
+      <div class="analisis-global">
+        <div class="ag-label">Análisis de tu Ishikawa</div>
+        <div id="analisisGlobalBody" class="ag-body"></div>
+      </div>
+      <div class="analisis-cierre">
+        <div class="ac-eyebrow">Sugerencia de consultor</div>
+        <div class="ac-label">Tu diagnóstico en síntesis</div>
+        <div id="analisisCierreBody" class="ac-body"></div>
+      </div>
+    </div>
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagnóstico</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -605,6 +635,28 @@ async function cargarDatos(){
     }
   }catch(e){}
   renderMGrid();
+
+  // Restaurar análisis IA si ya se generaron (desde JSONBin)
+  try{
+    const rec2 = await binRead();
+    if(rec2){
+      const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
+      const saved = entries2.find(e=>e.dni===currentDNI);
+      if(saved){
+        if(saved.analisisPorM){
+          M_CATEGORIES.forEach(c=>{
+            const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
+            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=saved.analisisPorM[c.m];}
+          });
+        }
+        if(saved.analisisGlobal||saved.analisisCierre){
+          $('analisisWrap').style.display='block';
+          if(saved.analisisGlobal) renderConNegritas(saved.analisisGlobal, $('analisisGlobalBody'));
+          if(saved.analisisCierre) renderConNegritas(saved.analisisCierre, $('analisisCierreBody'));
+        }
+      }
+    }
+  }catch(e){}
 }
 
 // ── SEMAFORO ──
@@ -679,6 +731,7 @@ function renderMGrid(){
             '<button class="btn-del" data-delm="' + esc(m) + '" data-i="' + i + '">\u2715</button></div>';
     });
     ch += '</div>';
+    ch += '<div class="analisis-m" id="analisisM_' + m.replace(/\s/g,'_') + '"></div>';
     card.innerHTML = ch;
     grid.appendChild(card);
   });
@@ -869,28 +922,108 @@ $('clearBtn').addEventListener('click', () => {
 });
 
 // ── GUARDAR EN NUBE ──
+// ── API CLAUDE ──────────────────────────────────────────────────────────────
+async function callClaude(prompt){
+  try{
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:1000,
+        system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica ni genérica. Usas siempre los datos reales de la emprendedora. Cuando quieras resaltar una palabra o frase clave importante (causas, acciones, diagnósticos), enciérrala entre dobles asteriscos: **palabra clave**. Úsalo con moderación, máximo 4 por respuesta.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d = await r.json();
+    return d.content&&d.content[0]?d.content[0].text:'';
+  }catch(e){ return ''; }
+}
+
+// Convierte **texto** en <b>texto</b> con color azul navy
+function renderConNegritas(texto, el){
+  el.innerHTML = texto.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+}
+
+function dots(el){ el.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>'; }
+
 $('saveCloudBtn').addEventListener('click', async () => {
-  if(!semSteps.length){ showStatus('Marca al menos un paso en el sem\u00e1foro.', 'err'); return; }
-  showStatus('Guardando...', 'loading');
+  if(!semSteps.length){ showStatus('Marca al menos un paso en el semáforo.', 'err'); return; }
+  const totalC = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
+  if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
+
+  const btn = $('saveCloudBtn');
+  btn.disabled=true; btn.textContent='⏳ Generando análisis...';
+  showStatus('Analizando tu diagnóstico con IA...','loading');
+
+  const firstName = currentName.trim().split(' ')[0];
+  const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
+
+  // ── Análisis 1: por cada M con causas ─────────────────────────────────────
+  const analisisPorM = {};
+  for(const cat of M_CATEGORIES.filter(c=>causes[c.m].length>0)){
+    const m   = cat.m;
+    const el  = document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
+    if(el){ el.classList.add('visible'); dots(el); }
+    const causasTexto = causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
+    const txt = await callClaude(
+      'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la categoría "'+m+'" del Ishikawa identificó:\n'+causasTexto+
+      '\n\nEscribe 2 oraciones muy directas y personales (máx 50 palabras) sobre qué revelan estas causas para SU negocio. Usa su nombre una vez. No empieces con "En esta categoría" ni frases genéricas. Habla de tú.'
+    );
+    analisisPorM[m]=txt;
+    if(el) renderConNegritas(txt||'(sin análisis)', el);
+  }
+
+  // ── Análisis 2: integrador ─────────────────────────────────────────────────
+  $('analisisWrap').style.display='block';
+  const gb=$('analisisGlobalBody'), cb=$('analisisCierreBody');
+  dots(gb); dots(cb);
+
+  let rootCause='',rootM='';
+  M_CATEGORIES.forEach(c=>causes[c.m].forEach(ca=>{ if(ca.root){rootCause=ca.text;rootM=c.m;} }));
+  const todasCausas = M_CATEGORIES.filter(c=>causes[c.m].length>0)
+    .map(c=>c.m+': '+causes[c.m].map(ca=>ca.text+(ca.root?' ★':'')).join(', ')).join('\n');
+  const analisisMTexto = Object.entries(analisisPorM).map(([m,t])=>m+': '+t).join('\n\n');
+
+  const textoGlobal = await callClaude(
+    'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
+    (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
+    '\n\nAnálisis previos por M:\n'+analisisMTexto+
+    '\n\nEscribe un análisis integrador de 3-4 oraciones (máx 100 palabras) que conecte las causas de todas las M y explique el patrón detrás del síntoma. No repitas los análisis anteriores. Habla de tú, específico con sus datos. No empieces con el nombre.'
+  );
+  renderConNegritas(textoGlobal||'(sin análisis)', gb);
+
+  // ── Análisis 3: cierre potente ─────────────────────────────────────────────
+  const textoCierre = await callClaude(
+    'Análisis por M de '+firstName+':\n'+analisisMTexto+
+    '\n\nAnálisis integrador:\n'+textoGlobal+
+    '\n\nEscribe el cierre final. Empieza exactamente con "'+firstName+'," (nombre seguido de coma). Máximo 3 oraciones. No es un resumen — es el mensaje más destilado y potente: qué es lo único más importante que tiene que resolver y qué hacer esta semana. Tono de mentora cercana y directa.'
+  );
+  renderConNegritas(textoCierre||'(sin análisis)', cb);
+
+  $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // ── Guardar en JSONBin ─────────────────────────────────────────────────────
+  showStatus('Guardando en la nube...','loading');
   const rec = await binRead();
-  if(rec === null){ showStatus('Error de conexi\u00f3n. Verifica tu internet.', 'err'); return; }
-  const entries = Array.isArray(rec.entries) ? rec.entries : [];
+  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
+  const entries = Array.isArray(rec.entries)?rec.entries:[];
+  const rootCount = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].filter(ca=>ca.root).length,0);
   const payload = {
-    dni: currentDNI, name: currentName,
-    semaforo: semSteps,
-    symptom: $('symptomInput').value.trim(),
-    causes: causes,
-    rojoCount: semSteps.filter(s => s.light==='red').length,
-    amberCount: semSteps.filter(s => s.light==='amber').length,
-    totalSteps: semSteps.length,
-    hasRoot: Object.values(causes).some(arr => arr.some(c => c.root)),
-    savedAt: new Date().toISOString()
+    dni:currentDNI, name:currentName,
+    semaforo:semSteps, symptom:sintoma, causes:causes,
+    rojoCount:semSteps.filter(s=>s.light==='red').length,
+    amberCount:semSteps.filter(s=>s.light==='amber').length,
+    totalSteps:semSteps.length,
+    hasRoot:Object.values(causes).some(arr=>arr.some(c=>c.root)),
+    rootCount, analisisPorM, analisisGlobal:textoGlobal, analisisCierre:textoCierre,
+    savedAt:new Date().toISOString()
   };
-  const idx = entries.findIndex(e => e.dni === currentDNI);
-  if(idx >= 0) entries[idx] = payload; else entries.push(payload);
-  const ok = await binWrite({ entries });
-  showStatus(ok ? '\u2705 Diagn\u00f3stico guardado correctamente.' : '\u26a0\ufe0f Error al guardar. Intenta de nuevo.', ok ? 'ok' : 'err');
-  if(ok) setTimeout(() => showStatus('',''), 4000);
+  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  if(idx>=0) entries[idx]=payload; else entries.push(payload);
+  const ok = await binWrite({entries});
+  showStatus(ok?'✅ Diagnóstico y análisis guardados.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''),5000);
+  btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico';
 });
 function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus').className = 'save-status ' + (cls||''); }
 
@@ -910,11 +1043,13 @@ async function loadDocData(){
   const pct=Math.round((total/TOTAL)*100);
   const conRojo=empEnt.filter(e=>(e.rojoCount||0)>0).length;
   const conRaiz=empEnt.filter(e=>e.hasRoot).length;
+  const avgRoot=conRaiz>0?(empEnt.reduce((s,e)=>s+(e.rootCount||+(e.hasRoot||0)),0)/conRaiz).toFixed(1):'0';
 
   $('kTotal').textContent=total;
   $('kPct').textContent=pct+'%';
   $('kRojos').textContent=conRojo;
   $('kRaiz').textContent=conRaiz;
+  $('kRaiz').closest('.kpi-box').querySelector('.kpi-lbl').textContent='Hallaron raíz ★ (prom '+avgRoot+'/emp)';
   $('kPctLbl').textContent=total+' / '+TOTAL;
   $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su diagnostico.';

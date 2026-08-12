@@ -430,7 +430,7 @@ async function getFlujoS2FromCloud(dni){
     if(!found || !Array.isArray(found.steps)) return null;
     return {
       processName: found.processName || '',
-      steps: found.steps.filter(s => s.type==='rect' || s.type==='oval').map(s => ({ text:s.text, light:'' }))
+      steps: extractSteps(found.steps)
     };
   }catch(e){ return null; }
 }
@@ -492,6 +492,27 @@ function showDocView(){
 // ── Cargar flujo de S2 + estado propio ──
 function esc(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
+// Extrae recursivamente todos los pasos tipo 'rect' de un flujo de S2
+// (incluyendo los que están dentro de ramas de decisión, a cualquier nivel)
+function extractSteps(steps){
+  const result = [];
+  function walk(list){
+    if(!Array.isArray(list)) return;
+    list.forEach(s => {
+      if(!s) return;
+      // Texto en branches (puede ser string o {text, type})
+      if(typeof s === 'string'){ result.push({ text:s, light:'' }); return; }
+      if(s.type === 'rect'){ result.push({ text:s.text, light:'' }); }
+      // Entrar en ramas de decisiones
+      if(s.type === 'decision' && Array.isArray(s.branches)){
+        s.branches.forEach(branch => walk(branch));
+      }
+    });
+  }
+  walk(steps);
+  return result;
+}
+
 function getFlujoS2(dni){
   try{
     const raw = localStorage.getItem(S2_PREFIX + dni);
@@ -500,7 +521,7 @@ function getFlujoS2(dni){
     const steps = Array.isArray(d.steps) ? d.steps : [];
     return {
       processName: d.processName || '',
-      steps: steps.filter(s => s.type==='rect' || s.type==='oval').map(s => ({ text:s.text, light:'' }))
+      steps: extractSteps(steps)
     };
   }catch(e){ return null; }
 }

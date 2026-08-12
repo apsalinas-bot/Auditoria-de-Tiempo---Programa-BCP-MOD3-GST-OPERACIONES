@@ -136,6 +136,8 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .branch-add-sub{font-size:10px;color:var(--orange-d);background:none;border:1px dashed var(--amber);border-radius:7px;padding:3px 7px;cursor:pointer;font-family:inherit;width:100%}
 .branch-fin-btn{font-size:10px;color:var(--navy);background:#EEF2FB;border:1px solid var(--navy);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit;margin-top:3px;display:inline-block}
 .branch-fin-btn:hover{background:var(--navy);color:#fff}
+.del-branch-col{font-size:9px;color:var(--red);background:none;border:1px dashed var(--red);border-radius:6px;padding:2px 6px;cursor:pointer;font-family:inherit;width:100%;margin-bottom:3px;opacity:.7}
+.del-branch-col:hover{opacity:1;background:#FEF2F2}
 .branch-fin-node{background:var(--navy);color:#fff;border-radius:50px;padding:6px 16px;font-size:11px;font-weight:700;text-align:center;margin:4px auto;width:fit-content;min-width:60px}
 .branch-fin-del{font-size:9px;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit;display:block;text-align:center;width:100%;margin-top:1px}
 .subdec-form{display:flex;flex-direction:column;gap:5px;padding:8px;background:#FFF6EA;border:1.5px solid #E8A800;border-radius:9px}
@@ -570,6 +572,7 @@ function renderBranchCol(bIdx, di, label, list) {
   // bIdx: número entero del índice de rama (solo ramas de nivel 1 son editables desde el flujo)
   let h = '<div class="branch-col">';
   h += '<div class="branch-head" contenteditable="true" data-decision="' + di + '" data-bhead="' + bIdx + '">' + esc(label) + '</div>';
+  h += '<button class="del-branch-col" data-action="delbranchcol" data-decision="' + di + '" data-branch="' + bIdx + '" title="Eliminar esta rama">✕ eliminar rama</button>';
 
   if (!list || !list.length) {
     h += '<div class="branch-empty">Sin pasos en este camino</div>';
@@ -677,7 +680,15 @@ function renderFlow() {
     // Nodo principal
     const node = document.createElement('div');
     node.className = 'node ' + step.type;
-    node.textContent = step.text;
+    if (step.type === 'decision' || step.type === 'oval' || step.type === 'rect') {
+      node.contentEditable = 'true';
+      node.dataset.nodeIndex = i;
+      node.textContent = step.text;
+      node.style.outline = 'none';
+      node.style.cursor = 'text';
+    } else {
+      node.textContent = step.text;
+    }
     fw.appendChild(node);
 
     // Controles
@@ -851,6 +862,21 @@ $('flowWrap').addEventListener('click', e => {
   }
 
   // ── Sub-branch handlers (di_bIdx_bi_si path) ─────────────────
+  if (action === 'delbranchcol') {
+    const di   = parseInt(btn.dataset.decision, 10);
+    const bIdx = parseInt(btn.dataset.branch, 10);
+    if (isNaN(di) || isNaN(bIdx)) return;
+    normDecision(steps[di]);
+    if (steps[di].options.length <= 2) {
+      alert('Un rombo de decisión necesita al menos 2 opciones.');
+      return;
+    }
+    if (!confirm('¿Eliminar la rama "' + (steps[di].options[bIdx] || 'Opción '+(bIdx+1)) + '" y todos sus pasos?')) return;
+    steps[di].options.splice(bIdx, 1);
+    steps[di].branches.splice(bIdx, 1);
+    saveLocal(); renderFlow(); return;
+  }
+
   if (action === 'addfin') {
     const di   = parseInt(btn.dataset.decision, 10);
     const bIdx = parseInt(btn.dataset.branch, 10);
@@ -958,6 +984,19 @@ $('flowWrap').addEventListener('click', e => {
 
 // Enter en input de rama
 $('flowWrap').addEventListener('keydown', e => {
+  // Prevent Enter newline in inline-editable nodes
+  if (e.key === 'Enter' && e.target.closest('.node[data-node-index]')) {
+    e.preventDefault();
+    e.target.blur();
+    return;
+  }
+  // Prevent Enter newline in branch-head
+  if (e.key === 'Enter' && e.target.closest('.branch-head[contenteditable]')) {
+    e.preventDefault();
+    e.target.blur();
+    return;
+  }
+
   if (e.key !== 'Enter') return;
   // Sub-branch input Enter
   const subInp = e.target.closest('.branch-add input[data-subpath]');
@@ -982,6 +1021,18 @@ $('flowWrap').addEventListener('blur', e => {
   // Etiqueta del conector
   const lbl = e.target.closest('.lbl');
   if (lbl) { arrows[parseInt(lbl.dataset.i, 10)] = lbl.textContent.trim(); saveLocal(); return; }
+
+  // Edición inline de nodo (rect, oval, decision)
+  const nodeEl = e.target.closest('.node[data-node-index]');
+  if (nodeEl) {
+    const idx = parseInt(nodeEl.dataset.nodeIndex, 10);
+    if (!isNaN(idx) && steps[idx]) {
+      const v = nodeEl.textContent.trim();
+      if (v) { steps[idx].text = v; saveLocal(); }
+      else { nodeEl.textContent = steps[idx].text; } // restore if empty
+    }
+    return;
+  }
 
   // Texto de un paso de rama
   const sp = e.target.closest('.branch-step span[contenteditable]');

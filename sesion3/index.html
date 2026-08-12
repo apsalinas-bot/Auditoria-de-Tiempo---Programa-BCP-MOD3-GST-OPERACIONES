@@ -1074,11 +1074,11 @@ async function loadDocData(){
   $('kRaizPromInline').textContent = avgRoot;
 
   $('kRojosNote').innerHTML = total>0
-    ? 'En promedio, cada proceso tiene <b>'+avgRojo+' pasos en rojo</b> de '+avgTotal+' totales — el <b>'+pctRojoPromedio+'%</b> del flujo se traba. '+(pctRojoPromedio>=30?'Alto nivel de fricción: buen momento para discutir qué tienen en común esos pasos.':'La mayoría fluye bien — enfoca la conversación en quienes tienen más del 30%.') 
+    ? 'En promedio, cada proceso tiene <b>'+avgRojo+' pasos en rojo</b> de '+avgTotal+' totales — el <b>'+pctRojoPromedio+'%</b> del flujo se traba.' 
     : 'Aún sin datos.';
 
   $('kRaizNote').innerHTML = total>0
-    ? 'Quienes marcaron raíz lo hicieron con <b>'+avgRoot+' estrella(s) en promedio</b>. '+(parseFloat(avgRoot)>1?'Varias marcaron más de una raíz — pregúntales si son causas independientes o una lleva a la otra.':'La mayoría apuntó a una sola raíz — ideal para enfocarse en una acción concreta.')
+    ? 'Quienes marcaron raíz lo hicieron con <b>'+avgRoot+' estrella(s) en promedio</b>.'
     : 'Aún sin datos.';
   $('kPctLbl').textContent=total+' / '+TOTAL;
   $('progressBar').style.width=pct+'%';
@@ -1102,8 +1102,8 @@ async function loadDocData(){
     $('kPctGreen').textContent=pG+'%';
     $('kPctAmber').textContent=pA+'%';
     $('kPctRed').textContent=pR+'%';
-    const avgRojo=(conRojo/total*100).toFixed(0);
-    $('kSemNote').textContent='El '+avgRojo+'% del aula ya marcó al menos un cuello rojo. En promedio, '+pR+'% de los pasos están en rojo — ahí está el tiempo que más se pierde.';
+    const pctConRojo = Math.round((conRojo/total)*100);
+    $('kSemNote').textContent = conRojo+' de '+total+' emprendedoras ('+pctConRojo+'%) marcaron al menos 1 paso en rojo. El '+pR+'% de todos los pasos del aula están en rojo.';
   } else {
     ['kPctGreen','kPctAmber','kPctRed'].forEach(id=>$( id).textContent='-');
     $('kSemNote').textContent='';

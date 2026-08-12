@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -187,119 +189,7 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.15s}
 .refresh-btn:hover{border-color:var(--navy);background:#EEF2FB}
 .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:6px;padding:0 18px 4px}
-@media print{
-  /* ── Page setup ── */
-  @page{margin:18mm 14mm;size:A4 portrait}
-  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
-  body{max-width:none !important;padding:0 !important;background:#fff !important;font-family:'Rubik',sans-serif}
-
-  /* ── Hide everything except empView ── */
-  #gateScreen,#docView,#flowModal,.no-print,.logout-row,.logout-btn,.foot{display:none !important}
-  #empView{display:block !important}
-
-  /* ── Hide builder controls, keep only flow ── */
-  .card:not(#print-target-card){box-shadow:none;border:none}
-  .branch-add,.branch-add-sub,.node-controls,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn{display:none !important}
-  #saveCloudBtn,#loadCloudBtn,#printBtn,#clearBtn,#saveStatus,#optionRow,#typeRow,#editingBar,.editing-bar{display:none !important}
-  .step-label,h2.hint,.hint,label.field-label,.process-name-input+*{display:none !important}
-
-  /* ── Print header: nombre del proceso ── */
-  #processNameInput{
-    display:block !important;
-    font-size:20px !important;
-    font-weight:700 !important;
-    color:#002A8D !important;
-    border:none !important;
-    background:transparent !important;
-    padding:0 !important;
-    margin:0 0 4px 0 !important;
-    width:100% !important;
-    pointer-events:none;
-  }
-
-  /* ── Top bar simplified ── */
-  .top{padding:14px 18px 12px !important;page-break-inside:avoid}
-  .top:after{display:none}
-  .top h1{font-size:16px !important;margin-top:4px !important}
-  .top p{font-size:11px !important;margin-top:4px !important}
-
-  /* ── Flow area ── */
-  #flowWrap{
-    display:flex !important;
-    flex-direction:column !important;
-    align-items:center !important;
-    width:100% !important;
-    margin-top:12px !important;
-    gap:0 !important;
-  }
-
-  /* ── Nodes ── */
-  .node{max-width:75% !important;page-break-inside:avoid}
-  .node.oval{
-    background:#002A8D !important;color:#fff !important;
-    border-radius:50px;padding:8px 22px;font-size:13px;font-weight:700;
-    text-align:center;
-  }
-  .node.rect{
-    background:#fff !important;border:1.5px solid #C7CFDE !important;
-    border-radius:10px;padding:10px 14px;font-size:12px;
-    width:min(340px,80%);
-  }
-  .node.decision{
-    background:#FFF6EA !important;border:1.5px solid #E8A800 !important;
-    color:#C9540B !important;font-weight:700;font-size:12px;
-    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-    padding:22px 48px;min-height:88px;width:min(280px,70%);
-    display:flex;align-items:center;justify-content:center;text-align:center;
-  }
-
-  /* ── Fork / Branch layout ── */
-  .fork-wrap{width:100% !important;max-width:none !important;page-break-inside:avoid}
-  .branch-row{display:flex !important;gap:8px !important;width:100% !important;align-items:flex-start !important}
-  .branch-col{flex:1 !important;min-width:0 !important;display:flex !important;flex-direction:column !important;gap:4px !important}
-  .branch-head{
-    background:#002A8D !important;color:#fff !important;
-    font-size:10px;font-weight:700;text-align:center;
-    padding:4px 6px;border-radius:16px;
-  }
-  .branch-step{background:#fff !important;border:1px solid #E2E7F0 !important;border-radius:6px;padding:5px 7px;margin-bottom:2px;page-break-inside:avoid}
-  .branch-step span{font-size:11px;color:#1C2536}
-  .branch-empty{display:none !important}
-
-  /* ── Sub-decision diamond ── */
-  .sub-node-decision{
-    background:#FFF6EA !important;border:1.5px solid #E8A800 !important;
-    color:#C9540B !important;font-weight:700;font-size:10px;
-    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-    padding:12px 24px;min-height:52px;width:min(160px,90%);
-    display:flex;align-items:center;justify-content:center;text-align:center;margin:4px auto;
-  }
-
-  /* ── Fin node ── */
-  .branch-fin-node{
-    background:#002A8D !important;color:#fff !important;
-    border-radius:50px;padding:4px 14px;font-size:10px;font-weight:700;
-    text-align:center;margin:3px auto;width:fit-content;
-  }
-
-  /* ── Connectors ── */
-  .connector .lbl{display:none}
-  .merge,.fork{page-break-inside:avoid}
-
-  /* ── Card wrapper — keep only flow card visible ── */
-  .card{border:none !important;padding:0 !important;margin:0 !important;box-shadow:none !important}
-  .wrap{padding:0 14px !important}
-
-  /* ── Process name above flow ── */
-  #processNameInput{
-    font-size:18px !important;font-weight:700 !important;
-    color:#002A8D !important;border:none !important;
-    background:none !important;padding:6px 0 2px !important;
-    width:100% !important;display:block !important;
-    border-bottom:2px solid #002A8D !important;
-    margin-bottom:10px !important;
-  }
-}
+@media print{body{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
@@ -1158,7 +1048,128 @@ $('flowWrap').addEventListener('blur', e => {
 }, true);
 
 // ── GUARDAR EN NUBE ──────────────────────────────────────────────
-$('printBtn').addEventListener('click', () => window.print());
+$('printBtn').addEventListener('click', async () => {
+  const btn = $('printBtn');
+  const orig = btn.textContent;
+  btn.textContent = 'Generando PDF...';
+  btn.disabled = true;
+
+  try {
+    // ── Build a clean off-screen render container ──────────────
+    const processName = $('processNameInput').value.trim() || 'Mi proceso';
+    const flowEl = $('flowWrap');
+
+    // Temporarily hide edit controls for capture
+    const hideEls = document.querySelectorAll(
+      '.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn'
+    );
+    hideEls.forEach(el => el.style.setProperty('display','none','important'));
+
+    // Build wrapper for capture
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:fixed','top:-99999px','left:0',
+      'background:#fff','padding:32px',
+      'font-family:Rubik,system-ui,sans-serif',
+      'width:900px','box-sizing:border-box'
+    ].join(';');
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'margin-bottom:18px;padding-bottom:12px;border-bottom:2.5px solid #002A8D';
+    hdr.innerHTML =
+      '<div style="font-size:10px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
+      '<div style="font-size:22px;font-weight:700;color:#002A8D;line-height:1.2">' + processName + '</div>' +
+      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + currentName + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+    wrapper.appendChild(hdr);
+
+    // Clone flowWrap
+    const clone = flowEl.cloneNode(true);
+    clone.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%';
+    // Remove controls from clone
+    clone.querySelectorAll('.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn').forEach(el => el.remove());
+    // Remove empty-hint
+    clone.querySelectorAll('.empty-hint').forEach(el => el.remove());
+    wrapper.appendChild(clone);
+
+    document.body.appendChild(wrapper);
+    await new Promise(r => setTimeout(r, 120)); // let render settle
+
+    // ── Capture with html2canvas ───────────────────────────────
+    const canvas = await html2canvas(wrapper, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+    document.body.removeChild(wrapper);
+
+    // Restore controls
+    hideEls.forEach(el => el.style.removeProperty('display'));
+
+    // ── Build PDF ──────────────────────────────────────────────
+    const { jsPDF } = window.jspdf;
+    const imgW = canvas.width;
+    const imgH = canvas.height;
+    const aspect = imgH / imgW;
+
+    // Choose orientation: landscape if flow is wider than tall
+    const landscape = aspect < 0.9;
+    const pdf = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2;
+
+    // Scale image to fit page, adding pages if needed
+    const scaledW = usableW;
+    const scaledH = scaledW * aspect;
+
+    if (scaledH <= usableH) {
+      // Fits in one page
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, scaledW, scaledH);
+    } else {
+      // Multi-page: slice canvas
+      const pageHeightPx = Math.floor(imgW * (usableH / usableW));
+      let yOffset = 0;
+      let pageNum = 0;
+      while (yOffset < imgH) {
+        if (pageNum > 0) pdf.addPage();
+        const sliceH = Math.min(pageHeightPx, imgH - yOffset);
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = imgW;
+        sliceCanvas.height = sliceH;
+        const ctx = sliceCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
+        const sliceScaledH = (sliceH / imgW) * usableW;
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, sliceScaledH);
+        yOffset += pageHeightPx;
+        pageNum++;
+      }
+    }
+
+    // Footer on each page
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      pdf.setPage(p);
+      pdf.setFontSize(8);
+      pdf.setTextColor(150);
+      pdf.text('Programa BCP · UCSP-CENDES · Módulo 3', margin, pageH - 4);
+      if (totalPages > 1) pdf.text('Pág. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
+    }
+
+    const safeName = processName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]/g,'').trim().slice(0,40) || 'flujo';
+    pdf.save('Flujo_' + safeName + '.pdf');
+
+  } catch(err) {
+    console.error('PDF error:', err);
+    alert('No se pudo generar el PDF. Intenta de nuevo.');
+  }
+
+  btn.textContent = orig;
+  btn.disabled = false;
+});
 
 $('saveCloudBtn').addEventListener('click', async () => {
   if (!steps.length) { showStatus('Agrega al menos un paso antes de guardar.', 'err'); return; }

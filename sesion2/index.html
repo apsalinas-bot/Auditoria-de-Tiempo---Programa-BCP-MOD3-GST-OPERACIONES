@@ -583,29 +583,58 @@ function renderBranchCol(bIdx, di, label, list) {
   } else {
     list.forEach((item, bi) => {
       if (item && typeof item === 'object' && item.type === 'decision') {
-        // Sub-decisión: rombo real
-        h += '<div style="display:flex;flex-direction:column;align-items:center;margin:4px 0">';
+        // Sub-decisión: rombo real con ramas editables
+        const subOpts = item.options || [item.optionA||'Sí', item.optionB||'No'];
+        if (!item.branches) item.branches = subOpts.map(()=>[]);
+        while (item.branches.length < subOpts.length) item.branches.push([]);
+        // Connector line into sub-diamond
+        h += '<div style="display:flex;flex-direction:column;align-items:center;margin:2px 0">';
+        h += '<div style="width:2px;height:10px;background:#C7CFDE"></div>';
         h += '<div class="sub-node-decision">' + esc(item.text) + '</div>';
         h += '</div>';
-        const subOpts = item.options || [item.optionA||'Sí', item.optionB||'No'];
-        const subBr   = item.branches || subOpts.map((_,k) => item['branch'+String.fromCharCode(65+k)] || []);
+        // Fork lines
+        h += '<div style="display:flex;justify-content:center;height:20px;position:relative;width:100%">';
+        h += '<div style="position:absolute;top:0;left:20%;width:60%;height:2px;background:#C7CFDE"></div>';
+        subOpts.forEach((_,si) => {
+          const pct = subOpts.length === 1 ? 50 : Math.round(20 + (60/(subOpts.length-1))*si);
+          h += '<div style="position:absolute;top:0;left:'+pct+'%;width:2px;height:20px;background:#C7CFDE;margin-left:-1px"></div>';
+          h += '<div style="position:absolute;top:15px;left:'+pct+'%;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-left:-4px"></div>';
+        });
+        h += '</div>';
+        // Sub-branch columns — fully interactive
         h += '<div class="branch-row">';
         subOpts.forEach((lbl, si) => {
+          const subPath = di+'_'+bIdx+'_'+bi+'_'+si;
+          const subList = item.branches[si] || [];
           h += '<div class="branch-col">';
-          h += '<div class="branch-head" style="font-size:10px;padding:3px 5px">' + esc(lbl) + '</div>';
-          const subList = subBr[si] || [];
+          h += '<div class="branch-head" style="font-size:10px;padding:3px 5px;background:#4A6FA5">' + esc(lbl) + '</div>';
           if (!subList.length) {
             h += '<div class="branch-empty">Sin pasos</div>';
           } else {
-            subList.forEach(txt => {
-              const t = typeof txt === 'string' ? txt : (txt.text || '');
-              h += '<div class="branch-step"><span>' + esc(t) + '</span></div>';
+            subList.forEach((txt, sbi) => {
+              const t = typeof txt === 'string' ? txt : (txt && txt.text ? txt.text : '');
+              h += '<div class="branch-step">';
+              h += '<span contenteditable="true" data-subpath="'+subPath+'" data-sbi="'+sbi+'">'+esc(t)+'</span>';
+              h += '<button data-action="delsubbranch" data-subpath="'+subPath+'" data-sbi="'+sbi+'">✕</button>';
+              h += '</div>';
             });
           }
+          h += '<div class="branch-add">';
+          h += '<input type="text" maxlength="80" placeholder="+ paso" data-subpath="'+subPath+'">';
+          h += '<button data-action="addsubbranch" data-subpath="'+subPath+'">+</button>';
+          h += '</div>';
           h += '</div>';
         });
         h += '</div>';
-        h += '<button data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;width:100%;text-align:center;margin-top:2px">✕ quitar sub-decisión</button>';
+        // Merge lines
+        h += '<div style="display:flex;justify-content:center;height:16px;position:relative;width:100%">';
+        h += '<div style="position:absolute;bottom:0;left:20%;width:60%;height:2px;background:#C7CFDE"></div>';
+        subOpts.forEach((_,si) => {
+          const pct = subOpts.length === 1 ? 50 : Math.round(20 + (60/(subOpts.length-1))*si);
+          h += '<div style="position:absolute;bottom:0;left:'+pct+'%;width:2px;height:16px;background:#C7CFDE;margin-left:-1px"></div>';
+        });
+        h += '</div>';
+        h += '<button data-action="delbranch" data-decision="' + di + '" data-branch="' + bIdx + '" data-bi="' + bi + '" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;width:100%;text-align:center;margin-top:4px">✕ quitar sub-decisión</button>';
       } else {
         const txt = typeof item === 'string' ? item : (item && item.text ? item.text : '');
         h += '<div class="branch-step">';
@@ -808,6 +837,34 @@ $('flowWrap').addEventListener('click', e => {
     saveLocal(); renderFlow(); return;
   }
 
+  // ── Sub-branch handlers (di_bIdx_bi_si path) ─────────────────
+  if (action === 'addsubbranch') {
+    const path = btn.dataset.subpath; // "di_bIdx_bi_si"
+    if (!path) return;
+    const [di, bIdx, bi, si] = path.split('_').map(Number);
+    const inp = $('flowWrap').querySelector('input[data-subpath="' + path + '"]');
+    const val = inp ? inp.value.trim() : '';
+    if (!val) return;
+    normDecision(steps[di]);
+    const subItem = steps[di].branches[bIdx][bi];
+    if (!subItem || subItem.type !== 'decision') return;
+    if (!subItem.branches) subItem.branches = (subItem.options||['Sí','No']).map(()=>[]);
+    while (subItem.branches.length <= si) subItem.branches.push([]);
+    subItem.branches[si].push(val);
+    saveLocal(); renderFlow(); return;
+  }
+  if (action === 'delsubbranch') {
+    const path = btn.dataset.subpath;
+    if (!path) return;
+    const [di, bIdx, bi, si] = path.split('_').map(Number);
+    const sbi = parseInt(btn.dataset.sbi, 10);
+    normDecision(steps[di]);
+    const subItem = steps[di].branches[bIdx][bi];
+    if (!subItem || !subItem.branches || !subItem.branches[si]) return;
+    subItem.branches[si].splice(sbi, 1);
+    saveLocal(); renderFlow(); return;
+  }
+
   if (action === 'adddecision') {
     const di   = parseInt(btn.dataset.decision, 10);
     const bIdx = parseInt(btn.dataset.branch, 10);
@@ -859,6 +916,15 @@ $('flowWrap').addEventListener('click', e => {
 // Enter en input de rama
 $('flowWrap').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
+  // Sub-branch input Enter
+  const subInp = e.target.closest('.branch-add input[data-subpath]');
+  if (subInp) {
+    e.preventDefault();
+    const b = $('flowWrap').querySelector('button[data-action="addsubbranch"][data-subpath="' + subInp.dataset.subpath + '"]');
+    if (b) b.click();
+    return;
+  }
+  // Main branch input Enter
   const inp = e.target.closest('.branch-add input');
   if (!inp) return;
   e.preventDefault();
@@ -884,6 +950,21 @@ $('flowWrap').addEventListener('blur', e => {
     normDecision(steps[di]);
     const v = sp.textContent.trim();
     if (v) { steps[di].branches[bIdx][bi] = v; saveLocal(); } else renderFlow();
+    return;
+  }
+
+  // Sub-branch step text edit
+  const subsp = e.target.closest('.branch-step span[data-subpath]');
+  if (subsp) {
+    const path = subsp.dataset.subpath;
+    const sbi  = parseInt(subsp.dataset.sbi, 10);
+    if (!path || isNaN(sbi)) return;
+    const [di, bIdx, bi, si] = path.split('_').map(Number);
+    normDecision(steps[di]);
+    const subItem = steps[di].branches[bIdx][bi];
+    if (!subItem || !subItem.branches || !subItem.branches[si]) return;
+    const v = subsp.textContent.trim();
+    if (v) { subItem.branches[si][sbi] = v; saveLocal(); } else renderFlow();
     return;
   }
 

@@ -941,16 +941,25 @@ async function callClaude(prompt){
   try{
     const r = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-request-proxy':'true'
+      },
       body:JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
         system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica ni genérica. Usas siempre los datos reales de la emprendedora. Cuando quieras resaltar una palabra o frase clave importante (causas, acciones, diagnósticos), enciérrala entre dobles asteriscos: **palabra clave**. Úsalo con moderación, máximo 4 por respuesta.',
         messages:[{role:'user',content:prompt}]
       })
     });
+    if(!r.ok){
+      const err=await r.text();
+      console.error('Claude API error',r.status,err);
+      return '';
+    }
     const d = await r.json();
     return d.content&&d.content[0]?d.content[0].text:'';
-  }catch(e){ return ''; }
+  }catch(e){ console.error('callClaude error',e); return ''; }
 }
 
 // Convierte **texto** en <b>texto</b> con color azul navy
@@ -983,6 +992,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
       'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la categoría "'+m+'" del Ishikawa identificó:\n'+causasTexto+
       '\n\nEscribe 2 oraciones muy directas y personales (máx 50 palabras) sobre qué revelan estas causas para SU negocio. Usa su nombre una vez. No empieces con "En esta categoría" ni frases genéricas. Habla de tú.'
     );
+    if(!txt){ showStatus('⚠️ Error al conectar con IA. Verifica tu conexión e intenta de nuevo.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
     analisisPorM[m]=txt;
     if(el) renderConNegritas(txt||'(sin análisis)', el);
   }

@@ -174,18 +174,19 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 input[type=password]::-webkit-credentials-auto-fill-button,input[type=password]::-webkit-textfield-decoration-container{display:none !important}
 input[type=password]{-webkit-appearance:none}
-.analisis-m{margin-top:10px;padding:10px 13px;background:#EEF2FB;border-left:3px solid #002A8D;border-radius:0 8px 8px 0;font-size:12.5px;color:#1C2536;line-height:1.55;display:none}
+.analisis-m{margin-top:10px;padding:12px 14px 12px 14px;background:linear-gradient(135deg,#EEF2FB 0%,#F4F7FF 100%);border-left:3px solid #002A8D;border-radius:0 10px 10px 0;font-size:12.5px;color:#1C2536;line-height:1.6;display:none;position:relative}
 .analisis-m.visible{display:block}
-.analisis-global{background:#fff;border:1.5px solid #002A8D;border-radius:12px;padding:18px;margin-bottom:12px}
-.analisis-global .ag-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#002A8D;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.analisis-global .ag-label::before{content:"";display:inline-block;width:16px;height:3px;background:#002A8D;border-radius:2px}
-.analisis-global .ag-body{font-size:13.5px;color:#1C2536;line-height:1.7}
+.analisis-m b{color:#002A8D;font-weight:700}
+.analisis-global{background:#fff;border:1.5px solid #002A8D;border-radius:14px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden}
+.analisis-global .ag-label{font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#002A8D;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.analisis-global .ag-label::before{content:"";display:inline-block;width:18px;height:3px;background:#002A8D;border-radius:2px}
+.analisis-global .ag-body{font-size:13.5px;color:#1C2536;line-height:1.75}
 .analisis-global .ag-body b{color:#002A8D;font-weight:700}
-.analisis-cierre{background:#001C5E;border-radius:12px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
-.analisis-cierre::before{content:"";position:absolute;right:-24px;top:-24px;width:100px;height:100px;background:#EC6607;border-radius:50%;opacity:.15}
-.analisis-cierre .ac-eyebrow{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#EC6607;margin-bottom:6px}
-.analisis-cierre .ac-label{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.2}
-.analisis-cierre .ac-body{font-size:14px;color:#C6D2F5;line-height:1.75}
+.analisis-cierre{background:linear-gradient(135deg,#001C5E 0%,#0a3568 100%);border-radius:14px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.analisis-cierre::before{content:"";position:absolute;right:-24px;top:-24px;width:100px;height:100px;background:#EC6607;border-radius:50%;opacity:.18}
+.analisis-cierre .ac-eyebrow{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#EC6607;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.analisis-cierre .ac-label{font-size:17px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.2}
+.analisis-cierre .ac-body{font-size:14px;color:#C6D2F5;line-height:1.8}
 .analisis-cierre .ac-body b{color:#fff;font-weight:700}
 .loading-dots{display:inline-flex;align-items:center;gap:4px;padding:6px 0}
 .loading-dots span{width:6px;height:6px;border-radius:50%;background:#002A8D;display:inline-block;animation:pulse 1.2s ease-in-out infinite}
@@ -345,12 +346,12 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
     <!-- ANÁLISIS IA -->
     <div id="analisisWrap" style="display:none;margin-bottom:4px">
       <div class="analisis-global">
-        <div class="ag-label">Análisis de tu Ishikawa</div>
+        <div class="ag-label">🔍 Análisis de tu Ishikawa</div>
         <div id="analisisGlobalBody" class="ag-body"></div>
       </div>
       <div class="analisis-cierre">
-        <div class="ac-eyebrow">Sugerencia de consultor</div>
-        <div class="ac-label">Tu diagnóstico en síntesis</div>
+        <div class="ac-eyebrow">★ Sugerencia de consultor</div>
+        <div class="ac-label">⚡ Tu diagnóstico en síntesis</div>
         <div id="analisisCierreBody" class="ac-body"></div>
       </div>
     </div>
@@ -665,8 +666,8 @@ async function cargarDatos(){
         }
         if(saved.analisisGlobal||saved.analisisCierre){
           $('analisisWrap').style.display='block';
-          if(saved.analisisGlobal) renderConNegritas(saved.analisisGlobal, $('analisisGlobalBody'));
-          if(saved.analisisCierre) renderConNegritas(saved.analisisCierre, $('analisisCierreBody'));
+          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=saved.analisisGlobal;
+          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=saved.analisisCierre;
         }
       }
     }
@@ -937,28 +938,61 @@ $('clearBtn').addEventListener('click', () => {
 
 // ── GUARDAR EN NUBE ──
 // ── API CLAUDE ──────────────────────────────────────────────────────────────
-async function callClaude(prompt){
-  try{
-    const PROXY = 'https://corsproxy.io/?url=';
-    const TARGET = 'https://api.anthropic.com/v1/messages';
-    const r = await fetch(PROXY + encodeURIComponent(TARGET),{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':'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',
-        'anthropic-version':'2023-06-01'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:1000,
-        system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica ni genérica. Usas siempre los datos reales de la emprendedora. Cuando quieras resaltar una palabra o frase clave importante (causas, acciones, diagnósticos), enciérrala entre dobles asteriscos: **palabra clave**. Úsalo con moderación, máximo 4 por respuesta.',
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    if(!r.ok){ console.error('API error',r.status, await r.text()); return ''; }
-    const d = await r.json();
-    return d.content&&d.content[0]?d.content[0].text:'';
-  }catch(e){ console.error('callClaude error',e); return ''; }
+// ── MOTOR DE ANÁLISIS POR REGLAS ────────────────────────────────────────────
+const FRASES_M = {
+  'Mano de obra':['Lo que describes apunta a un factor de personas que no puedes ignorar: ','Detrás de esto hay un problema humano clave: ','Tus causas revelan que el equipo es el centro del problema: '],
+  'Método':['El proceso en sí tiene una falla de fondo: ','Lo que escribiste apunta a cómo haces las cosas, no a quién las hace: ','El método que sigues está generando el problema: '],
+  'Materiales':['Tus insumos son el origen del problema: ','Lo que entra al proceso ya viene con fallas: ','El problema empieza antes de que tú actúes: '],
+  'Máquina':['Tu herramienta o equipo es el cuello dentro del cuello: ','La tecnología que usas está limitando todo: ','Lo que describes apunta a un problema de equipos: '],
+  'Medio':['El entorno donde operas está jugando en contra: ','Las condiciones externas son parte activa del problema: ','Lo que describes es un problema de contexto: '],
+  'Medición':['Sin medir bien, no puedes mejorar: ','El problema es que no tienes visibilidad de lo que pasa: ','Falta información para tomar decisiones: ']
+};
+const RECO_M = {
+  'Mano de obra':['Define un responsable claro para ese paso','Crea una checklist que cualquiera pueda seguir','Documenta el proceso en un video o instructivo simple'],
+  'Método':['Redibuja el proceso eliminando pasos que no agregan valor','Estandariza con un procedimiento escrito de máximo una página','Prueba hacerlo diferente solo una semana y mide si mejora'],
+  'Materiales':['Evalúa cambiar de proveedor o negociar calidad mínima','Crea un control de entrada para detectar fallas antes de usarlos','Define el estándar mínimo aceptable por escrito'],
+  'Máquina':['Haz un plan de mantenimiento preventivo semanal','Evalúa si el costo de una herramienta mejor se paga solo','Ten siempre un plan B cuando el equipo falla'],
+  'Medio':['Identifica qué del entorno puedes controlar y qué no','Ajusta tus horarios o condiciones para reducir la interferencia','Comunica a tu entorno los límites que necesitas'],
+  'Medición':['Define 1 o 2 indicadores clave y mídelos semanalmente','Crea un registro simple: fecha, cantidad, resultado','Revisa tus números cada lunes antes de arrancar']
+};
+function analisisPorMReglas(m, causasList, sintoma, firstName){
+  if(!causasList||causasList.length===0) return '';
+  const causasTexto = causasList.map(c=>'"'+c.text+'"').join(', ');
+  const rootCausa = causasList.find(c=>c.root);
+  const frases = FRASES_M[m]||['En esta área encontraste causas importantes: '];
+  const apertura = frases[Math.floor(Math.random()*frases.length)];
+  const recos = RECO_M[m]||[];
+  const reco = recos[Math.floor(Math.random()*recos.length)]||'';
+  let txt = '💡 '+apertura+'<b>'+causasTexto+'</b>. ';
+  if(rootCausa) txt += firstName+', marcaste "<b>'+rootCausa.text+'</b>" como tu causa raíz — ahí está el punto de partida. ';
+  if(reco) txt += 'Acción concreta: <b>'+reco+'</b>.';
+  return txt;
 }
+function analisisGlobalReglas(firstName, sintoma, causes, MCATS){
+  const mCon = MCATS.filter(c=>causes[c.m]&&causes[c.m].length>0);
+  const total = mCon.reduce((s,c)=>s+causes[c.m].length,0);
+  const mMax = [...mCon].sort((a,b)=>causes[b.m].length-causes[a.m].length)[0];
+  const root = MCATS.flatMap(c=>(causes[c.m]||[]).map(ca=>({...ca,m:c.m}))).find(c=>c.root);
+  const mNames = mCon.map(c=>'"'+c.m+'"').join(', ');
+  let txt = '🔍 Identificaste <b>'+total+' causas</b> en '+mCon.length+' categorías ('+mNames+'). ';
+  if(mMax) txt += 'La categoría con más peso es <b>'+mMax.m+'</b> — ahí está el patrón más fuerte que explica tu síntoma. ';
+  if(root) txt += 'Tu causa raíz es "<b>'+root.text+'</b>" ('+root.m+') — si la atacas primero, el resto empieza a ceder. ';
+  else txt += 'Aún no marcaste una causa raíz — revisa cuál de tus causas está detrás de las demás. ';
+  txt += 'El diagnóstico está completo: el siguiente paso es convertir esta raíz en una acción concreta esta semana.';
+  return txt;
+}
+function analisisCierreReglas(firstName, sintoma, causes, MCATS){
+  const root = MCATS.flatMap(c=>(causes[c.m]||[]).map(ca=>({...ca,m:c.m}))).find(c=>c.root);
+  const mCon = [...MCATS.filter(c=>causes[c.m]&&causes[c.m].length>0)].sort((a,b)=>causes[b.m].length-causes[a.m].length);
+  const mMax = mCon[0];
+  let txt = '<b>'+firstName+',</b> ';
+  if(root) txt += 'todo tu diagnóstico apunta a un punto: "<b>'+root.text+'</b>". No necesitas resolver todo a la vez — si esta semana atacas solo ese punto, tu proceso va a mejorar de forma visible. ';
+  else if(mMax) txt += 'la mayoría de tus causas viven en <b>'+mMax.m+'</b>. Empieza ahí: elige la causa más fácil de atacar esta semana y mide si el síntoma baja. ';
+  else txt += 'ya tienes el diagnóstico. El siguiente paso es elegir UNA causa, la más urgente, y definir qué vas a hacer con ella esta semana. ';
+  txt += 'El Ishikawa no es el fin — es el mapa. <b>Ahora toca actuar.</b>';
+  return txt;
+}
+async function callClaude(){ return ''; }
 
 // Convierte **texto** en <b>texto</b> con color azul navy
 function renderConNegritas(texto, el){
@@ -979,50 +1013,26 @@ $('saveCloudBtn').addEventListener('click', async () => {
   const firstName = currentName.trim().split(' ')[0];
   const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
 
-  // ── Análisis 1: por cada M con causas ─────────────────────────────────────
+  // ── Análisis 1: por cada M (reglas) ──────────────────────────────────────
   const analisisPorM = {};
-  for(const cat of M_CATEGORIES.filter(c=>causes[c.m].length>0)){
-    const m   = cat.m;
-    const el  = document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
-    if(el){ el.classList.add('visible'); dots(el); }
-    const causasTexto = causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
-    const txt = await callClaude(
-      'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la categoría "'+m+'" del Ishikawa identificó:\n'+causasTexto+
-      '\n\nEscribe 2 oraciones muy directas y personales (máx 50 palabras) sobre qué revelan estas causas para SU negocio. Usa su nombre una vez. No empieces con "En esta categoría" ni frases genéricas. Habla de tú.'
-    );
-    if(!txt){ showStatus('⚠️ Error al conectar con IA. Verifica tu conexión e intenta de nuevo.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
+  M_CATEGORIES.filter(c=>causes[c.m].length>0).forEach(cat=>{
+    const m=cat.m;
+    const el=document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
+    const txt=analisisPorMReglas(m,causes[m],sintoma,firstName);
     analisisPorM[m]=txt;
-    if(el) renderConNegritas(txt||'(sin análisis)', el);
-  }
+    if(el){ el.classList.add('visible'); if(txt) el.innerHTML=txt; }
+  });
 
   // ── Análisis 2: integrador ─────────────────────────────────────────────────
   $('analisisWrap').style.display='block';
-  const gb=$('analisisGlobalBody'), cb=$('analisisCierreBody');
-  dots(gb); dots(cb);
+  const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisGlobalBody').innerHTML=textoGlobal;
 
-  let rootCause='',rootM='';
-  M_CATEGORIES.forEach(c=>causes[c.m].forEach(ca=>{ if(ca.root){rootCause=ca.text;rootM=c.m;} }));
-  const todasCausas = M_CATEGORIES.filter(c=>causes[c.m].length>0)
-    .map(c=>c.m+': '+causes[c.m].map(ca=>ca.text+(ca.root?' ★':'')).join(', ')).join('\n');
-  const analisisMTexto = Object.entries(analisisPorM).map(([m,t])=>m+': '+t).join('\n\n');
+  // ── Análisis 3: cierre ────────────────────────────────────────────────────
+  const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisCierreBody').innerHTML=textoCierre;
 
-  const textoGlobal = await callClaude(
-    'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
-    (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
-    '\n\nAnálisis previos por M:\n'+analisisMTexto+
-    '\n\nEscribe un análisis integrador de 3-4 oraciones (máx 100 palabras) que conecte las causas de todas las M y explique el patrón detrás del síntoma. No repitas los análisis anteriores. Habla de tú, específico con sus datos. No empieces con el nombre.'
-  );
-  renderConNegritas(textoGlobal||'(sin análisis)', gb);
-
-  // ── Análisis 3: cierre potente ─────────────────────────────────────────────
-  const textoCierre = await callClaude(
-    'Análisis por M de '+firstName+':\n'+analisisMTexto+
-    '\n\nAnálisis integrador:\n'+textoGlobal+
-    '\n\nEscribe el cierre final. Empieza exactamente con "'+firstName+'," (nombre seguido de coma). Máximo 3 oraciones. No es un resumen — es el mensaje más destilado y potente: qué es lo único más importante que tiene que resolver y qué hacer esta semana. Tono de mentora cercana y directa.'
-  );
-  renderConNegritas(textoCierre||'(sin análisis)', cb);
-
-  $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
+    $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 
   // ── Guardar en JSONBin ─────────────────────────────────────────────────────
   showStatus('Guardando en la nube...','loading');

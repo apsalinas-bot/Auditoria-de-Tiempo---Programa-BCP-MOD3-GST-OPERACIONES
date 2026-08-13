@@ -939,13 +939,14 @@ $('clearBtn').addEventListener('click', () => {
 // ── API CLAUDE ──────────────────────────────────────────────────────────────
 async function callClaude(prompt){
   try{
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
+    const PROXY = 'https://corsproxy.io/?url=';
+    const TARGET = 'https://api.anthropic.com/v1/messages';
+    const r = await fetch(PROXY + encodeURIComponent(TARGET),{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
         'x-api-key':'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',
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-request-proxy':'true'
+        'anthropic-version':'2023-06-01'
       },
       body:JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
@@ -953,11 +954,7 @@ async function callClaude(prompt){
         messages:[{role:'user',content:prompt}]
       })
     });
-    if(!r.ok){
-      const err=await r.text();
-      console.error('Claude API error',r.status,err);
-      return '';
-    }
+    if(!r.ok){ console.error('API error',r.status, await r.text()); return ''; }
     const d = await r.json();
     return d.content&&d.content[0]?d.content[0].text:'';
   }catch(e){ console.error('callClaude error',e); return ''; }

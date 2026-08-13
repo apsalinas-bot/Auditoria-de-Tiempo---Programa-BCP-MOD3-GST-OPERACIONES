@@ -197,7 +197,28 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 input[type=password]::-webkit-credentials-auto-fill-button,input[type=password]::-webkit-textfield-decoration-container{display:none !important}
 input[type=password]{-webkit-appearance:none}
-@media print{body{display:none !important}}
+@media print{
+  body{background:#fff !important}
+  #gateScreen,#empView,.no-print,#flowModal{display:none !important}
+  #docView{display:block !important}
+  .card{box-shadow:none !important;border:1px solid #ddd !important;break-inside:avoid}
+  .wrap{max-width:100% !important;padding:0 8px !important}
+  .top{padding:12px !important}
+  .kpi-grid{break-inside:avoid}
+  .emp-table{width:100%;font-size:11px;border-collapse:collapse}
+  .emp-table td,.emp-table th{padding:5px 6px;border:1px solid #ddd}
+  .emp-table tr{break-inside:avoid}
+  .emp-table thead{display:table-header-group}
+  .tag{border:1px solid #ccc;font-size:10px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .progress-bar-wrap{background:#eee !important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .progress-bar{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  #docAlerts,#docPending{break-inside:avoid}
+  .print-header{display:block !important}
+  .section-title{break-after:avoid}
+  .kpi-box{border:1px solid #ddd !important;break-inside:avoid}
+  @page{margin:1.5cm;size:A4 portrait}
+}
+.print-header{display:none;font-size:11px;color:#666;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:12px}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
@@ -354,6 +375,7 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 
 <!-- VISTA DOCENTE -->
 <div id="docView" style="display:none">
+  <div class="print-header" id="printHeader"></div>
   <div class="top doc-top">
     <div class="eyebrow">Docente · Módulo 3 · Sesión 2</div>
     <h1>Panel de <span>Seguimiento</span></h1>
@@ -1501,7 +1523,23 @@ function closeModal() {
   document.body.style.overflow='';
 }
 $('flowModal').addEventListener('click', e=>{ if(e.target===$('flowModal')) closeModal(); });
-$('docPrintBtn').addEventListener('click', ()=>window.print());
+$('docPrintBtn').addEventListener('click', ()=>{
+  const dv=$('docView');
+  const prevDisplay=dv.style.display;
+  dv.style.display='block';
+  // Llenar encabezado de impresión
+  const ph=$('printHeader');
+  if(ph){
+    const now=new Date();
+    ph.textContent='Panel de Seguimiento · Sesión 2 · BCP–UCSP · Impreso el '+
+      now.toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})+
+      ' a las '+now.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  }
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{ dv.style.display=prevDisplay; },500);
+  },100);
+});
 
 // ── OJITOS ───────────────────────────────────────────────────────
 function setupEye(btnId, inputId) {

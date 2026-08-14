@@ -805,69 +805,96 @@ function renderFishbone(){
   const symptom=$('symptomInput').value.trim()||'Tu síntoma';
   const totalCauses=M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
   if(totalCauses===0){wrap.innerHTML='<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';$('fbLegend').textContent='';return;}
+
   const NAVY='#002A8D',RED='#D64545',INK='#1C2536',MUTED='#9AACBE',SOFT='#C4CFE0';
   const maxC=Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
-  const W=900,H=Math.max(460,380+maxC*34);
-  const spineY=H/2,tailX=20,headW=128,headH=70;
-  const headX=W-headW-10,spineStart=tailX+14,spineEnd=headX-8;
+
+  // Tamaño de fuente adaptativo según cantidad de causas
+  const fontSize = maxC<=2 ? 10 : maxC<=4 ? 9 : maxC<=6 ? 8.5 : 8;
+  const LINEH = fontSize * 1.3;
+  const MAXCH = maxC<=2 ? 20 : maxC<=4 ? 18 : 16;
+  // Longitud de ramita adaptativa
+  const ramLen = maxC<=2 ? 38 : maxC<=4 ? 32 : 26;
+  // Altura dinámica
+  const W=920, H=Math.max(480, 400+maxC*38);
+  const spineY=H/2, tailX=20, headW=128, headH=72;
+  const headX=W-headW-10, spineStart=tailX+14, spineEnd=headX-8;
+
   const cols=[
     {cat:M_CATEGORIES[0],top:true,i:0},{cat:M_CATEGORIES[1],top:true,i:1},{cat:M_CATEGORIES[2],top:true,i:2},
     {cat:M_CATEGORIES[3],top:false,i:0},{cat:M_CATEGORIES[4],top:false,i:1},{cat:M_CATEGORIES[5],top:false,i:2}
   ];
-  const zoneStart=spineStart+80,zoneEnd=spineEnd-30,gap=(zoneEnd-zoneStart)/3;
+  const zoneStart=spineStart+90, zoneEnd=spineEnd-30, gap=(zoneEnd-zoneStart)/3;
+
   let svg='<svg class="fishbone-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Rubik,sans-serif">';
   svg+='<line x1="'+spineStart+'" y1="'+spineY+'" x2="'+spineEnd+'" y2="'+spineY+'" stroke="'+NAVY+'" stroke-width="2.5" stroke-linecap="round"/>';
   svg+='<path d="M'+tailX+' '+(spineY-12)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+12)+'" fill="none" stroke="'+NAVY+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-  const hx=headX,hy=spineY-headH/2;
+
+  // Cabeza síntoma
+  const hx=headX, hy=spineY-headH/2;
   svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="10" fill="'+RED+'"/>';
-  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+12)+'" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
+  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" letter-spacing="1" opacity="0.75">SÍNTOMA</text>';
   const symLines=wrapText(symptom,13).slice(0,3);
   const symStartY=spineY-((symLines.length-1)*8)+2;
-  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">'+escXml(ln)+'</text>';});
+  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>';});
+
   function drawBone(col){
-    const cat=col.cat,top=col.top,ii=col.i;
+    const cat=col.cat, top=col.top, ii=col.i;
     const baseX=zoneStart+ii*gap+gap*0.5;
     const dir=top?-1:1;
     const list=causes[cat.m];
-    const boneLen=Math.max(130,105+list.length*22);
+    const boneLen=Math.max(140, 115+list.length*24);
     const angle=0.62;
-    const cosA=Math.cos(angle),sinA=Math.sin(angle);
-    const dx=cosA*boneLen,dy=sinA*boneLen*dir;
-    const endX=baseX-dx,endY=spineY+dy;
+    const cosA=Math.cos(angle), sinA=Math.sin(angle);
+    const dx=cosA*boneLen, dy=sinA*boneLen*dir;
+    const endX=baseX-dx, endY=spineY+dy;
+
     let s='';
     s+='<line x1="'+baseX+'" y1="'+spineY+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1.8"/>';
-    const labW=88,labH=20,labX=endX-labW/2,labY=top?(endY-labH-4):(endY+4);
+
+    // Label categoría
+    const labW=90, labH=21, labX=endX-labW/2, labY=top?(endY-labH-5):(endY+5);
     s+='<rect x="'+labX.toFixed(1)+'" y="'+labY.toFixed(1)+'" width="'+labW+'" height="'+labH+'" rx="10" fill="'+NAVY+'"/>';
-    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+14).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(cat.m)+'</text>';
+    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+14.5).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(cat.m)+'</text>';
+
     if(list.length===0){
-      const mx=baseX-dx*0.5,my=spineY+dy*0.5;
-      s+='<text x="'+mx.toFixed(1)+'" y="'+(my+(top?-8:16)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="7.5" font-style="italic">sin causas</text>';
+      const mx=baseX-dx*0.5, my=spineY+dy*0.5;
+      s+='<text x="'+mx.toFixed(1)+'" y="'+(my+(top?-10:18)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="8" font-style="italic">sin causas</text>';
       return s;
     }
-    const tStart=0.12,tEnd=0.78;
+
+    // Distribuir causas uniformemente en el hueso
+    const tStart=0.10, tEnd=0.80;
     const step=list.length>1?(tEnd-tStart)/(list.length-1):0;
-    const LINEH=11,MAXCH=17;
+
     list.forEach(function(c,ci){
       const t=list.length===1?(tStart+tEnd)/2:tStart+ci*step;
-      const px=baseX-dx*t,py=spineY+dy*t;
-      s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(c.root?4.5:3)+'" fill="'+(c.root?RED:MUTED)+'"/>';
-      const ramLen=20;
+      const px=baseX-dx*t, py=spineY+dy*t;
+
+      // Punto en el hueso
+      s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(c.root?5:3)+'" fill="'+(c.root?RED:MUTED)+'"/>';
+
+      // Ramita perpendicular larga hacia el exterior
       const rpx=sinA*(top?-1:1)*ramLen;
       const rpy=cosA*(top?1:-1)*ramLen;
-      const rx2=px+rpx,ry2=py+rpy;
-      s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+rx2.toFixed(1)+'" y2="'+ry2.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1.2"/>';
-      const clines=wrapText(c.text,MAXCH).slice(0,2);
+      const rx2=px+rpx, ry2=py+rpy;
+      s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+rx2.toFixed(1)+'" y2="'+ry2.toFixed(1)+'" stroke="'+(c.root?RED:SOFT)+'" stroke-width="'+(c.root?1.5:1.2)+'"/>';
+
+      // Texto en la punta de la ramita — siempre hacia exterior
+      const clines=wrapText(c.text, MAXCH).slice(0,2);
       const blockH=clines.length*LINEH;
-      const textY=top?(ry2-blockH-2):(ry2+2);
+      const textY=top?(ry2-blockH-3):(ry2+3);
+
       clines.forEach(function(ln,li){
-        const prefix=(li===0&&c.root)?'\u2605 ':'';
-        const fw=c.root?'700':'400';
+        const prefix=(li===0&&c.root)?'★ ':'';
+        const fw=c.root?'700':'500';
         const fc=c.root?RED:INK;
-        s+='<text x="'+rx2.toFixed(1)+'" y="'+(textY+li*LINEH+LINEH*0.85).toFixed(1)+'" text-anchor="middle" fill="'+fc+'" font-size="8.5" font-weight="'+fw+'">'+prefix+escXml(ln)+'</text>';
+        s+='<text x="'+rx2.toFixed(1)+'" y="'+(textY+li*LINEH+LINEH*0.85).toFixed(1)+'" text-anchor="middle" fill="'+fc+'" font-size="'+fontSize+'" font-weight="'+fw+'">'+prefix+escXml(ln)+'</text>';
       });
     });
     return s;
   }
+
   cols.forEach(function(col){svg+=drawBone(col);});
   svg+='</svg>';
   wrap.innerHTML=svg;

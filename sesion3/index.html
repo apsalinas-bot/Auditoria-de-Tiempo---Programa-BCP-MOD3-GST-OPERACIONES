@@ -1088,10 +1088,14 @@ async function callClaude(prompt){
         messages:[{role:'user',content:prompt}]
       })
     });
-    if(!r.ok){console.error('API',r.status);return null;}
-    const d=await r.json();
+    console.log('Worker status:', r.status);
+    const text = await r.text();
+    console.log('Worker response:', text.slice(0,200));
+    if(!r.ok){ console.error('API error',r.status,text); return null; }
+    const d=JSON.parse(text);
+    console.log('Claude content:', d.content);
     return d.content&&d.content[0]?d.content[0].text:null;
-  }catch(e){console.error('callClaude',e);return null;}
+  }catch(e){console.error('callClaude error:',e); return null;}
 }
 function renderNeg(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 

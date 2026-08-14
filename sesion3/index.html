@@ -657,50 +657,70 @@ function getFlujoS2(dni){
 
 async function cargarDatos(){
   const msg = $('sourceMsg');
-  msg.textContent = 'Buscando tu flujograma de la Sesi\u00f3n 2...';
+  msg.textContent = 'Buscando tu información guardada...';
   msg.className = 'source-msg'; msg.style.display = 'block';
 
-  // 1. Semaforo: primero el propio guardado en S3 (si ya trabajaste antes)
-  let ownSem = null;
-  try{ const raw = localStorage.getItem(SEM_PREFIX + currentDNI); ownSem = raw ? JSON.parse(raw) : null; }catch(e){}
-
-  if(ownSem && ownSem.length){
-    semSteps = ownSem;
-    msg.textContent = 'Se recuper\u00f3 el sem\u00e1foro que ya hab\u00edas marcado antes.';
-    msg.className = 'source-msg';
-  } else {
-    // 2. Buscar en la NUBE (BIN de S2) — funciona en cualquier dispositivo
-    let flujo = await getFlujoS2FromCloud(currentDNI);
-    // 3. Si la nube falla, intentar localStorage local como respaldo
-    if(!flujo || !flujo.steps.length){
-      flujo = getFlujoS2(currentDNI);
-    }
-    if(flujo && flujo.steps.length){
-      semSteps = flujo.steps;
-      msg.textContent = '\u2713 Se cargaron ' + flujo.steps.length + ' pasos de tu flujograma de la Sesi\u00f3n 2' + (flujo.processName ? ' (' + flujo.processName + ')' : '') + '. Toca cada c\u00edrculo para marcarlo.';
-      msg.className = 'source-msg';
-    } else {
-      semSteps = [];
-      msg.textContent = 'No encontramos tu flujograma guardado de la Sesi\u00f3n 2. Aseg\u00farate de haberlo guardado en la nube en S2, o agrega tus pasos manualmente abajo.';
-      msg.className = 'source-msg warn';
-    }
-  }
-  renderSem();
-
-  // Ishikawa (siempre de localStorage propio de S3)
-  causes = {};
-  M_CATEGORIES.forEach(c => causes[c.m] = []);
+  // 1. PRIMERO: JSONBin (fuente de verdad con colores reales)
+  let restoredFromCloud = false;
   try{
-    const raw = localStorage.getItem(ISHI_PREFIX + currentDNI);
-    if(raw){
-      const d = JSON.parse(raw);
-      if(d.symptom) $('symptomInput').value = d.symptom;
-      if(d.causes) M_CATEGORIES.forEach(c => { causes[c.m] = d.causes[c.m] || []; });
+    const rec2 = await binRead();
+    if(rec2){
+      const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
+      const saved = entries2.find(e=>e.dni===currentDNI);
+      if(saved){
+        if(Array.isArray(saved.semaforo)&&saved.semaforo.length>0){
+          semSteps = saved.semaforo;
+          restoredFromCloud = true;
+          msg.textContent = '✓ Se recuperó tu semáforo con los colores que marcaste.';
+          try{ localStorage.setItem(SEM_PREFIX+currentDNI, JSON.stringify(semSteps)); }catch(e){}
+        }
+        if(saved.symptom) $('symptomInput').value = saved.symptom;
+        if(saved.causes){ causes={}; M_CATEGORIES.forEach(c=>{causes[c.m]=saved.causes[c.m]||[];}); }
+        if(saved.analisisPorM){
+          M_CATEGORIES.forEach(c=>{
+            const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
+            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
+          });
+        }
+        if(saved.analisisGlobal||saved.analisisCierre){
+          $('analisisWrap').style.display='block';
+          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=renderNeg(saved.analisisGlobal);
+          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=renderNeg(saved.analisisCierre);
+        }
+      }
     }
-  }catch(e){}
+  }catch(e){ console.error('restore cloud',e); }
+
+  // 2. Si no habia datos en JSONBin, buscar en localStorage o S2
+  if(!restoredFromCloud){
+    let ownSem = null;
+    try{ const raw=localStorage.getItem(SEM_PREFIX+currentDNI); ownSem=raw?JSON.parse(raw):null; }catch(e){}
+    if(ownSem&&ownSem.length){
+      semSteps = ownSem;
+      msg.textContent = 'Se recuperó el semáforo que ya habías marcado antes.';
+    } else {
+      let flujo = await getFlujoS2FromCloud(currentDNI);
+      if(!flujo||!flujo.steps.length) flujo = getFlujoS2(currentDNI);
+      if(flujo&&flujo.steps.length){
+        semSteps = flujo.steps;
+        msg.textContent = '✓ Se cargaron '+flujo.steps.length+' pasos de tu flujograma de la Sesión 2'+(flujo.processName?' ('+flujo.processName+')':'')+'. Toca cada círculo para marcarlo.';
+      } else {
+        semSteps = [];
+        msg.textContent = 'No encontramos tu flujograma de S2. Agrega tus pasos manualmente.';
+        msg.className = 'source-msg warn';
+      }
+    }
+    causes = {}; M_CATEGORIES.forEach(c=>causes[c.m]=[]);
+    try{
+      const raw=localStorage.getItem(ISHI_PREFIX+currentDNI);
+      if(raw){ const d=JSON.parse(raw); if(d.symptom) $('symptomInput').value=d.symptom; if(d.causes) M_CATEGORIES.forEach(c=>{causes[c.m]=d.causes[c.m]||[];}); }
+    }catch(e){}
+  }
+
+  renderSem();
   renderMGrid();
 
-  // Restaurar análisis IA + semáforo + causas desde JSONBin
+    // Restaurar análisis IA + semáforo + causas desde JSONBin
   try{
     const rec2 = await binRead();
     if(rec2){

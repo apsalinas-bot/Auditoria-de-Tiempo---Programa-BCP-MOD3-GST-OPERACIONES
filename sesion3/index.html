@@ -1088,8 +1088,7 @@ async function loadDocData(){
   const pctRojoPromedio = (avgTotal>0 && avgRojo>0) ? Math.round((avgRojo/avgTotal)*100) : 0;
 
   $('kRojosOf').textContent = total>0 ? '/ '+total+' respondieron' : '';
-  $('kRaizProm').textContent = '';
-  $('kRaizPromInline').textContent = avgRoot;
+  $('kRaizProm').textContent = total>0 ? '(★ prom: '+avgRoot+'/emp)' : '';
 
   $('kRojosNote').innerHTML = total>0
     ? 'En promedio, cada proceso tiene <b>'+avgRojo+' pasos en rojo</b> de '+avgTotal+' totales — el <b>'+pctRojoPromedio+'%</b> del flujo se traba.' 

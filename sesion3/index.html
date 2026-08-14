@@ -121,7 +121,7 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 /* fishbone diagram */
 .fishbone-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;overflow:hidden}
 .fishbone-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -18px;padding:4px 18px 8px}
-.fishbone-svg{display:block;min-width:640px}
+.fishbone-svg{display:block;min-width:800px;width:100%}
 .fb-empty{color:var(--muted);font-style:italic;font-size:13px;text-align:center;padding:24px 8px}
 .fb-legend{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
 
@@ -219,6 +219,8 @@ input[type=password]{-webkit-appearance:none}
 @media print{body{max-width:none}.top:after{display:none}.no-print{display:none !important}#detailModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -856,7 +858,6 @@ function wrapText(text, maxChars){
 function renderFishbone(){
   const wrap = $('fishboneWrap');
   const symptom = $('symptomInput').value.trim() || 'Tu síntoma';
-
   const totalCauses = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
   if(totalCauses===0){
     wrap.innerHTML='<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';
@@ -864,81 +865,96 @@ function renderFishbone(){
   }
 
   const NAVY='#002A8D', RED='#D64545', INK='#1C2536', MUTED='#8AACBD', SOFT='#B9C4D6';
-  const maxCausas = Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
-  const H = Math.max(400, 320 + maxCausas*26);
-  const W = 780;
-  const spineY=H/2, tailX=24, headW=130, headH=70;
-  const headX=W-headW-14, spineStart=tailX+14, spineEnd=headX-8;
-
+  // Altura dinámica según max causas
+  const maxC = Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
+  const H = Math.max(420, 340 + maxC*30);
+  const W = 800;
+  const spineY=H/2, tailX=20, headW=128, headH=68;
+  const headX=W-headW-12, spineStart=tailX+14, spineEnd=headX-8;
   const cols=[
     {cat:M_CATEGORIES[0],top:true, i:0},{cat:M_CATEGORIES[1],top:true, i:1},{cat:M_CATEGORIES[2],top:true, i:2},
     {cat:M_CATEGORIES[3],top:false,i:0},{cat:M_CATEGORIES[4],top:false,i:1},{cat:M_CATEGORIES[5],top:false,i:2}
   ];
-  const zoneStart=spineStart+70, zoneEnd=spineEnd-40, gap=(zoneEnd-zoneStart)/3;
+  const zoneStart=spineStart+60, zoneEnd=spineEnd-30, gap=(zoneEnd-zoneStart)/3;
 
   let svg='<svg class="fishbone-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Rubik,sans-serif">';
-  svg+='<line x1="'+spineStart+'" y1="'+spineY+'" x2="'+spineEnd+'" y2="'+spineY+'" stroke="'+NAVY+'" stroke-width="3" stroke-linecap="round"/>';
-  svg+='<path d="M'+tailX+' '+(spineY-14)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+14)+'" fill="none" stroke="'+NAVY+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+  svg+='<line x1="'+spineStart+'" y1="'+spineY+'" x2="'+spineEnd+'" y2="'+spineY+'" stroke="'+NAVY+'" stroke-width="2.5" stroke-linecap="round"/>';
+  svg+='<path d="M'+tailX+' '+(spineY-12)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+12)+'" fill="none" stroke="'+NAVY+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
 
+  // Cabeza síntoma
   const hx=headX, hy=spineY-headH/2;
-  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="12" fill="'+RED+'"/>';
-  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
-  const symLines=wrapText(symptom,15).slice(0,3);
+  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="10" fill="'+RED+'"/>';
+  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
+  const symLines=wrapText(symptom,14).slice(0,3);
   const symStartY=spineY-((symLines.length-1)*7)+2;
-  symLines.forEach((ln,i)=>{
-    svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>';
-  });
+  symLines.forEach((ln,i)=>{ svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>'; });
 
   function drawBone(col){
     const {cat,top,i}=col;
     const baseX=zoneStart+i*gap+gap*0.5;
     const dir=top?-1:1;
     const list=causes[cat.m];
-    const boneLen=Math.max(115, 95+list.length*14);
-    const angle=0.58;
-    const dx=Math.cos(angle)*boneLen;
-    const dy=Math.sin(angle)*boneLen*dir;
+
+    // Longitud hueso según causas
+    const boneLen=Math.max(120, 100+list.length*18);
+    const angle=0.6;
+    const dx=Math.cos(angle)*boneLen, dy=Math.sin(angle)*boneLen*dir;
     const endX=baseX-dx, endY=spineY+dy;
 
     let s='';
-    s+='<line x1="'+baseX+'" y1="'+spineY+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="2"/>';
-    const labW=88, labH=22;
-    const labX=endX-labW/2, labY=top?(endY-labH-3):(endY+3);
-    s+='<rect x="'+labX.toFixed(1)+'" y="'+labY.toFixed(1)+'" width="'+labW+'" height="'+labH+'" rx="11" fill="'+NAVY+'"/>';
-    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+15).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">'+escXml(cat.m)+'</text>';
+    s+='<line x1="'+baseX+'" y1="'+spineY+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1.8"/>';
 
-    if(list.length>0){
-      const tStart=0.18, tEnd=0.80;
-      const step=list.length>1?(tEnd-tStart)/(list.length-1):0;
-      list.forEach((c,ci)=>{
-        const t=list.length===1?(tStart+tEnd)/2:tStart+ci*step;
-        const cx=baseX-dx*t, cy=spineY+dy*t;
-        const perpLen=10;
-        const px=-Math.sin(angle)*perpLen*(top?1:-1);
-        const py=Math.cos(angle)*perpLen*(top?1:-1);
-        s+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+(cx+px).toFixed(1)+'" y2="'+(cy+py).toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1"/>';
-        s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(c.root?4.5:2.8)+'" fill="'+(c.root?RED:MUTED)+'"/>';
-        const tx=cx+9;
-        const clines=wrapText(c.text,21).slice(0,2);
-        const lineH=10;
-        const blockH=clines.length*lineH;
-        const blockY=top?(cy-blockH-3):(cy+4);
-        clines.forEach((ln,li)=>{
-          const prefix=(li===0&&c.root)?'★ ':'';
-          s+='<text x="'+tx.toFixed(1)+'" y="'+(blockY+li*lineH+lineH*0.8).toFixed(1)+'" fill="'+(c.root?RED:INK)+'" font-size="8.5" font-weight="'+(c.root?'700':'400')+'">'+prefix+escXml(ln)+'</text>';
-        });
-      });
-    } else {
+    // Label categoría
+    const labW=86, labH=20;
+    const labX=endX-labW/2, labY=top?(endY-labH-4):(endY+4);
+    s+='<rect x="'+labX.toFixed(1)+'" y="'+labY.toFixed(1)+'" width="'+labW+'" height="'+labH+'" rx="10" fill="'+NAVY+'"/>';
+    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+14).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(cat.m)+'</text>';
+
+    if(list.length===0){
       const cx=baseX-dx*0.5, cy=spineY+dy*0.5;
-      s+='<text x="'+cx.toFixed(1)+'" y="'+(cy+(top?-6:14)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="8" font-style="italic">sin causas</text>';
+      s+='<text x="'+cx.toFixed(1)+'" y="'+(cy+(top?-6:14)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="7.5" font-style="italic">sin causas</text>';
+      return s;
     }
+
+    // Distribuir causas: arriba del hueso vs abajo del hueso alternando
+    // Para evitar solapamiento: causas impares arriba, pares abajo del hueso
+    const tStart=0.15, tEnd=0.82;
+    const step=list.length>1?(tEnd-tStart)/(list.length-1):0;
+
+    list.forEach((c,ci)=>{
+      const t=list.length===1?(tStart+tEnd)/2:tStart+ci*step;
+      const cx=baseX-dx*t, cy=spineY+dy*t;
+
+      // Alternar lado: causas pares a la izquierda del hueso, impares a la derecha
+      // En realidad: texto SIEMPRE hacia el exterior (lejos de la espina central)
+      // Para top: texto arriba del hueso; para bottom: texto abajo del hueso
+      // Dentro de cada hueso, alternamos offset horizontal para evitar solapamiento
+      const sideOffset=(ci%2===0)?0:12; // offset horizontal alternado
+
+      s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(c.root?4:2.5)+'" fill="'+(c.root?RED:MUTED)+'"/>';
+
+      const clines=wrapText(c.text,19).slice(0,2);
+      const lineH=10;
+      const blockH=clines.length*lineH+2;
+      // Texto siempre hacia exterior de la espina central
+      const blockY=top?(cy-blockH-4):(cy+4);
+      const tx=cx+6+sideOffset;
+
+      clines.forEach((ln,li)=>{
+        const prefix=(li===0&&c.root)?'★ ':'';
+        s+='<text x="'+tx.toFixed(1)+'" y="'+(blockY+li*lineH+lineH*0.85).toFixed(1)+'" fill="'+(c.root?RED:INK)+'" font-size="8" font-weight="'+(c.root?'700':'400')+'">'+prefix+escXml(ln)+'</text>';
+      });
+
+      // Línea pequeña desde el punto hasta el texto
+      const lineToTx=tx-3, lineToTy=top?(blockY+blockH):(blockY);
+      s+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+lineToTx.toFixed(1)+'" y2="'+lineToTy.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="0.8" stroke-dasharray="2,2"/>';
+    });
     return s;
   }
 
   cols.forEach(col=>{svg+=drawBone(col);});
   svg+='</svg>';
   wrap.innerHTML=svg;
-
   // Leyenda
   let rootCause=null, rootM=null;
   M_CATEGORIES.forEach(c=>{ causes[c.m].forEach(ca=>{ if(ca.root){ rootCause=ca.text; rootM=c.m; } }); });
@@ -973,7 +989,77 @@ $('mGrid').addEventListener('keydown', e => {
   const b = $('mGrid').querySelector('[data-addm="' + inp.dataset.m + '"]'); if(b) b.click();
 });
 
-$('printBtn').addEventListener('click', () => window.print());
+$('printBtn').addEventListener('click', async () => {
+  const btn=$('printBtn');
+  const orig=btn.innerHTML;
+  btn.disabled=true; btn.textContent='Generando PDF...';
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const empView=$('empView');
+
+    // Ocultar botones no imprimibles temporalmente
+    const noprint=empView.querySelectorAll('.no-print');
+    noprint.forEach(el=>el.style.setProperty('display','none','important'));
+
+    // Asegurar que el análisis wrap sea visible
+    const aw=$('analisisWrap');
+    const awPrev=aw?aw.style.display:'';
+    if(aw&&aw.style.display==='none') aw.style.display='block';
+
+    await new Promise(r=>setTimeout(r,300));
+
+    const realH=empView.scrollHeight;
+    const realW=Math.max(empView.scrollWidth,600);
+
+    const canvas=await html2canvas(empView,{
+      scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,
+      width:realW,height:realH,
+      windowWidth:realW+50,windowHeight:realH+50,
+      scrollX:0,scrollY:-window.scrollY
+    });
+
+    noprint.forEach(el=>el.style.removeProperty('display'));
+    if(aw) aw.style.display=awPrev;
+
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const pageH=pdf.internal.pageSize.getHeight();
+    const margin=8;
+    const usableW=pageW-margin*2;
+    const usableH=pageH-margin*2-6;
+    const aspect=canvas.height/canvas.width;
+    const scaledW=usableW;
+    const scaledH=scaledW*aspect;
+
+    if(scaledH<=usableH){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',margin,margin,scaledW,scaledH);
+    } else {
+      const pageHpx=Math.floor(canvas.width*(usableH/usableW));
+      let yOff=0,pn=0;
+      while(yOff<canvas.height){
+        if(pn>0) pdf.addPage();
+        const slH=Math.min(pageHpx,canvas.height-yOff);
+        const sc=document.createElement('canvas');
+        sc.width=canvas.width; sc.height=slH;
+        sc.getContext('2d').drawImage(canvas,0,yOff,canvas.width,slH,0,0,canvas.width,slH);
+        const sh=(slH/canvas.width)*usableW;
+        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin,margin,usableW,sh);
+        yOff+=pageHpx; pn++;
+      }
+    }
+    const total=pdf.internal.getNumberOfPages();
+    for(let p=1;p<=total;p++){
+      pdf.setPage(p); pdf.setFontSize(7); pdf.setTextColor(160);
+      pdf.text('Programa BCP · UCSP–CENDES · Módulo 3 · S3',margin,pageH-3);
+      if(total>1) pdf.text('Pág '+p+' / '+total,pageW-margin,pageH-3,{align:'right'});
+    }
+    const name=(currentName||'diagnostico').replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9]/g,'_').slice(0,30);
+    pdf.save('S3_'+name+'.pdf');
+  }catch(err){ console.error('PDF error:',err); alert('Error al generar PDF. Intenta de nuevo.'); }
+
+  btn.disabled=false; btn.innerHTML=orig;
+});
 
 // Limpiar datos locales de S3 de este dispositivo
 let clearArmed = false;

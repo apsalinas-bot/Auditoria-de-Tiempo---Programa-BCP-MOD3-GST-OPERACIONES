@@ -314,7 +314,7 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
         <div class="legend-chip"><span class="legend-dot r"></span> siempre se traba</div>
       </div>
       <div class="sem-add-row">
-        <input type="text" id="semInput" placeholder="Agregar un paso manualmente" maxlength="90">
+        <input type="text" id="semInput" placeholder="Agregar un paso manualmente" maxlength="180">
         <button class="cta" id="semAddBtn">+ Agregar</button>
       </div>
       <div id="semList"></div>
@@ -327,7 +327,7 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
       <h2>Encuentra la causa ra&iacute;z</h2>
       <p class="hint">Escribe el s&iacute;ntoma de tu paso rojo &mdash; la queja tal como la dir&iacute;as en voz alta. Luego, en cada M, anota posibles causas.</p>
       <label class="field-label">S&iacute;ntoma (la queja)</label>
-      <input type="text" id="symptomInput" class="symptom-input" placeholder="Ej: Siempre entrego tarde" maxlength="80">
+      <input type="text" id="symptomInput" class="symptom-input" placeholder="Ej: Siempre entrego tarde" maxlength="160">
       <div id="mGrid" style="margin-top:14px"></div>
       <p class="hint" style="margin-top:8px">Toca &#9733; en la causa que sientas m&aacute;s ra&iacute;z &mdash; la que, si la resuelves, mueve todo lo dem&aacute;s.</p>
     </div>
@@ -661,7 +661,7 @@ async function cargarDatos(){
         if(saved.analisisPorM){
           M_CATEGORIES.forEach(c=>{
             const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=saved.analisisPorM[c.m];}
+            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
           });
         }
         if(saved.analisisGlobal||saved.analisisCierre){
@@ -738,7 +738,7 @@ function renderMGrid(){
     card.className = 'm-card';
     card.dataset.m = m;
     let ch = '<h3>' + m + '</h3><div class="m-q">' + cat.q + '</div>' +
-      '<div class="m-input-row"><input type="text" placeholder="Posible causa..." maxlength="70" data-m="' + esc(m) + '"><button class="m-add" data-addm="' + esc(m) + '">+</button></div>' +
+      '<div class="m-input-row"><input type="text" placeholder="Posible causa..." maxlength="140" data-m="' + esc(m) + '"><button class="m-add" data-addm="' + esc(m) + '">+</button></div>' +
       '<div class="cause-list">';
     causes[m].forEach((c, i) => {
       ch += '<div class="cause-item' + (c.root ? ' root' : '') + '"><span>' + esc(c.text) + '</span>' +
@@ -992,7 +992,27 @@ function analisisCierreReglas(firstName, sintoma, causes, MCATS){
   txt += 'El Ishikawa no es el fin — es el mapa. <b>Ahora toca actuar.</b>';
   return txt;
 }
-async function callClaude(){ return ''; }
+async function callClaude(prompt){
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':'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',
+        'anthropic-version':'2023-06-01'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:600,
+        system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica. Usas los datos reales de la emprendedora. Resalta palabras clave entre **asteriscos dobles**, máximo 3 por respuesta.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!r.ok){console.error('API',r.status);return null;}
+    const d=await r.json();
+    return d.content&&d.content[0]?d.content[0].text:null;
+  }catch(e){console.error('callClaude',e);return null;}
+}
+function renderNeg(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 
 // Convierte **texto** en <b>texto</b> con color azul navy
 function renderConNegritas(texto, el){
@@ -1013,24 +1033,49 @@ $('saveCloudBtn').addEventListener('click', async () => {
   const firstName = currentName.trim().split(' ')[0];
   const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
 
-  // ── Análisis 1: por cada M (reglas) ──────────────────────────────────────
+  // ── Análisis 1: por cada M con IA (fallback a reglas) ────────────────────
   const analisisPorM = {};
-  M_CATEGORIES.filter(c=>causes[c.m].length>0).forEach(cat=>{
+  for(const cat of M_CATEGORIES.filter(c=>causes[c.m].length>0)){
     const m=cat.m;
     const el=document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
-    const txt=analisisPorMReglas(m,causes[m],sintoma,firstName);
+    if(el){el.classList.add('visible');el.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';}
+    const causasTexto=causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
+    const ia=await callClaude(
+      'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la M "'+m+'" identificó:\n'+causasTexto+
+      '\n\nEscribe 2 oraciones directas y personales (máx 55 palabras). Usa su nombre una vez. No empieces con "En esta categoría". Habla de tú.'
+    );
+    const txt=ia||analisisPorMReglas(m,causes[m],sintoma,firstName);
     analisisPorM[m]=txt;
-    if(el){ el.classList.add('visible'); if(txt) el.innerHTML=txt; }
-  });
+    if(el)el.innerHTML=renderNeg(txt);
+  }
 
   // ── Análisis 2: integrador ─────────────────────────────────────────────────
   $('analisisWrap').style.display='block';
-  const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisGlobalBody').innerHTML=textoGlobal;
+  const gb=$('analisisGlobalBody');
+  gb.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';
+  let rootCause='',rootM='';
+  M_CATEGORIES.forEach(c=>causes[c.m].forEach(ca=>{if(ca.root){rootCause=ca.text;rootM=c.m;}}));
+  const todasCausas=M_CATEGORIES.filter(c=>causes[c.m].length>0)
+    .map(c=>c.m+': '+causes[c.m].map(ca=>ca.text+(ca.root?' ★':'')).join(', ')).join('\n');
+  const analisisMTexto=Object.entries(analisisPorM).map(([m,t])=>m+': '+t).join('\n\n');
+  const iaGlobal=await callClaude(
+    'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
+    (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
+    '\n\nAnálisis previos (no repetir):\n'+analisisMTexto+
+    '\n\nEscribe análisis integrador de 3-4 oraciones (máx 100 palabras). Conecta las M, explica el patrón. Específico. No empieces con el nombre.'
+  );
+  const textoGlobal=iaGlobal||analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
+  gb.innerHTML=renderNeg(textoGlobal);
 
-  // ── Análisis 3: cierre ────────────────────────────────────────────────────
-  const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisCierreBody').innerHTML=textoCierre;
+  // ── Análisis 3: cierre potente ─────────────────────────────────────────────
+  const cb=$('analisisCierreBody');
+  cb.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';
+  const iaCierre=await callClaude(
+    'Análisis por M:\n'+analisisMTexto+'\n\nAnálisis integrador:\n'+textoGlobal+
+    '\n\nEscribe el cierre. Empieza exactamente con "'+firstName+'," (nombre+coma). Máx 3 oraciones. Más destilado: qué resolver primero y qué hacer esta semana. Mentora cercana y directa.'
+  );
+  const textoCierre=iaCierre||analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
+  cb.innerHTML=renderNeg(textoCierre);
 
     $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 

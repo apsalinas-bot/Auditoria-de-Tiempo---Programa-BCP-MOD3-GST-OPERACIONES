@@ -1145,23 +1145,27 @@ $('printBtn').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
-    // ── Build a clean off-screen render container ──────────────
     const processName = $('processNameInput').value.trim() || 'Mi proceso';
     const flowEl = $('flowWrap');
 
-    // Temporarily hide edit controls for capture
+    // Ocultar controles temporalmente
     const hideEls = document.querySelectorAll(
       '.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn'
     );
     hideEls.forEach(el => el.style.setProperty('display','none','important'));
 
-    // Build wrapper for capture
+    // Wrapper off-screen con ancho amplio y overflow visible
     const wrapper = document.createElement('div');
     wrapper.style.cssText = [
-      'position:fixed','top:-99999px','left:0',
-      'background:#fff','padding:32px',
+      'position:absolute',
+      'top:0',
+      'left:-9999px',
+      'background:#fff',
+      'padding:32px',
       'font-family:Rubik,system-ui,sans-serif',
-      'width:900px','box-sizing:border-box'
+      'width:1100px',
+      'box-sizing:border-box',
+      'overflow:visible'
     ].join(';');
 
     // Header
@@ -1169,58 +1173,62 @@ $('printBtn').addEventListener('click', async () => {
     hdr.style.cssText = 'margin-bottom:18px;padding-bottom:12px;border-bottom:2.5px solid #002A8D';
     hdr.innerHTML =
       '<div style="font-size:10px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
-      '<div style="font-size:22px;font-weight:700;color:#002A8D;line-height:1.2">' + processName + '</div>' +
-      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + currentName + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+      '<div style="font-size:22px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
+      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(currentName) + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
     wrapper.appendChild(hdr);
 
-    // Clone flowWrap
+    // Clonar el flujo COMPLETO
     const clone = flowEl.cloneNode(true);
-    clone.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%';
-    // Remove controls from clone
-    clone.querySelectorAll('.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn').forEach(el => el.remove());
-    // Remove empty-hint
-    clone.querySelectorAll('.empty-hint').forEach(el => el.remove());
+    clone.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%;overflow:visible';
+    clone.querySelectorAll('.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn,.empty-hint').forEach(el => el.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
     wrapper.appendChild(clone);
 
     document.body.appendChild(wrapper);
-    await new Promise(r => setTimeout(r, 120)); // let render settle
 
-    // ── Capture with html2canvas ───────────────────────────────
+    // Esperar render completo
+    await new Promise(r => setTimeout(r, 400));
+
+    // Medir tamaño REAL del contenido
+    const realW = Math.max(wrapper.scrollWidth, 1100);
+    const realH = wrapper.scrollHeight;
+
+    // Capturar con tamaño real
     const canvas = await html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
+      width: realW,
+      height: realH,
+      windowWidth: realW + 100,
+      windowHeight: realH + 100,
+      scrollX: 0,
+      scrollY: 0,
     });
-    document.body.removeChild(wrapper);
 
-    // Restore controls
+    document.body.removeChild(wrapper);
     hideEls.forEach(el => el.style.removeProperty('display'));
 
-    // ── Build PDF ──────────────────────────────────────────────
+    // Construir PDF
     const { jsPDF } = window.jspdf;
     const imgW = canvas.width;
     const imgH = canvas.height;
     const aspect = imgH / imgW;
-
-    // Choose orientation: landscape if flow is wider than tall
     const landscape = aspect < 0.9;
     const pdf = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 10;
     const usableW = pageW - margin * 2;
-    const usableH = pageH - margin * 2;
+    const usableH = pageH - margin * 2 - 8;
 
-    // Scale image to fit page, adding pages if needed
     const scaledW = usableW;
     const scaledH = scaledW * aspect;
 
     if (scaledH <= usableH) {
-      // Fits in one page
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, scaledW, scaledH);
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
     } else {
-      // Multi-page: slice canvas
       const pageHeightPx = Math.floor(imgW * (usableH / usableW));
       let yOffset = 0;
       let pageNum = 0;
@@ -1233,13 +1241,12 @@ $('printBtn').addEventListener('click', async () => {
         const ctx = sliceCanvas.getContext('2d');
         ctx.drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
         const sliceScaledH = (sliceH / imgW) * usableW;
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableW, sliceScaledH);
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
         yOffset += pageHeightPx;
         pageNum++;
       }
     }
 
-    // Footer on each page
     const totalPages = pdf.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       pdf.setPage(p);

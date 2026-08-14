@@ -332,7 +332,7 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
       <h2>Mapea tu proceso, paso a paso</h2>
       <p class="hint">Escribe cada paso desde que el cliente pide algo hasta que lo recibe. Un paso a la vez, en orden.</p>
       <label class="field-label">Nombre de tu proceso</label>
-      <input type="text" id="processNameInput" class="process-name-input" placeholder="Ej: Venta y entrega de un pedido" maxlength="70">
+      <input type="text" id="processNameInput" class="process-name-input" placeholder="Ej: Venta y entrega de un pedido" maxlength="140">
       <div class="editing-bar" id="editingBar">
         <span>Editando paso #<span id="editingNum"></span></span>
         <button id="cancelEditBtn">Cancelar</button>
@@ -343,13 +343,13 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
         <button class="type-chip" data-type="decision"><span class="ic">&#9670;</span><span class="tx">Decisión</span></button>
       </div>
       <div class="builder-row">
-        <input type="text" id="stepInput" placeholder="Ej: Recibo el pedido por WhatsApp" maxlength="90">
+        <input type="text" id="stepInput" placeholder="Ej: Recibo el pedido por WhatsApp" maxlength="180">
         <button class="cta" id="addStepBtn">+ Agregar</button>
       </div>
       <div class="option-row" id="optionRow">
         <div id="optionsList">
-          <input type="text" class="option-input" maxlength="30" placeholder="Opción 1 (Ej: Sí)" data-opt="0">
-          <input type="text" class="option-input" maxlength="30" placeholder="Opción 2 (Ej: No)" data-opt="1">
+          <input type="text" class="option-input" maxlength="60" placeholder="Opción 1 (Ej: Sí)" data-opt="0">
+          <input type="text" class="option-input" maxlength="60" placeholder="Opción 2 (Ej: No)" data-opt="1">
         </div>
         <button class="add-opt-btn" id="addOptionBtn">+ Agregar otra opción</button>
       </div>
@@ -572,9 +572,9 @@ function saveLocal() {
 
 // ── TIPO DE PASO ─────────────────────────────────────────────────
 const TYPE_META = {
-  oval:     { placeholder:'Ej: Inicio del proceso', maxlength:60 },
-  rect:     { placeholder:'Ej: Recibo el pedido por WhatsApp', maxlength:90 },
-  decision: { placeholder:'Ej: ¿Yape o efectivo?', maxlength:55 }
+  oval:     { placeholder:'Ej: Inicio del proceso', maxlength:120 },
+  rect:     { placeholder:'Ej: Recibo el pedido por WhatsApp', maxlength:180 },
+  decision: { placeholder:'Ej: ¿Yape o efectivo?', maxlength:110 }
 };
 function selectType(type) {
   currentType = type;
@@ -660,7 +660,7 @@ function renderBranchCol(bIdx, di, label, list) {
             });
           }
           h += '<div class="branch-add">';
-          h += '<input type="text" maxlength="80" placeholder="+ paso" data-subpath="'+subPath+'">';
+          h += '<input type="text" maxlength="160" placeholder="+ paso" data-subpath="'+subPath+'">';
           h += '<button data-action="addsubbranch" data-subpath="'+subPath+'">+</button>';
           h += '</div>';
           const subLastItem = subList.length ? subList[subList.length-1] : null;
@@ -694,7 +694,7 @@ function renderBranchCol(bIdx, di, label, list) {
   }
 
   h += '<div class="branch-add">';
-  h += '<input type="text" maxlength="80" placeholder="+ paso en este camino" data-decision="' + di + '" data-branch="' + bIdx + '">';
+  h += '<input type="text" maxlength="160" placeholder="+ paso en este camino" data-decision="' + di + '" data-branch="' + bIdx + '">';
   h += '<button data-action="addbranch" data-decision="' + di + '" data-branch="' + bIdx + '">+</button>';
   h += '</div>';
   h += '<button class="branch-add-sub" data-action="adddecision" data-decision="' + di + '" data-branch="' + bIdx + '">+ sub-decisión en este camino</button>';
@@ -973,10 +973,10 @@ $('flowWrap').addEventListener('click', e => {
     const form = document.createElement('div');
     form.className = 'subdec-form';
     form.innerHTML =
-      '<input class="subdec-q" type="text" placeholder="Pregunta de la sub-decisión" maxlength="55">' +
+      '<input class="subdec-q" type="text" placeholder="Pregunta de la sub-decisión" maxlength="110">' +
       '<div class="row">' +
-        '<input class="subdec-a" type="text" placeholder="Opción 1 (Sí)" maxlength="25">' +
-        '<input class="subdec-b" type="text" placeholder="Opción 2 (No)" maxlength="25">' +
+        '<input class="subdec-a" type="text" placeholder="Opción 1 (Sí)" maxlength="50">' +
+        '<input class="subdec-b" type="text" placeholder="Opción 2 (No)" maxlength="50">' +
       '</div>' +
       '<div class="row">' +
         '<button class="subdec-ok">✓ Agregar</button>' +
@@ -1154,30 +1154,25 @@ $('printBtn').addEventListener('click', async () => {
     );
     hideEls.forEach(el => el.style.setProperty('display','none','important'));
 
-    // Wrapper off-screen con ancho amplio y overflow visible
+    // Wrapper off-screen con tamaño real
     const wrapper = document.createElement('div');
     wrapper.style.cssText = [
-      'position:absolute',
-      'top:0',
-      'left:-9999px',
-      'background:#fff',
-      'padding:32px',
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:28px',
       'font-family:Rubik,system-ui,sans-serif',
-      'width:1100px',
-      'box-sizing:border-box',
-      'overflow:visible'
+      'width:1100px','box-sizing:border-box','overflow:visible'
     ].join(';');
 
     // Header
     const hdr = document.createElement('div');
-    hdr.style.cssText = 'margin-bottom:18px;padding-bottom:12px;border-bottom:2.5px solid #002A8D';
+    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:10px;border-bottom:2.5px solid #002A8D';
     hdr.innerHTML =
-      '<div style="font-size:10px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
-      '<div style="font-size:22px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
+      '<div style="font-size:9px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
       '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(currentName) + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
     wrapper.appendChild(hdr);
 
-    // Clonar el flujo COMPLETO
+    // Clonar el flujo completo
     const clone = flowEl.cloneNode(true);
     clone.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%;overflow:visible';
     clone.querySelectorAll('.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn,.empty-hint').forEach(el => el.remove());
@@ -1193,18 +1188,11 @@ $('printBtn').addEventListener('click', async () => {
     const realW = Math.max(wrapper.scrollWidth, 1100);
     const realH = wrapper.scrollHeight;
 
-    // Capturar con tamaño real
     const canvas = await html2canvas(wrapper, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      width: realW,
-      height: realH,
-      windowWidth: realW + 100,
-      windowHeight: realH + 100,
-      scrollX: 0,
-      scrollY: 0,
+      scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+      width: realW, height: realH,
+      windowWidth: realW + 100, windowHeight: realH + 100,
+      scrollX: 0, scrollY: 0,
     });
 
     document.body.removeChild(wrapper);
@@ -1212,8 +1200,7 @@ $('printBtn').addEventListener('click', async () => {
 
     // Construir PDF
     const { jsPDF } = window.jspdf;
-    const imgW = canvas.width;
-    const imgH = canvas.height;
+    const imgW = canvas.width, imgH = canvas.height;
     const aspect = imgH / imgW;
     const landscape = aspect < 0.9;
     const pdf = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
@@ -1229,29 +1216,23 @@ $('printBtn').addEventListener('click', async () => {
     if (scaledH <= usableH) {
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
     } else {
-      const pageHeightPx = Math.floor(imgW * (usableH / usableW));
-      let yOffset = 0;
-      let pageNum = 0;
+      const pageHpx = Math.floor(imgW * (usableH / usableW));
+      let yOffset = 0, pageNum = 0;
       while (yOffset < imgH) {
         if (pageNum > 0) pdf.addPage();
-        const sliceH = Math.min(pageHeightPx, imgH - yOffset);
+        const sliceH = Math.min(pageHpx, imgH - yOffset);
         const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = imgW;
-        sliceCanvas.height = sliceH;
-        const ctx = sliceCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
+        sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
+        sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
         const sliceScaledH = (sliceH / imgW) * usableW;
         pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
-        yOffset += pageHeightPx;
-        pageNum++;
+        yOffset += pageHpx; pageNum++;
       }
     }
 
     const totalPages = pdf.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
-      pdf.setPage(p);
-      pdf.setFontSize(8);
-      pdf.setTextColor(150);
+      pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
       pdf.text('Programa BCP · UCSP-CENDES · Módulo 3', margin, pageH - 4);
       if (totalPages > 1) pdf.text('Pág. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
     }

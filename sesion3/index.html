@@ -121,7 +121,7 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 /* fishbone diagram */
 .fishbone-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;overflow:hidden}
 .fishbone-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -18px;padding:4px 18px 8px}
-.fishbone-svg{display:block;min-width:800px;width:100%}
+.fishbone-svg{display:block;min-width:900px;width:100%}
 .fb-empty{color:var(--muted);font-style:italic;font-size:13px;text-align:center;padding:24px 8px}
 .fb-legend{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
 
@@ -193,34 +193,24 @@ input[type=password]{-webkit-appearance:none}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
-@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-.claude-btn{
-  background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);
-  background-size:300% auto;
-  animation:shimmer 4s linear infinite;
-  border:none;border-radius:14px;
-  padding:16px 20px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  width:100%;margin-bottom:10px;cursor:pointer;
-  box-shadow:0 4px 20px rgba(124,58,237,0.35);
-  transition:transform .15s,box-shadow .15s;
-  position:relative;overflow:hidden;
+@media print{
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
+.no-print{display:none!important}
+#gateScreen,#docView,#detailModal{display:none!important}
+#empView{display:block!important}
+.card{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid}
+.fishbone-card,.analisis-m,.analisis-global,.analisis-cierre{break-inside:avoid;page-break-inside:avoid}
+.analisis-m,.analisis-global,.analisis-cierre,#analisisWrap{display:block!important}
+.analisis-m.visible{display:block!important}
+.fishbone-scroll{overflow:visible!important}
+.fishbone-svg{min-width:0!important;width:100%!important}
+.wrap{max-width:100%!important;padding:8px 12px!important}
+.top:after{display:none}
+@page{margin:1.2cm;size:A4 portrait}
 }
-.claude-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
-.claude-btn:active{transform:translateY(0)}
-.claude-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);pointer-events:none}
-.claude-btn-icon{flex-shrink:0;display:flex;align-items:center}
-.claude-btn-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
-.claude-btn-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
-.claude-btn-sub{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.5px;font-weight:500}
-.claude-btn-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;flex-shrink:0;margin-left:auto}
-.claude-btn-badge span{font-size:9px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:.6px}
-@media print{body{max-width:none}.top:after{display:none}.no-print{display:none !important}#detailModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -370,43 +360,17 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 
     <!-- ANÁLISIS IA -->
     <div id="analisisWrap" style="display:none;margin-bottom:4px">
-      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px">
-        <div style="display:inline-flex;align-items:center;gap:5px;background:#F5F0FF;border:1px solid #D4BBFF;border-radius:20px;padding:4px 10px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="#7C3AED"/></svg>
-          <span style="font-size:9px;font-weight:600;color:#7C3AED;letter-spacing:.5px">Análisis generado con Claude</span>
-        </div>
-      </div>
       <div class="analisis-global">
         <div class="ag-label">🔍 Análisis de tu Ishikawa</div>
         <div id="analisisGlobalBody" class="ag-body"></div>
       </div>
       <div class="analisis-cierre">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-          <div class="ac-eyebrow" style="margin-bottom:0">★ Sugerencia de consultor</div>
-          <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="rgba(255,255,255,0.7)"/></svg>
-            <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:.4px">Claude</span>
-          </div>
-        </div>
+        <div class="ac-eyebrow">★ Sugerencia de consultor</div>
         <div class="ac-label">⚡ Tu diagnóstico en síntesis</div>
         <div id="analisisCierreBody" class="ac-body"></div>
       </div>
     </div>
-    <button class="claude-btn no-print" id="saveCloudBtn">
-      <div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
-  <path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/>
-</svg></div>
-      <div class="claude-btn-text">
-        <div class="claude-btn-main">Guardar y generar análisis</div>
-        <div class="claude-btn-sub">Diagnóstico personalizado con IA</div>
-      </div>
-      <div class="claude-btn-badge">
-        <svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg>
-        <span>Claude</span>
-      </div>
-    </button>
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagnóstico</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -659,106 +623,70 @@ function getFlujoS2(dni){
 
 async function cargarDatos(){
   const msg = $('sourceMsg');
-  msg.textContent = 'Buscando tu información guardada...';
+  msg.textContent = 'Buscando tu flujograma de la Sesi\u00f3n 2...';
   msg.className = 'source-msg'; msg.style.display = 'block';
 
-  // 1. PRIMERO: JSONBin (fuente de verdad con colores reales)
-  let restoredFromCloud = false;
-  try{
-    const rec2 = await binRead();
-    if(rec2){
-      const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
-      const saved = entries2.find(e=>e.dni===currentDNI);
-      if(saved){
-        if(Array.isArray(saved.semaforo)&&saved.semaforo.length>0){
-          semSteps = saved.semaforo;
-          restoredFromCloud = true;
-          msg.textContent = '✓ Se recuperó tu semáforo con los colores que marcaste.';
-          try{ localStorage.setItem(SEM_PREFIX+currentDNI, JSON.stringify(semSteps)); }catch(e){}
-        }
-        if(saved.symptom) $('symptomInput').value = saved.symptom;
-        if(saved.causes){ causes={}; M_CATEGORIES.forEach(c=>{causes[c.m]=saved.causes[c.m]||[];}); }
-        if(saved.analisisPorM){
-          M_CATEGORIES.forEach(c=>{
-            const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
-          });
-        }
-        if(saved.analisisGlobal||saved.analisisCierre){
-          $('analisisWrap').style.display='block';
-          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=renderNeg(saved.analisisGlobal);
-          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=renderNeg(saved.analisisCierre);
-        }
-      }
-    }
-  }catch(e){ console.error('restore cloud',e); }
+  // 1. Semaforo: primero el propio guardado en S3 (si ya trabajaste antes)
+  let ownSem = null;
+  try{ const raw = localStorage.getItem(SEM_PREFIX + currentDNI); ownSem = raw ? JSON.parse(raw) : null; }catch(e){}
 
-  // 2. Si no habia datos en JSONBin, buscar en localStorage o S2
-  if(!restoredFromCloud){
-    let ownSem = null;
-    try{ const raw=localStorage.getItem(SEM_PREFIX+currentDNI); ownSem=raw?JSON.parse(raw):null; }catch(e){}
-    if(ownSem&&ownSem.length){
-      semSteps = ownSem;
-      msg.textContent = 'Se recuperó el semáforo que ya habías marcado antes.';
+  if(ownSem && ownSem.length){
+    semSteps = ownSem;
+    msg.textContent = 'Se recuper\u00f3 el sem\u00e1foro que ya hab\u00edas marcado antes.';
+    msg.className = 'source-msg';
+  } else {
+    // 2. Buscar en la NUBE (BIN de S2) — funciona en cualquier dispositivo
+    let flujo = await getFlujoS2FromCloud(currentDNI);
+    // 3. Si la nube falla, intentar localStorage local como respaldo
+    if(!flujo || !flujo.steps.length){
+      flujo = getFlujoS2(currentDNI);
+    }
+    if(flujo && flujo.steps.length){
+      semSteps = flujo.steps;
+      msg.textContent = '\u2713 Se cargaron ' + flujo.steps.length + ' pasos de tu flujograma de la Sesi\u00f3n 2' + (flujo.processName ? ' (' + flujo.processName + ')' : '') + '. Toca cada c\u00edrculo para marcarlo.';
+      msg.className = 'source-msg';
     } else {
-      let flujo = await getFlujoS2FromCloud(currentDNI);
-      if(!flujo||!flujo.steps.length) flujo = getFlujoS2(currentDNI);
-      if(flujo&&flujo.steps.length){
-        semSteps = flujo.steps;
-        msg.textContent = '✓ Se cargaron '+flujo.steps.length+' pasos de tu flujograma de la Sesión 2'+(flujo.processName?' ('+flujo.processName+')':'')+'. Toca cada círculo para marcarlo.';
-      } else {
-        semSteps = [];
-        msg.textContent = 'No encontramos tu flujograma de S2. Agrega tus pasos manualmente.';
-        msg.className = 'source-msg warn';
-      }
+      semSteps = [];
+      msg.textContent = 'No encontramos tu flujograma guardado de la Sesi\u00f3n 2. Aseg\u00farate de haberlo guardado en la nube en S2, o agrega tus pasos manualmente abajo.';
+      msg.className = 'source-msg warn';
     }
-    causes = {}; M_CATEGORIES.forEach(c=>causes[c.m]=[]);
-    try{
-      const raw=localStorage.getItem(ISHI_PREFIX+currentDNI);
-      if(raw){ const d=JSON.parse(raw); if(d.symptom) $('symptomInput').value=d.symptom; if(d.causes) M_CATEGORIES.forEach(c=>{causes[c.m]=d.causes[c.m]||[];}); }
-    }catch(e){}
   }
-
   renderSem();
+
+  // Ishikawa (siempre de localStorage propio de S3)
+  causes = {};
+  M_CATEGORIES.forEach(c => causes[c.m] = []);
+  try{
+    const raw = localStorage.getItem(ISHI_PREFIX + currentDNI);
+    if(raw){
+      const d = JSON.parse(raw);
+      if(d.symptom) $('symptomInput').value = d.symptom;
+      if(d.causes) M_CATEGORIES.forEach(c => { causes[c.m] = d.causes[c.m] || []; });
+    }
+  }catch(e){}
   renderMGrid();
 
-    // Restaurar análisis IA + semáforo + causas desde JSONBin
+  // Restaurar análisis IA si ya se generaron (desde JSONBin)
   try{
     const rec2 = await binRead();
     if(rec2){
       const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
       const saved = entries2.find(e=>e.dni===currentDNI);
       if(saved){
-        // Restaurar semáforo si localStorage está vacío
-        if((!semSteps||semSteps.length===0) && Array.isArray(saved.semaforo) && saved.semaforo.length>0){
-          semSteps = saved.semaforo;
-          renderSem();
-        }
-        // Restaurar síntoma si está vacío
-        if(!$('symptomInput').value.trim() && saved.symptom){
-          $('symptomInput').value = saved.symptom;
-        }
-        // Restaurar causas si localStorage está vacío
-        const totalCausas = M_CATEGORIES.reduce((s,c)=>s+(causes[c.m]||[]).length,0);
-        if(totalCausas===0 && saved.causes){
-          M_CATEGORIES.forEach(c=>{ causes[c.m] = saved.causes[c.m] || []; });
-          renderMGrid();
-        }
-        // Restaurar análisis IA
         if(saved.analisisPorM){
           M_CATEGORIES.forEach(c=>{
             const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
+            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=saved.analisisPorM[c.m];}
           });
         }
         if(saved.analisisGlobal||saved.analisisCierre){
           $('analisisWrap').style.display='block';
-          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=renderNeg(saved.analisisGlobal);
-          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=renderNeg(saved.analisisCierre);
+          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=saved.analisisGlobal;
+          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=saved.analisisCierre;
         }
       }
     }
-  }catch(e){ console.error('restore error',e); }
+  }catch(e){}
 }
 
 // ── SEMAFORO ──
@@ -856,103 +784,74 @@ function wrapText(text, maxChars){
 }
 
 function renderFishbone(){
-  const wrap = $('fishboneWrap');
-  const symptom = $('symptomInput').value.trim() || 'Tu síntoma';
-  const totalCauses = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
-  if(totalCauses===0){
-    wrap.innerHTML='<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';
-    $('fbLegend').textContent=''; return;
-  }
-
-  const NAVY='#002A8D', RED='#D64545', INK='#1C2536', MUTED='#8AACBD', SOFT='#B9C4D6';
-  // Altura dinámica según max causas
-  const maxC = Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
-  const H = Math.max(420, 340 + maxC*30);
-  const W = 800;
-  const spineY=H/2, tailX=20, headW=128, headH=68;
-  const headX=W-headW-12, spineStart=tailX+14, spineEnd=headX-8;
+  const wrap=$('fishboneWrap');
+  const symptom=$('symptomInput').value.trim()||'Tu síntoma';
+  const totalCauses=M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
+  if(totalCauses===0){wrap.innerHTML='<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';$('fbLegend').textContent='';return;}
+  const NAVY='#002A8D',RED='#D64545',INK='#1C2536',MUTED='#9AACBE',SOFT='#C4CFE0';
+  const maxC=Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
+  const W=900,H=Math.max(460,380+maxC*34);
+  const spineY=H/2,tailX=20,headW=128,headH=70;
+  const headX=W-headW-10,spineStart=tailX+14,spineEnd=headX-8;
   const cols=[
-    {cat:M_CATEGORIES[0],top:true, i:0},{cat:M_CATEGORIES[1],top:true, i:1},{cat:M_CATEGORIES[2],top:true, i:2},
+    {cat:M_CATEGORIES[0],top:true,i:0},{cat:M_CATEGORIES[1],top:true,i:1},{cat:M_CATEGORIES[2],top:true,i:2},
     {cat:M_CATEGORIES[3],top:false,i:0},{cat:M_CATEGORIES[4],top:false,i:1},{cat:M_CATEGORIES[5],top:false,i:2}
   ];
-  const zoneStart=spineStart+60, zoneEnd=spineEnd-30, gap=(zoneEnd-zoneStart)/3;
-
+  const zoneStart=spineStart+80,zoneEnd=spineEnd-30,gap=(zoneEnd-zoneStart)/3;
   let svg='<svg class="fishbone-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Rubik,sans-serif">';
   svg+='<line x1="'+spineStart+'" y1="'+spineY+'" x2="'+spineEnd+'" y2="'+spineY+'" stroke="'+NAVY+'" stroke-width="2.5" stroke-linecap="round"/>';
   svg+='<path d="M'+tailX+' '+(spineY-12)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+12)+'" fill="none" stroke="'+NAVY+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-
-  // Cabeza síntoma
-  const hx=headX, hy=spineY-headH/2;
+  const hx=headX,hy=spineY-headH/2;
   svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="10" fill="'+RED+'"/>';
-  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
-  const symLines=wrapText(symptom,14).slice(0,3);
-  const symStartY=spineY-((symLines.length-1)*7)+2;
-  symLines.forEach((ln,i)=>{ svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>'; });
-
+  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+12)+'" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
+  const symLines=wrapText(symptom,13).slice(0,3);
+  const symStartY=spineY-((symLines.length-1)*8)+2;
+  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">'+escXml(ln)+'</text>';});
   function drawBone(col){
-    const {cat,top,i}=col;
-    const baseX=zoneStart+i*gap+gap*0.5;
+    const cat=col.cat,top=col.top,ii=col.i;
+    const baseX=zoneStart+ii*gap+gap*0.5;
     const dir=top?-1:1;
     const list=causes[cat.m];
-
-    // Longitud hueso según causas
-    const boneLen=Math.max(120, 100+list.length*18);
-    const angle=0.6;
-    const dx=Math.cos(angle)*boneLen, dy=Math.sin(angle)*boneLen*dir;
-    const endX=baseX-dx, endY=spineY+dy;
-
+    const boneLen=Math.max(130,105+list.length*22);
+    const angle=0.62;
+    const cosA=Math.cos(angle),sinA=Math.sin(angle);
+    const dx=cosA*boneLen,dy=sinA*boneLen*dir;
+    const endX=baseX-dx,endY=spineY+dy;
     let s='';
     s+='<line x1="'+baseX+'" y1="'+spineY+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1.8"/>';
-
-    // Label categoría
-    const labW=86, labH=20;
-    const labX=endX-labW/2, labY=top?(endY-labH-4):(endY+4);
+    const labW=88,labH=20,labX=endX-labW/2,labY=top?(endY-labH-4):(endY+4);
     s+='<rect x="'+labX.toFixed(1)+'" y="'+labY.toFixed(1)+'" width="'+labW+'" height="'+labH+'" rx="10" fill="'+NAVY+'"/>';
     s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+14).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(cat.m)+'</text>';
-
     if(list.length===0){
-      const cx=baseX-dx*0.5, cy=spineY+dy*0.5;
-      s+='<text x="'+cx.toFixed(1)+'" y="'+(cy+(top?-6:14)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="7.5" font-style="italic">sin causas</text>';
+      const mx=baseX-dx*0.5,my=spineY+dy*0.5;
+      s+='<text x="'+mx.toFixed(1)+'" y="'+(my+(top?-8:16)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="7.5" font-style="italic">sin causas</text>';
       return s;
     }
-
-    // Distribuir causas: arriba del hueso vs abajo del hueso alternando
-    // Para evitar solapamiento: causas impares arriba, pares abajo del hueso
-    const tStart=0.15, tEnd=0.82;
+    const tStart=0.12,tEnd=0.78;
     const step=list.length>1?(tEnd-tStart)/(list.length-1):0;
-
-    list.forEach((c,ci)=>{
+    const LINEH=11,MAXCH=17;
+    list.forEach(function(c,ci){
       const t=list.length===1?(tStart+tEnd)/2:tStart+ci*step;
-      const cx=baseX-dx*t, cy=spineY+dy*t;
-
-      // Alternar lado: causas pares a la izquierda del hueso, impares a la derecha
-      // En realidad: texto SIEMPRE hacia el exterior (lejos de la espina central)
-      // Para top: texto arriba del hueso; para bottom: texto abajo del hueso
-      // Dentro de cada hueso, alternamos offset horizontal para evitar solapamiento
-      const sideOffset=(ci%2===0)?0:12; // offset horizontal alternado
-
-      s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(c.root?4:2.5)+'" fill="'+(c.root?RED:MUTED)+'"/>';
-
-      const clines=wrapText(c.text,19).slice(0,2);
-      const lineH=10;
-      const blockH=clines.length*lineH+2;
-      // Texto siempre hacia exterior de la espina central
-      const blockY=top?(cy-blockH-4):(cy+4);
-      const tx=cx+6+sideOffset;
-
-      clines.forEach((ln,li)=>{
-        const prefix=(li===0&&c.root)?'★ ':'';
-        s+='<text x="'+tx.toFixed(1)+'" y="'+(blockY+li*lineH+lineH*0.85).toFixed(1)+'" fill="'+(c.root?RED:INK)+'" font-size="8" font-weight="'+(c.root?'700':'400')+'">'+prefix+escXml(ln)+'</text>';
+      const px=baseX-dx*t,py=spineY+dy*t;
+      s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(c.root?4.5:3)+'" fill="'+(c.root?RED:MUTED)+'"/>';
+      const ramLen=20;
+      const rpx=sinA*(top?-1:1)*ramLen;
+      const rpy=cosA*(top?1:-1)*ramLen;
+      const rx2=px+rpx,ry2=py+rpy;
+      s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+rx2.toFixed(1)+'" y2="'+ry2.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1.2"/>';
+      const clines=wrapText(c.text,MAXCH).slice(0,2);
+      const blockH=clines.length*LINEH;
+      const textY=top?(ry2-blockH-2):(ry2+2);
+      clines.forEach(function(ln,li){
+        const prefix=(li===0&&c.root)?'\u2605 ':'';
+        const fw=c.root?'700':'400';
+        const fc=c.root?RED:INK;
+        s+='<text x="'+rx2.toFixed(1)+'" y="'+(textY+li*LINEH+LINEH*0.85).toFixed(1)+'" text-anchor="middle" fill="'+fc+'" font-size="8.5" font-weight="'+fw+'">'+prefix+escXml(ln)+'</text>';
       });
-
-      // Línea pequeña desde el punto hasta el texto
-      const lineToTx=tx-3, lineToTy=top?(blockY+blockH):(blockY);
-      s+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+lineToTx.toFixed(1)+'" y2="'+lineToTy.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="0.8" stroke-dasharray="2,2"/>';
     });
     return s;
   }
-
-  cols.forEach(col=>{svg+=drawBone(col);});
+  cols.forEach(function(col){svg+=drawBone(col);});
   svg+='</svg>';
   wrap.innerHTML=svg;
   // Leyenda
@@ -989,77 +888,7 @@ $('mGrid').addEventListener('keydown', e => {
   const b = $('mGrid').querySelector('[data-addm="' + inp.dataset.m + '"]'); if(b) b.click();
 });
 
-$('printBtn').addEventListener('click', async () => {
-  const btn=$('printBtn');
-  const orig=btn.innerHTML;
-  btn.disabled=true; btn.textContent='Generando PDF...';
-
-  try{
-    const { jsPDF } = window.jspdf;
-    const empView=$('empView');
-
-    // Ocultar botones no imprimibles temporalmente
-    const noprint=empView.querySelectorAll('.no-print');
-    noprint.forEach(el=>el.style.setProperty('display','none','important'));
-
-    // Asegurar que el análisis wrap sea visible
-    const aw=$('analisisWrap');
-    const awPrev=aw?aw.style.display:'';
-    if(aw&&aw.style.display==='none') aw.style.display='block';
-
-    await new Promise(r=>setTimeout(r,300));
-
-    const realH=empView.scrollHeight;
-    const realW=Math.max(empView.scrollWidth,600);
-
-    const canvas=await html2canvas(empView,{
-      scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,
-      width:realW,height:realH,
-      windowWidth:realW+50,windowHeight:realH+50,
-      scrollX:0,scrollY:-window.scrollY
-    });
-
-    noprint.forEach(el=>el.style.removeProperty('display'));
-    if(aw) aw.style.display=awPrev;
-
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const pageW=pdf.internal.pageSize.getWidth();
-    const pageH=pdf.internal.pageSize.getHeight();
-    const margin=8;
-    const usableW=pageW-margin*2;
-    const usableH=pageH-margin*2-6;
-    const aspect=canvas.height/canvas.width;
-    const scaledW=usableW;
-    const scaledH=scaledW*aspect;
-
-    if(scaledH<=usableH){
-      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',margin,margin,scaledW,scaledH);
-    } else {
-      const pageHpx=Math.floor(canvas.width*(usableH/usableW));
-      let yOff=0,pn=0;
-      while(yOff<canvas.height){
-        if(pn>0) pdf.addPage();
-        const slH=Math.min(pageHpx,canvas.height-yOff);
-        const sc=document.createElement('canvas');
-        sc.width=canvas.width; sc.height=slH;
-        sc.getContext('2d').drawImage(canvas,0,yOff,canvas.width,slH,0,0,canvas.width,slH);
-        const sh=(slH/canvas.width)*usableW;
-        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin,margin,usableW,sh);
-        yOff+=pageHpx; pn++;
-      }
-    }
-    const total=pdf.internal.getNumberOfPages();
-    for(let p=1;p<=total;p++){
-      pdf.setPage(p); pdf.setFontSize(7); pdf.setTextColor(160);
-      pdf.text('Programa BCP · UCSP–CENDES · Módulo 3 · S3',margin,pageH-3);
-      if(total>1) pdf.text('Pág '+p+' / '+total,pageW-margin,pageH-3,{align:'right'});
-    }
-    const name=(currentName||'diagnostico').replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9]/g,'_').slice(0,30);
-    pdf.save('S3_'+name+'.pdf');
-  }catch(err){ console.error('PDF error:',err); alert('Error al generar PDF. Intenta de nuevo.'); }
-
-  btn.disabled=false; btn.innerHTML=orig;
-});
+$('printBtn').addEventListener('click',()=>{const aw=$('analisisWrap');if(aw)aw.style.display='block';window.print();});
 
 // Limpiar datos locales de S3 de este dispositivo
 let clearArmed = false;
@@ -1149,26 +978,19 @@ function analisisCierreReglas(firstName, sintoma, causes, MCATS){
 async function callClaude(prompt){
   try{
     const r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',max_tokens:600,
-        system:'Eres una mentora de negocios experta, cálida y muy directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Siempre usas los datos EXACTOS que te dan — nombres de causas, síntomas, categorías. Nunca generalizas. Das consejos accionables que se pueden ejecutar esta semana. Resalta 1-2 palabras o frases clave entre **asteriscos dobles**. Máximo 3 resaltados por respuesta.',
-        messages:[{role:'user',content:prompt}]
-      })
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,
+        system:'Eres una mentora de negocios experta, cálida y directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Usas los datos EXACTOS que te dan. Das consejos accionables para esta semana. Resalta 1-2 frases clave entre **asteriscos dobles**.',
+        messages:[{role:'user',content:prompt}]})
     });
-    console.log('Worker status:', r.status);
-    const text = await r.text();
-    console.log('Worker response:', text.slice(0,200));
-    if(!r.ok){ console.error('API error',r.status,text); return null; }
-    const d=JSON.parse(text);
-    console.log('Claude content:', d.content);
+    if(!r.ok){const t=await r.text();console.error('API',r.status,t);return null;}
+    const d=await r.json();
     return d.content&&d.content[0]?d.content[0].text:null;
-  }catch(e){console.error('callClaude error:',e); return null;}
+  }catch(e){console.error('callClaude',e);return null;}
 }
-function renderNeg(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 
 // Convierte **texto** en <b>texto</b> con color azul navy
+function renderNeg(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 function renderConNegritas(texto, el){
   el.innerHTML = texto.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 }
@@ -1181,62 +1003,37 @@ $('saveCloudBtn').addEventListener('click', async () => {
   if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
 
   const btn = $('saveCloudBtn');
-  btn.disabled=true; btn.innerHTML='<div class="claude-btn-icon"><svg width="24" height="24" viewBox="0 0 28 28" fill="none" style="animation:spin 1.2s linear infinite"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Generando análisis...</div><div class="claude-btn-sub">Claude está analizando tu diagnóstico</div></div>';
+  btn.disabled=true; btn.textContent='⏳ Generando análisis...';
   showStatus('Analizando tu diagnóstico con IA...','loading');
 
   const firstName = currentName.trim().split(' ')[0];
   const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
 
-  // ── Análisis 1: por cada M con IA (fallback a reglas) ────────────────────
+  // ── Análisis 1: por cada M (reglas) ──────────────────────────────────────
   const analisisPorM = {};
-  for(const cat of M_CATEGORIES.filter(c=>causes[c.m].length>0)){
+  M_CATEGORIES.filter(c=>causes[c.m].length>0).forEach(cat=>{
     const m=cat.m;
     const el=document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
-    if(el){el.classList.add('visible');el.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';}
-    const causasTexto=causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
-    const ia=await callClaude(
-      'Emprendedora: '+firstName+'\nNegocio de '+firstName+': procesos reales de su empresa.\nSíntoma principal: "'+sintoma+'"\n\nEn la categoría "'+m+'" del Ishikawa identificó estas causas:\n'+causasTexto+
-      '\n\nEscribe un análisis breve (máx 60 palabras) con esta estructura exacta:\n1. Qué revela esta causa para SU negocio (1 oración, específica, usa su nombre).\n2. Qué puede hacer esta semana para atacarla (1 acción concreta, con verbo: "Define...", "Llama...", "Crea...").\nNo uses frases genéricas. Habla de tú. Resalta la acción con **asteriscos**.'
-    );
-    const txt=ia||analisisPorMReglas(m,causes[m],sintoma,firstName);
+    const txt=analisisPorMReglas(m,causes[m],sintoma,firstName);
     analisisPorM[m]=txt;
-    if(el)el.innerHTML=renderNeg(txt);
-  }
+    if(el){ el.classList.add('visible'); if(txt) el.innerHTML=txt; }
+  });
 
   // ── Análisis 2: integrador ─────────────────────────────────────────────────
   $('analisisWrap').style.display='block';
-  const gb=$('analisisGlobalBody');
-  gb.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';
-  let rootCause='',rootM='';
-  M_CATEGORIES.forEach(c=>causes[c.m].forEach(ca=>{if(ca.root){rootCause=ca.text;rootM=c.m;}}));
-  const todasCausas=M_CATEGORIES.filter(c=>causes[c.m].length>0)
-    .map(c=>c.m+': '+causes[c.m].map(ca=>ca.text+(ca.root?' ★':'')).join(', ')).join('\n');
-  const analisisMTexto=Object.entries(analisisPorM).map(([m,t])=>m+': '+t).join('\n\n');
-  const iaGlobal=await callClaude(
-    'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
-    (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
-    '\n\nAnálisis previos por categoría:\n'+analisisMTexto+
-    '\n\nEscribe un análisis integrador claro y práctico (máx 110 palabras) con esta estructura:\n1. El patrón real: qué tienen en común todas estas causas (1 oración directa).\n2. Por qué este patrón está generando el síntoma "'+sintoma+'" (1 oración, causa-efecto).\n3. Qué área es más urgente atacar primero y por qué (1 oración con justificación).\nEscribe en párrafo fluido, no en lista. Resalta 2-3 palabras clave con **asteriscos**. No empieces con el nombre de la emprendedora.'
-  );
-  const textoGlobal=iaGlobal||analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
-  gb.innerHTML=renderNeg(textoGlobal);
+  const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisGlobalBody').innerHTML=textoGlobal;
 
-  // ── Análisis 3: cierre potente ─────────────────────────────────────────────
-  const cb=$('analisisCierreBody');
-  cb.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';
-  const iaCierre=await callClaude(
-    'Análisis por M:\n'+analisisMTexto+'\n\nAnálisis integrador:\n'+textoGlobal+
-    '\n\nEscribe el mensaje final de mentora (máx 80 palabras) con esta estructura:\n- Empieza EXACTAMENTE con "'+firstName+'," (nombre seguido de coma).\n- Oración 1: la única cosa más importante que tiene que resolver (específica, basada en sus causas reales).\n- Oración 2: qué hacer exactamente esta semana (acción concreta con día o plazo: "antes del viernes...", "esta semana...").\n- Oración 3 (opcional): cómo va a saber que está funcionando (métrica simple o señal visible).\nTono cálido, directo, como una mentora que la conoce. Resalta 1 frase clave con **asteriscos**.'
-  );
-  const textoCierre=iaCierre||analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
-  cb.innerHTML=renderNeg(textoCierre);
+  // ── Análisis 3: cierre ────────────────────────────────────────────────────
+  const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisCierreBody').innerHTML=textoCierre;
 
     $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 
   // ── Guardar en JSONBin ─────────────────────────────────────────────────────
   showStatus('Guardando en la nube...','loading');
   const rec = await binRead();
-  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.innerHTML='<div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Guardar y generar análisis</div><div class="claude-btn-sub">Diagnóstico personalizado con IA</div></div><div class="claude-btn-badge"><svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>'; return; }
+  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
   const entries = Array.isArray(rec.entries)?rec.entries:[];
   const rootCount = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].filter(ca=>ca.root).length,0);
   const payload = {
@@ -1254,7 +1051,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   const ok = await binWrite({entries});
   showStatus(ok?'✅ Diagnóstico y análisis guardados.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);
-  btn.disabled=false; btn.innerHTML='<div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Guardar y generar análisis</div><div class="claude-btn-sub">Diagnóstico personalizado con IA</div></div><div class="claude-btn-badge"><svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>';
+  btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico';
 });
 function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus').className = 'save-status ' + (cls||''); }
 

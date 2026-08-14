@@ -193,6 +193,29 @@ input[type=password]{-webkit-appearance:none}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+.claude-btn{
+  background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);
+  background-size:300% auto;
+  animation:shimmer 4s linear infinite;
+  border:none;border-radius:14px;
+  padding:16px 20px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;margin-bottom:10px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(124,58,237,0.35);
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.claude-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
+.claude-btn:active{transform:translateY(0)}
+.claude-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);pointer-events:none}
+.claude-btn-icon{flex-shrink:0;display:flex;align-items:center}
+.claude-btn-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.claude-btn-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
+.claude-btn-sub{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.5px;font-weight:500}
+.claude-btn-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;flex-shrink:0;margin-left:auto}
+.claude-btn-badge span{font-size:9px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:.6px}
 @media print{body{max-width:none}.top:after{display:none}.no-print{display:none !important}#detailModal{display:none !important}.card{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
@@ -345,17 +368,43 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 
     <!-- ANÁLISIS IA -->
     <div id="analisisWrap" style="display:none;margin-bottom:4px">
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:#F5F0FF;border:1px solid #D4BBFF;border-radius:20px;padding:4px 10px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="#7C3AED"/></svg>
+          <span style="font-size:9px;font-weight:600;color:#7C3AED;letter-spacing:.5px">Análisis generado con Claude</span>
+        </div>
+      </div>
       <div class="analisis-global">
         <div class="ag-label">🔍 Análisis de tu Ishikawa</div>
         <div id="analisisGlobalBody" class="ag-body"></div>
       </div>
       <div class="analisis-cierre">
-        <div class="ac-eyebrow">★ Sugerencia de consultor</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          <div class="ac-eyebrow" style="margin-bottom:0">★ Sugerencia de consultor</div>
+          <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="rgba(255,255,255,0.7)"/></svg>
+            <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:.4px">Claude</span>
+          </div>
+        </div>
         <div class="ac-label">⚡ Tu diagnóstico en síntesis</div>
         <div id="analisisCierreBody" class="ac-body"></div>
       </div>
     </div>
-    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagnóstico</button>
+    <button class="claude-btn no-print" id="saveCloudBtn">
+      <div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+  <path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/>
+</svg></div>
+      <div class="claude-btn-text">
+        <div class="claude-btn-main">Guardar y generar análisis</div>
+        <div class="claude-btn-sub">Diagnóstico personalizado con IA</div>
+      </div>
+      <div class="claude-btn-badge">
+        <svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg>
+        <span>Claude</span>
+      </div>
+    </button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -1027,7 +1076,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
 
   const btn = $('saveCloudBtn');
-  btn.disabled=true; btn.textContent='⏳ Generando análisis...';
+  btn.disabled=true; btn.innerHTML='<div class="claude-btn-icon"><svg width="24" height="24" viewBox="0 0 28 28" fill="none" style="animation:spin 1.2s linear infinite"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Generando análisis...</div><div class="claude-btn-sub">Claude está analizando tu diagnóstico</div></div>';
   showStatus('Analizando tu diagnóstico con IA...','loading');
 
   const firstName = currentName.trim().split(' ')[0];
@@ -1082,7 +1131,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   // ── Guardar en JSONBin ─────────────────────────────────────────────────────
   showStatus('Guardando en la nube...','loading');
   const rec = await binRead();
-  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
+  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.innerHTML='<div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Guardar y generar análisis</div><div class="claude-btn-sub">Diagnóstico personalizado con IA</div></div><div class="claude-btn-badge"><svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>'; return; }
   const entries = Array.isArray(rec.entries)?rec.entries:[];
   const rootCount = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].filter(ca=>ca.root).length,0);
   const payload = {
@@ -1100,7 +1149,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   const ok = await binWrite({entries});
   showStatus(ok?'✅ Diagnóstico y análisis guardados.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);
-  btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico';
+  btn.disabled=false; btn.innerHTML='<div class="claude-btn-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path d="M18.5 9.5C17.2 8.5 15.7 8 14 8C10.1 8 7 11.1 7 15C7 18.9 10.1 22 14 22C15.7 22 17.2 21.5 18.5 20.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="15" r="2.5" fill="rgba(255,255,255,0.9)"/></svg></div><div class="claude-btn-text"><div class="claude-btn-main">Guardar y generar análisis</div><div class="claude-btn-sub">Diagnóstico personalizado con IA</div></div><div class="claude-btn-badge"><svg width="10" height="10" viewBox="0 0 28 28" fill="none"><path d="M14 3 L14 25 M3 14 L25 14 M5.5 5.5 L22.5 22.5 M22.5 5.5 L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>';
 });
 function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus').className = 'save-status ' + (cls||''); }
 

@@ -1059,13 +1059,9 @@ function analisisCierreReglas(firstName, sintoma, causes, MCATS){
 }
 async function callClaude(prompt){
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':'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',
-        'anthropic-version':'2023-06-01'
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:600,
         system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica. Usas los datos reales de la emprendedora. Resalta palabras clave entre **asteriscos dobles**, máximo 3 por respuesta.',

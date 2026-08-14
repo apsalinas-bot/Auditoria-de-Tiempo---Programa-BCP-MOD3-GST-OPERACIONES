@@ -857,102 +857,85 @@ function renderFishbone(){
   const wrap = $('fishboneWrap');
   const symptom = $('symptomInput').value.trim() || 'Tu síntoma';
 
-  const totalCauses = M_CATEGORIES.reduce((n, c) => n + causes[c.m].length, 0);
-  if(totalCauses === 0){
-    wrap.innerHTML = '<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';
-    $('fbLegend').textContent = '';
-    return;
+  const totalCauses = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
+  if(totalCauses===0){
+    wrap.innerHTML='<p class="fb-empty">Agrega causas en las 6M de arriba y aquí se dibujará tu espina de pescado.</p>';
+    $('fbLegend').textContent=''; return;
   }
 
-  // Paleta
   const NAVY='#002A8D', RED='#D64545', INK='#1C2536', MUTED='#8AACBD', SOFT='#B9C4D6';
+  const maxCausas = Math.max(...M_CATEGORIES.map(c=>causes[c.m].length),1);
+  const H = Math.max(400, 320 + maxCausas*26);
+  const W = 780;
+  const spineY=H/2, tailX=24, headW=130, headH=70;
+  const headX=W-headW-14, spineStart=tailX+14, spineEnd=headX-8;
 
-  // Lienzo amplio para respirar
-  const W=760, H=440;
-  const spineY=H/2;
-  const tailX=24;
-  const headW=132, headH=72;
-  const headX=W-headW-14;
-  const spineStart=tailX+14;
-  const spineEnd=headX-8;
-
-  // 3 arriba / 3 abajo, bien distribuidas
   const cols=[
-    {cat:M_CATEGORIES[0], top:true,  i:0},
-    {cat:M_CATEGORIES[1], top:true,  i:1},
-    {cat:M_CATEGORIES[2], top:true,  i:2},
-    {cat:M_CATEGORIES[3], top:false, i:0},
-    {cat:M_CATEGORIES[4], top:false, i:1},
-    {cat:M_CATEGORIES[5], top:false, i:2}
+    {cat:M_CATEGORIES[0],top:true, i:0},{cat:M_CATEGORIES[1],top:true, i:1},{cat:M_CATEGORIES[2],top:true, i:2},
+    {cat:M_CATEGORIES[3],top:false,i:0},{cat:M_CATEGORIES[4],top:false,i:1},{cat:M_CATEGORIES[5],top:false,i:2}
   ];
-  const zoneStart=spineStart+70;
-  const zoneEnd=spineEnd-40;
-  const gap=(zoneEnd-zoneStart)/3;
+  const zoneStart=spineStart+70, zoneEnd=spineEnd-40, gap=(zoneEnd-zoneStart)/3;
 
-  let svg='<svg class="fishbone-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Rubik, sans-serif">';
-
-  // Espina central
+  let svg='<svg class="fishbone-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Rubik,sans-serif">';
   svg+='<line x1="'+spineStart+'" y1="'+spineY+'" x2="'+spineEnd+'" y2="'+spineY+'" stroke="'+NAVY+'" stroke-width="3" stroke-linecap="round"/>';
-  // Cola
   svg+='<path d="M'+tailX+' '+(spineY-14)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+14)+'" fill="none" stroke="'+NAVY+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
 
-  // Cabeza (síntoma)
   const hx=headX, hy=spineY-headH/2;
   svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="12" fill="'+RED+'"/>';
-  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+16)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" letter-spacing="1" opacity="0.85">SÍNTOMA</text>';
-  const symLines=wrapText(symptom, 17).slice(0,3);
-  const symStartY=spineY-((symLines.length-1)*7)+4;
+  svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" letter-spacing="1" opacity="0.8">SÍNTOMA</text>';
+  const symLines=wrapText(symptom,15).slice(0,3);
+  const symStartY=spineY-((symLines.length-1)*7)+2;
   symLines.forEach((ln,i)=>{
-    svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="10.5" font-weight="700">'+escXml(ln)+'</text>';
+    svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>';
   });
 
   function drawBone(col){
-    const {cat, top, i}=col;
+    const {cat,top,i}=col;
     const baseX=zoneStart+i*gap+gap*0.5;
     const dir=top?-1:1;
-    // espina diagonal
-    const boneLen=118, angle=0.6;
+    const list=causes[cat.m];
+    const boneLen=Math.max(115, 95+list.length*14);
+    const angle=0.58;
     const dx=Math.cos(angle)*boneLen;
     const dy=Math.sin(angle)*boneLen*dir;
-    const endX=baseX-dx;
-    const endY=spineY+dy;
+    const endX=baseX-dx, endY=spineY+dy;
 
     let s='';
     s+='<line x1="'+baseX+'" y1="'+spineY+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="'+SOFT+'" stroke-width="2"/>';
-    // etiqueta categoría
-    const labW=82, labH=22;
-    const labX=endX-labW/2;
-    const labY=top?(endY-labH-2):(endY+2);
+    const labW=88, labH=22;
+    const labX=endX-labW/2, labY=top?(endY-labH-3):(endY+3);
     s+='<rect x="'+labX.toFixed(1)+'" y="'+labY.toFixed(1)+'" width="'+labW+'" height="'+labH+'" rx="11" fill="'+NAVY+'"/>';
-    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+15).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="10.5" font-weight="700">'+escXml(cat.m)+'</text>';
+    s+='<text x="'+endX.toFixed(1)+'" y="'+(labY+15).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">'+escXml(cat.m)+'</text>';
 
-    // causas — pequeñas ramas
-    const list=causes[cat.m];
-    const maxShow=3;
-    list.slice(0,maxShow).forEach((c,ci)=>{
-      const t=0.30+ci*0.24;
-      const cx=baseX-dx*t;
-      const cy=spineY+dy*t;
-      const dot=c.root?RED:MUTED;
-      s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(c.root?4:2.6)+'" fill="'+dot+'"/>';
-      // texto a la derecha del punto
-      const tx=cx+7;
-      const clines=wrapText(c.text,20).slice(0,2);
-      const startY=cy-((clines.length-1)*5)+3;
-      clines.forEach((ln,li)=>{
-        const prefix=(li===0&&c.root)?'★ ':'';
-        s+='<text x="'+tx.toFixed(1)+'" y="'+(startY+li*10.5).toFixed(1)+'" fill="'+(c.root?RED:INK)+'" font-size="8.5" font-weight="'+(c.root?'700':'400')+'">'+prefix+escXml(ln)+'</text>';
+    if(list.length>0){
+      const tStart=0.18, tEnd=0.80;
+      const step=list.length>1?(tEnd-tStart)/(list.length-1):0;
+      list.forEach((c,ci)=>{
+        const t=list.length===1?(tStart+tEnd)/2:tStart+ci*step;
+        const cx=baseX-dx*t, cy=spineY+dy*t;
+        const perpLen=10;
+        const px=-Math.sin(angle)*perpLen*(top?1:-1);
+        const py=Math.cos(angle)*perpLen*(top?1:-1);
+        s+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+(cx+px).toFixed(1)+'" y2="'+(cy+py).toFixed(1)+'" stroke="'+SOFT+'" stroke-width="1"/>';
+        s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(c.root?4.5:2.8)+'" fill="'+(c.root?RED:MUTED)+'"/>';
+        const tx=cx+9;
+        const clines=wrapText(c.text,21).slice(0,2);
+        const lineH=10;
+        const blockH=clines.length*lineH;
+        const blockY=top?(cy-blockH-3):(cy+4);
+        clines.forEach((ln,li)=>{
+          const prefix=(li===0&&c.root)?'★ ':'';
+          s+='<text x="'+tx.toFixed(1)+'" y="'+(blockY+li*lineH+lineH*0.8).toFixed(1)+'" fill="'+(c.root?RED:INK)+'" font-size="8.5" font-weight="'+(c.root?'700':'400')+'">'+prefix+escXml(ln)+'</text>';
+        });
       });
-    });
-    if(list.length>maxShow){
-      const t=0.30+maxShow*0.24;
-      const cx=baseX-dx*t, cy=spineY+dy*t;
-      s+='<text x="'+(cx+7).toFixed(1)+'" y="'+(cy+3).toFixed(1)+'" fill="'+MUTED+'" font-size="8" font-style="italic">+'+(list.length-maxShow)+' más</text>';
+    } else {
+      const cx=baseX-dx*0.5, cy=spineY+dy*0.5;
+      s+='<text x="'+cx.toFixed(1)+'" y="'+(cy+(top?-6:14)).toFixed(1)+'" text-anchor="middle" fill="'+MUTED+'" font-size="8" font-style="italic">sin causas</text>';
     }
     return s;
   }
 
-  cols.forEach(col=>{ svg+=drawBone(col); });
+  cols.forEach(col=>{svg+=drawBone(col);});
   svg+='</svg>';
   wrap.innerHTML=svg;
 
@@ -1084,7 +1067,7 @@ async function callClaude(prompt){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:600,
-        system:'Eres una mentora de negocios cálida, directa y muy cercana. Hablas de tú. Nunca suenas robótica. Usas los datos reales de la emprendedora. Resalta palabras clave entre **asteriscos dobles**, máximo 3 por respuesta.',
+        system:'Eres una mentora de negocios experta, cálida y muy directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Siempre usas los datos EXACTOS que te dan — nombres de causas, síntomas, categorías. Nunca generalizas. Das consejos accionables que se pueden ejecutar esta semana. Resalta 1-2 palabras o frases clave entre **asteriscos dobles**. Máximo 3 resaltados por respuesta.',
         messages:[{role:'user',content:prompt}]
       })
     });
@@ -1126,8 +1109,8 @@ $('saveCloudBtn').addEventListener('click', async () => {
     if(el){el.classList.add('visible');el.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';}
     const causasTexto=causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
     const ia=await callClaude(
-      'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la M "'+m+'" identificó:\n'+causasTexto+
-      '\n\nEscribe 2 oraciones directas y personales (máx 55 palabras). Usa su nombre una vez. No empieces con "En esta categoría". Habla de tú.'
+      'Emprendedora: '+firstName+'\nNegocio de '+firstName+': procesos reales de su empresa.\nSíntoma principal: "'+sintoma+'"\n\nEn la categoría "'+m+'" del Ishikawa identificó estas causas:\n'+causasTexto+
+      '\n\nEscribe un análisis breve (máx 60 palabras) con esta estructura exacta:\n1. Qué revela esta causa para SU negocio (1 oración, específica, usa su nombre).\n2. Qué puede hacer esta semana para atacarla (1 acción concreta, con verbo: "Define...", "Llama...", "Crea...").\nNo uses frases genéricas. Habla de tú. Resalta la acción con **asteriscos**.'
     );
     const txt=ia||analisisPorMReglas(m,causes[m],sintoma,firstName);
     analisisPorM[m]=txt;
@@ -1146,8 +1129,8 @@ $('saveCloudBtn').addEventListener('click', async () => {
   const iaGlobal=await callClaude(
     'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
     (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
-    '\n\nAnálisis previos (no repetir):\n'+analisisMTexto+
-    '\n\nEscribe análisis integrador de 3-4 oraciones (máx 100 palabras). Conecta las M, explica el patrón. Específico. No empieces con el nombre.'
+    '\n\nAnálisis previos por categoría:\n'+analisisMTexto+
+    '\n\nEscribe un análisis integrador claro y práctico (máx 110 palabras) con esta estructura:\n1. El patrón real: qué tienen en común todas estas causas (1 oración directa).\n2. Por qué este patrón está generando el síntoma "'+sintoma+'" (1 oración, causa-efecto).\n3. Qué área es más urgente atacar primero y por qué (1 oración con justificación).\nEscribe en párrafo fluido, no en lista. Resalta 2-3 palabras clave con **asteriscos**. No empieces con el nombre de la emprendedora.'
   );
   const textoGlobal=iaGlobal||analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
   gb.innerHTML=renderNeg(textoGlobal);
@@ -1157,7 +1140,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   cb.innerHTML='<div class="loading-dots-s4"><span></span><span></span><span></span></div>';
   const iaCierre=await callClaude(
     'Análisis por M:\n'+analisisMTexto+'\n\nAnálisis integrador:\n'+textoGlobal+
-    '\n\nEscribe el cierre. Empieza exactamente con "'+firstName+'," (nombre+coma). Máx 3 oraciones. Más destilado: qué resolver primero y qué hacer esta semana. Mentora cercana y directa.'
+    '\n\nEscribe el mensaje final de mentora (máx 80 palabras) con esta estructura:\n- Empieza EXACTAMENTE con "'+firstName+'," (nombre seguido de coma).\n- Oración 1: la única cosa más importante que tiene que resolver (específica, basada en sus causas reales).\n- Oración 2: qué hacer exactamente esta semana (acción concreta con día o plazo: "antes del viernes...", "esta semana...").\n- Oración 3 (opcional): cómo va a saber que está funcionando (métrica simple o señal visible).\nTono cálido, directo, como una mentora que la conoce. Resalta 1 frase clave con **asteriscos**.'
   );
   const textoCierre=iaCierre||analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
   cb.innerHTML=renderNeg(textoCierre);

@@ -653,40 +653,57 @@ async function cargarDatos(){
   }
   renderSem();
 
-  // Ishikawa (siempre de localStorage propio de S3)
-  causes = {};
-  M_CATEGORIES.forEach(c => causes[c.m] = []);
-  try{
-    const raw = localStorage.getItem(ISHI_PREFIX + currentDNI);
-    if(raw){
-      const d = JSON.parse(raw);
-      if(d.symptom) $('symptomInput').value = d.symptom;
-      if(d.causes) M_CATEGORIES.forEach(c => { causes[c.m] = d.causes[c.m] || []; });
-    }
-  }catch(e){}
-  renderMGrid();
-
-  // Restaurar análisis IA si ya se generaron (desde JSONBin)
+  // 1. Intentar restaurar desde JSONBin (fuente de verdad con colores y causas)
+  let restoredFromCloud = false;
   try{
     const rec2 = await binRead();
     if(rec2){
       const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
       const saved = entries2.find(e=>e.dni===currentDNI);
       if(saved){
+        // Restaurar semáforo CON colores
+        if(Array.isArray(saved.semaforo)&&saved.semaforo.length>0){
+          semSteps=saved.semaforo;
+          restoredFromCloud=true;
+          try{localStorage.setItem(SEM_PREFIX+currentDNI,JSON.stringify(semSteps));}catch(e){}
+        }
+        // Restaurar síntoma
+        if(saved.symptom) $('symptomInput').value=saved.symptom;
+        // Restaurar causas
+        if(saved.causes){
+          causes={};
+          M_CATEGORIES.forEach(c=>{causes[c.m]=saved.causes[c.m]||[];});
+        }
+        // Restaurar análisis IA
         if(saved.analisisPorM){
           M_CATEGORIES.forEach(c=>{
             const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=saved.analisisPorM[c.m];}
+            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
           });
         }
         if(saved.analisisGlobal||saved.analisisCierre){
           $('analisisWrap').style.display='block';
-          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=saved.analisisGlobal;
-          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=saved.analisisCierre;
+          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=renderNeg(saved.analisisGlobal);
+          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=renderNeg(saved.analisisCierre);
         }
       }
     }
-  }catch(e){}
+  }catch(e){console.error('restore cloud',e);}
+
+  // 2. Si no había datos en JSONBin, usar localStorage para causas
+  if(!restoredFromCloud){
+    causes={};
+    M_CATEGORIES.forEach(c=>causes[c.m]=[]);
+    try{
+      const raw=localStorage.getItem(ISHI_PREFIX+currentDNI);
+      if(raw){
+        const d=JSON.parse(raw);
+        if(d.symptom) $('symptomInput').value=d.symptom;
+        if(d.causes) M_CATEGORIES.forEach(c=>{causes[c.m]=d.causes[c.m]||[];});
+      }
+    }catch(e){}
+  }
+  renderMGrid();
 }
 
 // ── SEMAFORO ──
@@ -1022,11 +1039,11 @@ $('saveCloudBtn').addEventListener('click', async () => {
   // ── Análisis 2: integrador ─────────────────────────────────────────────────
   $('analisisWrap').style.display='block';
   const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisGlobalBody').innerHTML=textoGlobal;
+  $('analisisGlobalBody').innerHTML=renderNeg(textoGlobal);
 
   // ── Análisis 3: cierre ────────────────────────────────────────────────────
   const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisCierreBody').innerHTML=textoCierre;
+  $('analisisCierreBody').innerHTML=renderNeg(textoCierre);
 
     $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 

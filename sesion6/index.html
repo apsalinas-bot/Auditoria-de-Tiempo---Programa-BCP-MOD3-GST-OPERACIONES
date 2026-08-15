@@ -131,7 +131,16 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .pw-eye-btn:hover{color:var(--navy)}
 .pw-eye-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
-@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media print{
+  body{max-width:none}
+  .no-print{display:none !important}
+  #detailModal{display:none !important}
+  .diagnostico-s6{background:#2a1400 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  .diagnostico-s6 *{color:inherit}
+  .d6-body,.d6-title{color:#fff !important}
+  .d6-eyebrow{color:#FFB088 !important}
+  .analisis-poe-s6{background:#FDECE4 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 
 /* flujograma vs procedimiento */
@@ -208,10 +217,10 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 .dots-s6{display:inline-flex;align-items:center;gap:4px;padding:4px 0}
 .dots-s6 span{width:6px;height:6px;border-radius:50%;background:var(--coral);display:inline-block;animation:pulse-s6 1.2s ease-in-out infinite}
 .dots-s6 span:nth-child(2){animation-delay:.2s}.dots-s6 span:nth-child(3){animation-delay:.4s}
-.analisis-poe-s6{padding:14px 16px;background:#FDECE4;border-left:3px solid var(--coral);border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px}
+.analisis-poe-s6{padding:14px 16px;background:#FDECE4;border-left:3px solid var(--coral);border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .analisis-poe-s6.visible{display:block}
 .analisis-poe-s6 b{color:var(--coral-d);font-weight:700}
-.diagnostico-s6{background:linear-gradient(135deg,#1a0e00,#3a1c00);border-radius:14px;padding:22px;margin-bottom:10px;display:none}
+.diagnostico-s6{background:linear-gradient(135deg,#1a0e00,#3a1c00);background-color:#2a1400;border-radius:14px;padding:22px;margin-bottom:10px;display:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .diagnostico-s6.visible{display:block}
 .d6-eyebrow{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FFB088;margin-bottom:6px}
 .d6-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:12px}
@@ -754,7 +763,6 @@ $('wordBtn').addEventListener('click', ()=>{
     if(!/[.!?:;]$/.test(s)) s+='.';
     return s;
   }
-  const H2='color:#002A8D;font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1pt solid #C8D4E8;padding-bottom:2pt;';
   function bullets(txt){
     const clean=formal(txt);
     let items=clean.split(/\n+/).map(l=>l.trim()).filter(l=>l);
@@ -764,73 +772,62 @@ $('wordBtn').addEventListener('click', ()=>{
       if(alt.length>1) items=alt;
     }
     items=items.map(formalLine).filter(l=>l);
-    return '<ul style="margin:0 0 0 18pt;padding:0">'+items.map(i=>'<li style="font-size:11pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+'</li>').join('')+'</ul>';
+    return '<ul style="margin:0;padding:0 0 0 14pt">'+items.map(i=>'<li style="font-size:10.5pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+'</li>').join('')+'</ul>';
   }
 
-    // tabla de metadatos
-  const meta=[
-    ['Código','POE-01'],
-    ['Versión','1.0'],
-    ['Proceso / tarea documentada', esc(tarea)],
-    ['Elaborado por', esc(currentName)],
-    ['Negocio', esc(rubro||'—')],
-    ['Fecha de elaboración', fecha]
-  ];
-  const metaRows=meta.map((r,i)=>
-    '<tr>'+
-    '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt;font-weight:bold;color:#002A8D;width:38%">'+r[0]+'</td>'+
-    '<td style="border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt">'+r[1]+'</td>'+
-    '</tr>').join('');
+  // Fila estándar de la ficha técnica: etiqueta a la izquierda, contenido a la derecha
+  function fila(label, contentHtml){
+    return '<tr>'+
+      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10pt;font-weight:bold;color:#002A8D;width:28%;vertical-align:top">'+label+'</td>'+
+      '<td style="border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10.5pt;vertical-align:top">'+contentHtml+'</td>'+
+      '</tr>';
+  }
+  function pFila(txt){ return '<p style="font-size:10.5pt;line-height:1.5;text-align:justify;margin:0">'+txt+'</p>'; }
 
-  // secciones de contenido
   const objetivo='Establecer un estándar claro y replicable para la ejecución de esta tarea, de modo que cualquier persona debidamente capacitada pueda llevarla a cabo de forma correcta y consistente, sin requerir la supervisión permanente de la propietaria del negocio. El presente documento complementa el mapa de proceso (flujograma) elaborado en la Sesión 2 —el cual identifica QUÉ pasos conforman el proceso— y detalla CÓMO debe ejecutarse correctamente el paso considerado crítico, incluyendo los parámetros técnicos, criterios de calidad y precauciones que garantizan un resultado uniforme.';
 
-  let cuerpo='';
-  cuerpo+='<div style="'+H2+'">1.  OBJETIVO DEL PROCEDIMIENTO</div>';
-  cuerpo+='<p style="font-size:11pt;line-height:1.5;text-align:justify">'+objetivo+'</p>';
-
-  if(secciones.materiales && secciones.materiales.trim()){
-    cuerpo+='<div style="'+H2+'">2.  RECURSOS Y PREPARACIÓN PREVIA</div>'+bullets(secciones.materiales);
-  }
-  if(secciones.pasos && secciones.pasos.trim()){
-    cuerpo+='<div style="'+H2+'">3.  DESCRIPCIÓN DEL PROCEDIMIENTO</div>'+bullets(secciones.pasos);
-  }
-  if(secciones.calidad && secciones.calidad.trim()){
-    cuerpo+='<div style="'+H2+'">4.  CRITERIOS DE CONFORMIDAD</div>'+
-      '<p style="font-size:11pt;line-height:1.4;margin-bottom:4pt">El procedimiento se considera correctamente ejecutado cuando se cumplen los siguientes criterios:</p>'+
-      bullets(secciones.calidad);
-  }
-  if(secciones.errores && secciones.errores.trim()){
-    cuerpo+='<div style="'+H2+'">5.  RIESGOS Y ERRORES FRECUENTES</div>'+bullets(secciones.errores);
-  }
-
-  // Sección 6: Responsable e indicador (ficha de proceso)
   const respTxt=$('responsableInput').value.trim();
   const indicTxt=$('indicadorInput').value.trim();
-  if(respTxt||indicTxt){
-    cuerpo+='<div style="'+H2+'">6.  RESPONSABLE Y SEGUIMIENTO</div>';
-    const fichaRows=[
-      ['Responsable del proceso', respTxt?esc(respTxt):'—'],
-      ['Indicador de seguimiento', indicTxt?esc(indicTxt):'—']
-    ].map(r=>
-      '<tr>'+
-      '<td style="background:#FDECE4;border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt;font-weight:bold;color:#C2431A;width:38%">'+r[0]+'</td>'+
-      '<td style="border:0.5pt solid #C8D4E8;padding:5pt 8pt;font-size:10.5pt">'+r[1]+'</td>'+
-      '</tr>').join('');
-    cuerpo+='<table style="border-collapse:collapse;width:100%;margin-top:4pt">'+fichaRows+'</table>';
-  }
-
-  // Sección 7: Validación (prueba de fuego)
   const valNombre=$('validadorInput').value.trim();
   const valFeedback=$('feedbackInput').value.trim();
   const valPassed=$('chkPassed').checked;
+
+  // Construir todas las filas de la ficha técnica en una sola tabla continua
+  let filas='';
+  filas+=fila('Código', 'POE-01');
+  filas+=fila('Versión', '1.0');
+  filas+=fila('Proceso / tarea documentada', esc(tarea));
+  filas+=fila('Elaborado por', esc(currentName));
+  filas+=fila('Negocio', esc(rubro||'—'));
+  filas+=fila('Fecha de elaboración', fecha);
+  filas+=fila('1. Objetivo del procedimiento', pFila(objetivo));
+
+  if(secciones.materiales && secciones.materiales.trim()){
+    filas+=fila('2. Recursos y preparación previa', bullets(secciones.materiales));
+  }
+  if(secciones.pasos && secciones.pasos.trim()){
+    filas+=fila('3. Descripción del procedimiento', bullets(secciones.pasos));
+  }
+  if(secciones.calidad && secciones.calidad.trim()){
+    filas+=fila('4. Criterios de conformidad',
+      pFila('El procedimiento se considera correctamente ejecutado cuando se cumplen los siguientes criterios:')+bullets(secciones.calidad));
+  }
+  if(secciones.errores && secciones.errores.trim()){
+    filas+=fila('5. Riesgos y errores frecuentes', bullets(secciones.errores));
+  }
+  if(respTxt){
+    filas+=fila('6. Responsable del proceso', esc(respTxt));
+  }
+  if(indicTxt){
+    filas+=fila('7. Indicador de seguimiento', esc(indicTxt));
+  }
   if(valNombre||valFeedback){
-    cuerpo+='<div style="'+H2+'">7.  VALIDACIÓN DEL PROCEDIMIENTO</div>';
-    cuerpo+='<p style="font-size:11pt;line-height:1.5;margin-bottom:6pt">Este procedimiento fue puesto a prueba por <b>'+(valNombre?esc(valNombre):'una colaboradora')+'</b>, quien intentó seguirlo sin asistencia directa. '+
-      (valPassed ? 'La prueba fue <b>superada exitosamente</b>: pudo ejecutar el proceso siguiendo únicamente lo documentado.' : 'La prueba <b>identificó puntos a mejorar</b> antes de considerar el procedimiento como definitivo.') +'</p>';
+    let valContent=pFila('Este procedimiento fue puesto a prueba por <b>'+(valNombre?esc(valNombre):'una colaboradora')+'</b>, quien intentó seguirlo sin asistencia directa. '+
+      (valPassed ? 'La prueba fue <b>superada exitosamente</b>: pudo ejecutar el proceso siguiendo únicamente lo documentado.' : 'La prueba <b>identificó puntos a mejorar</b> antes de considerar el procedimiento como definitivo.'));
     if(valFeedback){
-      cuerpo+='<p style="font-size:11pt;line-height:1.5"><b>Observaciones registradas:</b> '+esc(valFeedback)+'</p>';
+      valContent+='<p style="font-size:10.5pt;line-height:1.5;margin-top:5pt"><b>Observaciones registradas:</b> '+esc(valFeedback)+'</p>';
     }
+    filas+=fila('8. Validación del procedimiento', valContent);
   }
 
   const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
@@ -840,13 +837,11 @@ $('wordBtn').addEventListener('click', ()=>{
     '<body style="'+S+'">'+
     // encabezado
     '<p style="font-size:9pt;color:#6B7688;letter-spacing:1pt;margin:0">PROGRAMA DE IMPULSO PYME  ·  Mujeres Emprendedoras de Arequipa</p>'+
-    '<p style="color:#002A8D;font-size:16pt;font-weight:bold;margin:4pt 0 0">PROCEDIMIENTO OPERATIVO ESTÁNDAR</p>'+
-    '<p style="font-size:10pt;color:#6B7688;margin:2pt 0 0">Módulo 3 · Gestión de Operaciones · Sesión 6</p>'+
-    '<div style="border-bottom:2.5pt solid #E85D2F;margin:8pt 0 14pt"></div>'+
-    // tabla metadatos
-    '<table style="border-collapse:collapse;width:100%;margin-bottom:14pt">'+metaRows+'</table>'+
-    // cuerpo
-    cuerpo+
+    '<p style="color:#002A8D;font-size:16pt;font-weight:bold;margin:4pt 0 0">FICHA TÉCNICA DE PROCEDIMIENTO</p>'+
+    '<p style="font-size:10pt;color:#6B7688;margin:2pt 0 0">Módulo 3 · Gestión de Operaciones · Sesión 6 · Procedimiento Operativo Estándar</p>'+
+    '<div style="border-bottom:2.5pt solid #002A8D;margin:8pt 0 14pt"></div>'+
+    // ficha técnica: una sola tabla continua con todo
+    '<table style="border-collapse:collapse;width:100%">'+filas+'</table>'+
     // footer
     '<div style="border-top:1pt solid #C8D4E8;margin-top:22pt;padding-top:6pt">'+
     '<p style="font-size:8.5pt;color:#6B7688;text-align:center">Documento elaborado en el marco del Programa de Impulso Pyme · BCP × UCSP–CENDES · Módulo 3: Gestión de Operaciones · Sesión 6.</p></div>'+

@@ -818,6 +818,29 @@ function wrapText(text, maxChars){
   if(cur) lines.push(cur);
   return lines.slice(0, 2); // máximo 2 líneas por causa
 }
+function wrapTextFull(text, maxChars){
+  if(!text) return [''];
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(function(w){
+    // Si la palabra sola es más larga que maxChars, cortarla
+    while(w.length > maxChars){
+      if(cur){ lines.push(cur); cur=''; }
+      lines.push(w.slice(0, maxChars));
+      w = w.slice(maxChars);
+    }
+    if(!w) return;
+    if((cur ? cur+' '+w : w).length <= maxChars){
+      cur = cur ? cur+' '+w : w;
+    } else {
+      if(cur) lines.push(cur);
+      cur = w;
+    }
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
 
 function renderFishbone(){
   const wrap=$('fishboneWrap');
@@ -836,7 +859,7 @@ function renderFishbone(){
   const ramLen = maxC<=2 ? 60 : maxC<=4 ? 50 : 42;
   // Altura dinámica
   const W=920, H=Math.max(480, 400+maxC*38);
-  const spineY=H/2, tailX=20, headW=128, headH=72;
+  const spineY=H/2, tailX=20, headW=128, headH=80;
   const headX=W-headW-10, spineStart=tailX+14, spineEnd=headX-8;
 
   const cols=[
@@ -850,12 +873,15 @@ function renderFishbone(){
   svg+='<path d="M'+tailX+' '+(spineY-12)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+12)+'" fill="none" stroke="'+NAVY+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
 
   // Cabeza síntoma
-  const hx=headX, hy=spineY-headH/2;
-  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="10" fill="'+RED+'"/>';
+  const symLines=wrapTextFull(symptom,19);
+  const symLineH=12;
+  const symBlockH=symLines.length*symLineH+8;
+  const dynHeadH=Math.max(80, symBlockH+26);
+  const hx=headX, hy=spineY-dynHeadH/2;
+  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+dynHeadH+'" rx="10" fill="'+RED+'"/>';
   svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" letter-spacing="1" opacity="0.75">SÍNTOMA</text>';
-  const symLines=wrapText(symptom,13).slice(0,3);
-  const symStartY=spineY-((symLines.length-1)*8)+2;
-  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>';});
+  const symStartY=hy+26;
+  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*symLineH)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">'+escXml(ln)+'</text>';});
 
   function drawBone(col){
     const cat=col.cat, top=col.top, ii=col.i;

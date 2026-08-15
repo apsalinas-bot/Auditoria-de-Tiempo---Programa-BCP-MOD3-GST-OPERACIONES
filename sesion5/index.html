@@ -353,8 +353,10 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <div class="progress-bar-wrap" style="height:14px;border-radius:7px">
         <div class="progress-bar" id="progressBar" style="width:0%;border-radius:7px;transition:width .6s ease"></div>
       </div>
-      <div id="docAlerts" style="margin-top:10px"></div>
     </div>
+
+    <!-- Alertas -->
+    <div id="docAlerts" style="margin-bottom:4px"></div>
 
     <!-- Distribución ABC barras estilo S3 -->
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 6px">Distribuci&oacute;n ABC del aula</div>
@@ -722,10 +724,16 @@ function renderABC(){
   let h='';
   // barra de distribución ABC
   h+='<div class="abc-dist">';
-  if(pctA>0) h+='<div class="abc-dist-seg A" style="width:'+pctA+'%">'+(pctA>=8?pctA+'%':'')+'</div>';
-  if(pctB>0) h+='<div class="abc-dist-seg B" style="width:'+pctB+'%">'+(pctB>=8?pctB+'%':'')+'</div>';
-  if(pctC>0) h+='<div class="abc-dist-seg C" style="width:'+pctC+'%">'+(pctC>=8?pctC+'%':'')+'</div>';
+  if(pctA>0) h+='<div class="abc-dist-seg A" style="width:'+pctA+'%">'+(pctA>=12?pctA+'%':'')+'</div>';
+  if(pctB>0) h+='<div class="abc-dist-seg B" style="width:'+pctB+'%">'+(pctB>=12?pctB+'%':'')+'</div>';
+  if(pctC>0) h+='<div class="abc-dist-seg C" style="width:'+pctC+'%">'+(pctC>=12?pctC+'%':'')+'</div>';
   h+='</div>';
+  // leyenda de % SIEMPRE visible (incluso si el segmento es muy angosto para mostrar el texto adentro)
+  h+='<div style="display:flex;justify-content:center;gap:18px;margin:2px 0 6px">'+
+     (pctA>0?'<span style="font-size:12.5px;font-weight:700;color:var(--A)">A &middot; '+pctA+'%</span>':'')+
+     (pctB>0?'<span style="font-size:12.5px;font-weight:700;color:#8A6D00">B &middot; '+pctB+'%</span>':'')+
+     (pctC>0?'<span style="font-size:12.5px;font-weight:700;color:#4A6072">C &middot; '+pctC+'%</span>':'')+
+     '</div>';
   h+='<p style="font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:14px">Cada segmento = % del dinero que concentra ese grupo</p>';
 
   // ── PIRÁMIDE ABC ──
@@ -1159,7 +1167,9 @@ $('saveCloudBtn').addEventListener('click', async function(){
     insumos:abcData.map(function(it){return{name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat};}),
     insumoCount:abcData.length,totalValue:total,countA:groupA.length,
     planA:planATxt,planC:planCTxt,hasPlan:!!(planATxt||planCTxt),
-    reordenCount:reordenData.length,savedAt:new Date().toISOString()
+    reordenCount:reordenData.length,
+    reorden:reordenData.map(function(r){return{name:r.name,cat:r.cat,pr:r.pr,eoq:r.eoq,eoqCosto:r.eoqCosto,pedidosMes:r.pedidosMes};}),
+    savedAt:new Date().toISOString()
   };
   var idx=entries.findIndex(function(e){return e.dni===currentDNI;});
   if(idx>=0) entries[idx]=payload; else entries.push(payload);
@@ -1292,12 +1302,12 @@ async function loadDocData(){
         '<div style="flex:1;background:#F0F2F7;border-radius:99px;height:10px;overflow:hidden">'+
           '<div style="width:'+d.pct+'%;height:100%;border-radius:99px;background:'+d.color+';transition:.4s"></div>'+
         '</div>'+
-        '<div style="font-size:12px;font-weight:700;color:'+d.color+';width:28px;text-align:right">'+d.tot+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);width:48px;text-align:right">'+d.avg+'/emp</div>'+
+        '<div style="font-size:13px;font-weight:700;color:'+d.color+';width:36px;text-align:right">'+d.pct+'%</div>'+
+        '<div style="font-size:11px;color:var(--muted);width:56px;text-align:right">'+d.avg+' prom/emp</div>'+
         '</div>'
       ).join('');
       if($('abcDistNote')) $('abcDistNote').textContent=
-        'Total: '+totABC+' insumos. Promedio en inventario: S/'+avgValor.toLocaleString()+'/emprendedora.';
+        'En promedio, cada emprendedora tiene '+avgA+' insumo(s) A, '+avgB+' B y '+avgC+' C \u2014 con S/'+avgValor.toLocaleString()+' en inventario.';
     } else {
       abcGrid.innerHTML='<p style="font-size:12px;color:var(--muted)">Sin datos aún.</p>';
     }
@@ -1308,9 +1318,6 @@ async function loadDocData(){
   if(total===0){
     al='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Pide a las emprendedoras que guarden.</div>';
   } else {
-    if(pct>=80) al+='<div class="alert-box green"><b>✅ '+pct+'% del grupo completó ('+total+'/'+TOTAL_EMP+').</b></div>';
-    else if(pct>=50) al+='<div class="alert-box navy"><b>'+total+' de '+TOTAL_EMP+' guardaron</b> — '+pct+'% completado.</div>';
-    else al+='<div class="alert-box amber"><b>Participación baja ('+pct+'%).</b> Da unos minutos más.</div>';
     if(conPlan<total) al+='<div class="alert-box amber"><b>'+(total-conPlan)+' aún sin plan A y C.</b> Anima a completar el Paso 3.</div>';
     if(conReorden>0) al+='<div class="alert-box green"><b>'+conReorden+' calcularon punto de reorden.</b> ¡Gran nivel!</div>';
     else if(total>=5) al+='<div class="alert-box navy"><b>Nadie ingresó lead time aún.</b> Recuerda los campos de reorden en Paso 1.</div>';
@@ -1369,7 +1376,29 @@ function openModal(idx){
   const e=docEntries[idx]; if(!e) return;
   $('modalName').textContent=e.name||e.dni;
   $('modalMeta').textContent=(e.insumoCount||0)+' insumos · S/'+Math.round(e.totalValue||0).toLocaleString()+' en inventario · '+(e.savedAt?new Date(e.savedAt).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-');
-  let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Insumos por categor\u00eda</b>';
+
+  // Mini barra ABC (resumen visual, pequeña)
+  let b='';
+  const insE=e.insumos||[];
+  const totV=insE.reduce((s,i)=>s+(i.value||0),0)||1;
+  const vA=insE.filter(i=>i.cat==='A').reduce((s,i)=>s+i.value,0);
+  const vB=insE.filter(i=>i.cat==='B').reduce((s,i)=>s+i.value,0);
+  const vC=insE.filter(i=>i.cat==='C').reduce((s,i)=>s+i.value,0);
+  const pA=Math.round(vA/totV*100), pB=Math.round(vB/totV*100), pC=Math.round(vC/totV*100);
+  if(insE.length){
+    b+='<div style="display:flex;height:20px;border-radius:6px;overflow:hidden;margin-bottom:4px">'
+      +(pA>0?'<div style="width:'+pA+'%;background:var(--A);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">'+(pA>=12?pA+'%':'')+'</div>':'')
+      +(pB>0?'<div style="width:'+pB+'%;background:var(--B);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">'+(pB>=12?pB+'%':'')+'</div>':'')
+      +(pC>0?'<div style="width:'+pC+'%;background:var(--C);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">'+(pC>=12?pC+'%':'')+'</div>':'')
+      +'</div>';
+    b+='<div style="display:flex;justify-content:center;gap:12px;margin-bottom:12px">'
+      +(pA>0?'<span style="font-size:11px;font-weight:700;color:var(--A)">A '+pA+'%</span>':'')
+      +(pB>0?'<span style="font-size:11px;font-weight:700;color:#8A6D00">B '+pB+'%</span>':'')
+      +(pC>0?'<span style="font-size:11px;font-weight:700;color:#4A6072">C '+pC+'%</span>':'')
+      +'</div>';
+  }
+
+  b+='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Insumos por categor\u00eda</b>';
   ['A','B','C'].forEach(cat=>{
     const list=(e.insumos||[]).filter(i=>i.cat===cat);
     if(list.length){
@@ -1379,6 +1408,21 @@ function openModal(idx){
     }
   });
   b+='</div>';
+
+  // Punto de reorden y EOQ por insumo
+  const reordenE=e.reorden||[];
+  if(reordenE.length){
+    b+='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Punto de reorden &middot; EOQ</b>'
+      +'<div style="overflow-x:auto;margin-top:6px"><table style="width:100%;border-collapse:collapse;font-size:11px">'
+      +'<thead><tr style="background:#0E8C8C;color:#fff"><th style="padding:5px 6px;text-align:left">Insumo</th><th style="padding:5px 6px">Pedir en</th><th style="padding:5px 6px">EOQ</th></tr></thead><tbody>'
+      +reordenE.map(function(r){
+        return '<tr><td style="padding:5px 6px;border-bottom:1px solid var(--line)">'+esc(r.name)+'</td>'
+          +'<td style="padding:5px 6px;border-bottom:1px solid var(--line);text-align:center">'+r.pr+' und</td>'
+          +'<td style="padding:5px 6px;border-bottom:1px solid var(--line);text-align:center">'+(r.eoq!=null?r.eoq+' und':'-')+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div></div>';
+  }
+
   if(e.planA) b+='<div style="margin-bottom:8px"><b style="font-size:12px;color:var(--teal-d)">Plan A (cr\u00edticos):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planA)+'</div></div>';
   if(e.planC) b+='<div><b style="font-size:12px;color:var(--muted)">Plan C (liberar):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planC)+'</div></div>';
   $('modalBody').innerHTML=b;

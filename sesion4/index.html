@@ -582,32 +582,31 @@ async function cargarDatos(){
     if(own.actionPlan) $('actionPlan').value=own.actionPlan;
     if(own.recursoName) $('recursoName').value=own.recursoName;
     if(own.recursoTotal) $('recursoTotal').value=own.recursoTotal;
-    if(own.cuello){ showCuello(own.cuello, own.cuelloCause); }
     if(action) markAction(action);
   }
 
-  // Traer el cuello de S3 (nube) si no lo teniamos
+  // SIEMPRE consultar S3 para ver si hay multiples rojos
   const msg=$('sourceMsg');
-  if(!own || !own.cuello){
-    msg.textContent='Buscando tu cuello de botella de la Sesi\u00f3n 3...';
-    msg.className='source-msg'; msg.style.display='block';
-    const s3=await getCuelloS3(currentDNI);
-    if(s3 && s3.cuello){
-      showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
-      const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
-      if(data.cuellos&&data.cuellos.length>1){
-      mostrarSelectorCuellos(data.cuellos,raizTxt);
-      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b>'+raizTxt+' Elige cu\u00e1l vas a atacar hoy.';
+  msg.textContent='Buscando tu cuello de botella de la Sesion 3...';
+  msg.className='source-msg'; msg.style.display='block';
+  const s3=await getCuelloS3(currentDNI);
+  if(s3 && s3.cuellos && s3.cuellos.length>0){
+    const raizTxt=s3.root?(' Causa raiz: "'+s3.root.text+'" ('+s3.root.m+').'):'';
+    if(s3.cuellos.length>1){
+      showCuello(s3.cuellos[0].text, s3.root?s3.root.text+' ('+s3.root.m+')':'');
+      mostrarSelectorCuellos(s3.cuellos, raizTxt);
+      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesion 3.</b>'+raizTxt+' Tienes '+s3.cuellos.length+' pasos en rojo — elige cual vas a atacar hoy.';
     } else {
-      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.'+raizTxt+' Hoy ya no diagnosticamos \u2014 hoy lo arreglamos.';
+      showCuello(s3.cuellos[0].text, s3.root?s3.root.text+' ('+s3.root.m+')':'');
+      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesion 3.</b> Este es el cuello que marcaste en rojo.'+raizTxt+' Hoy ya no diagnosticamos — hoy lo arreglamos.';
     }
-      msg.className='source-msg';
-    } else {
-      msg.innerHTML='No encontramos tu diagn\u00f3stico de la Sesi\u00f3n 3 en la nube. Aseg\u00farate de haberlo guardado en S3, o escribe tu cuello manualmente en el plan de abajo.';
-      msg.className='source-msg warn';
-    }
-  } else {
+    msg.className='source-msg';
+  } else if(own && own.cuello){
+    showCuello(own.cuello, own.cuelloCause);
     msg.style.display='none';
+  } else {
+    msg.innerHTML='No encontramos tu diagnostico de la Sesion 3 en la nube. Escribe tu cuello manualmente en el plan de abajo.';
+    msg.className='source-msg warn';
   }
 
   if(products.length===0){ products=[emptyProduct(), emptyProduct()]; }

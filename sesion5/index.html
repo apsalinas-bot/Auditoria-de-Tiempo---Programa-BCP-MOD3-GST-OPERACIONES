@@ -147,7 +147,7 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
 @media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
-/* ── Claude IA S5 ── */
+/* Claude IA S5 */
 @keyframes shimmer-s5{0%{background-position:200% center}100%{background-position:-200% center}}
 @keyframes spin-s5{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes pulse-s5{0%,100%{opacity:.25}50%{opacity:1}}
@@ -173,6 +173,18 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .d5-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:12px}
 .d5-body{font-size:13.5px;color:#A8E6E6;line-height:1.8}
 .d5-body b{color:#fff;font-weight:700}
+/* tabla reorden */
+.reorden-wrap{margin:14px 0 6px}
+.reorden-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px}
+.reorden-table{width:100%;border-collapse:collapse;font-size:11px}
+.reorden-table th{background:#0E8C8C;color:#fff;padding:5px 7px;text-align:left;font-size:10px}
+.reorden-table td{padding:5px 7px;border-bottom:1px solid #C8D4E8;vertical-align:middle}
+.reorden-table tr:last-child td{border-bottom:none}
+.reorden-table .cat-a{color:#0A6A6A;font-weight:700}
+.reorden-table .cat-b{color:#8A6D00;font-weight:700}
+.reorden-table .cat-c{color:#6B7688;font-weight:700}
+.reorden-table .val-ss{color:#002A8D;font-weight:700}
+.reorden-table .val-pr{color:#0E8C8C;font-weight:700}
 </style>
 </head>
 <body>
@@ -270,7 +282,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <textarea class="plan-input" id="planC" placeholder="Ej: comprar menos cantidad, solo cuando se necesite..."></textarea>
     </div>
 
-    <!-- Análisis IA ABC -->
+    <!-- Análisis IA -->
     <div class="analisis-abc-s5" id="analisisAbcS5"></div>
     <div class="diagnostico-s5" id="diagnosticoS5">
       <div class="d5-eyebrow">&#9670; Diagn&#243;stico de consultor</div>
@@ -279,10 +291,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
     </div>
     <button class="claude-btn-s5 no-print" id="saveCloudBtn">
       <div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div>
-      <div class="cb5-text">
-        <div class="cb5-main">Guardar y generar an&#225;lisis</div>
-        <div class="cb5-sub">Diagn&#243;stico personalizado con IA</div>
-      </div>
+      <div class="cb5-text"><div class="cb5-main">Guardar y generar an&#225;lisis</div><div class="cb5-sub">Diagn&#243;stico personalizado con IA</div></div>
       <div class="cb5-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg><span>Claude</span></div>
     </button>
     <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Matriz ABC (.xlsx)</button>
@@ -416,31 +425,52 @@ function cargarDatos(){
 }
 
 // ── INSUMOS ──
-function emptyIns(){ return { name:'', cost:'', qty:'' }; }
+function emptyIns(){ return { name:'', cost:'', qty:'', leadTime:'', maxQty:'', orderCost:'' }; }
+function calcReorden(it){
+  var qty=parseFloat(it.qty)||0, cost=parseFloat(it.cost)||0;
+  var lt=parseFloat(it.leadTime)||0, mq=parseFloat(it.maxQty)||0;
+  var oc=parseFloat(it.orderCost)||0;
+  if(!qty||!cost||!lt||!mq||mq<qty) return null;
+  var cdD=qty/30, ss=Math.ceil((mq-qty)/30*lt), pr=Math.ceil(cdD*lt+ss);
+  var ssCosto=parseFloat((ss*cost).toFixed(0));
+  var eoq=null, eoqCosto=null, pedidosMes=null;
+  if(oc>0){
+    var dAnual=qty*12, hAnual=cost*0.20;
+    eoq=Math.ceil(Math.sqrt(2*dAnual*oc/hAnual));
+    eoqCosto=parseFloat((eoq*cost).toFixed(0));
+    pedidosMes=parseFloat((qty/eoq).toFixed(1));
+  }
+  return {cdD:parseFloat(cdD.toFixed(2)),ss,pr,ssCosto,eoq,eoqCosto,pedidosMes,lt,mq};
+}
+function renderReordenBadge(it){
+  var r=calcReorden(it); if(!r) return '';
+  var h='<div class="reorden-live" style="background:#E3F5F5;border-left:3px solid #0E8C8C;border-radius:0 10px 10px 0;padding:10px 12px;margin-top:8px;font-size:12px;color:#0A6A6A">';
+  h+='<div style="font-weight:700;margin-bottom:5px">&#128204; Pedir cuando queden <b>'+r.pr+' unidades</b></div>';
+  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px">';
+  h+='<span>Stock seguridad: <b>'+r.ss+' und</b></span><span>SS en S/: <b>'+r.ssCosto+'</b></span>';
+  h+='</div>';
+  if(r.eoq!==null){
+    h+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(14,140,140,0.25);display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px">';
+    h+='&#128722; Cantidad a pedir: <b>'+r.eoq+' unidades</b> &nbsp;'
+      +'<span>Valor pedido: <b>S/ '+r.eoqCosto+'</b></span>'
+      +'<span>Frecuencia: <b>'+r.pedidosMes+'x al mes</b></span>';
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
 function renderInsumos(){
-  const list=$('insList'); list.innerHTML='';
-  const ej=getEjemplo();
-  insumos.forEach((it,i)=>{
-    const c=document.createElement('div'); c.className='ins-card';
-    const first=(i===0 && ej);
-    const exN=first?'<div class="ex-hint">Ej: '+esc(ej.insumo)+'</div>':'';
-    const exC=first?'<div class="ex-hint">Ej: cuánto te cuesta UNA unidad</div>':'';
-    const exQ=first?'<div class="ex-hint">Ej: cuántas usas o vendes al mes</div>':'';
-    const val=(it.cost!=='' && it.qty!=='')?(parseFloat(it.cost)*parseFloat(it.qty)):null;
-    const valTxt=(val!==null && !isNaN(val))?'<div class="val-calc">\u2713 Este insumo mueve <b>S/ '+val.toFixed(0)+'</b> al mes</div>':'';
-    const cdD2=(it.qty!==''&&!isNaN(parseFloat(it.qty)))?parseFloat(it.qty)/30:null;
-    const lt2=(it.leadTime!==''&&!isNaN(parseFloat(it.leadTime)))?parseFloat(it.leadTime):null;
-    const mq2=(it.maxQty!==''&&!isNaN(parseFloat(it.maxQty)))?parseFloat(it.maxQty):null;
-    const qty2=(it.qty!==''&&!isNaN(parseFloat(it.qty)))?parseFloat(it.qty):null;
-    let reordenTxt='';
-    if(cdD2!==null&&lt2!==null&&mq2!==null&&qty2!==null&&mq2>=qty2){
-      const ss2=Math.ceil((mq2-qty2)/30*lt2);
-      const pr2=Math.ceil(cdD2*lt2+ss2);
-      reordenTxt='<div class="val-calc reorden-live" style="background:#E3F5F5;color:#0A6A6A">'
-        +'\uD83D\uDCCC <b>Pedir cuando queden '+pr2+' unidades</b>'
-        +' &nbsp;&middot;&nbsp; Stock seg.: '+ss2+' und'
-        +' &nbsp;&middot;&nbsp; SS en S/: '+(ss2*parseFloat(it.cost||0)).toFixed(0)+'</div>';
-    }
+  var list=$('insList'); list.innerHTML='';
+  var ej=getEjemplo();
+  insumos.forEach(function(it,i){
+    var c=document.createElement('div'); c.className='ins-card';
+    var first=(i===0 && ej);
+    var exN=first?'<div class="ex-hint">Ej: '+esc(ej.insumo)+'</div>':'';
+    var exC=first?'<div class="ex-hint">Ej: cuánto te cuesta UNA unidad</div>':'';
+    var exQ=first?'<div class="ex-hint">Ej: cuántas usas o vendes al mes</div>':'';
+    var val=(it.cost!==''&&it.qty!=='')?(parseFloat(it.cost)*parseFloat(it.qty)):null;
+    var valTxt=(val!==null&&!isNaN(val))?'<div class="val-calc">\u2713 Este insumo mueve <b>S/ '+val.toFixed(0)+'</b> al mes</div>':'';
+    var reordenTxt=renderReordenBadge(it);
     c.innerHTML=
       '<h3>Insumo '+(i+1)+'</h3>'+
       (insumos.length>1?'<button class="ins-del" data-del="'+i+'">&#10005; quitar</button>':'')+
@@ -454,16 +484,19 @@ function renderInsumos(){
       '</div>'+
       valTxt+
       '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">'+
-      '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:6px">'+
-      '\uD83D\uDCCB Para calcular tu punto de reorden</div>'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px">'+
+      '&#128203; Reorden y cantidad a pedir</div>'+
       '<div class="mini-2col">'+
         '<div class="mini-field"><label>Días que tarda tu proveedor <span class="unit">(lead time)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="leadTime" value="'+esc(it.leadTime||'')+'" placeholder="Ej: 7" inputmode="decimal">'+
         '<div class="ex-hint">Días desde que pides hasta que llega</div></div>'+
-        '<div class="mini-field"><label>Máximo que usas en un mes <span class="unit">(unidades)</span></label>'+
+        '<div class="mini-field"><label>Máximo que usas en un mes <span class="unit">(und)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="maxQty" value="'+esc(it.maxQty||'')+'" placeholder="Ej: 80" inputmode="decimal">'+
         '<div class="ex-hint">En tu mes más ocupado, ¿cuánto usaste?</div></div>'+
       '</div>'+
+      '<div class="mini-field" style="margin-top:4px"><label>¿Cuánto te cuesta hacer UN pedido? <span class="unit">(S/)</span></label>'+
+      '<input type="number" data-i="'+i+'" data-f="orderCost" value="'+esc(it.orderCost||'')+'" placeholder="Ej: 25" inputmode="decimal">'+
+      '<div class="ex-hint">Transporte + tu tiempo. Ej: vas en moto a recogerlo (1h de tu tiempo=S/20 + S/5 combustible) = <b>S/25 por pedido</b></div></div>'+
       reordenTxt+
       '</div>';
     list.appendChild(c);
@@ -475,31 +508,22 @@ function bindInsInputs(){
     const inp=e.target.closest('input[data-i]'); if(!inp) return;
     const i=parseInt(inp.dataset.i,10), f=inp.dataset.f;
     insumos[i][f]=inp.value;
-    // actualizar valor y reorden sin re-render
-    if(f==='cost'||f==='qty'||f==='leadTime'||f==='maxQty'){
-      const card=inp.closest('.ins-card');
+    if(f==='cost'||f==='qty'||f==='leadTime'||f==='maxQty'||f==='orderCost'){
+      var card=inp.closest('.ins-card');
       if(f==='cost'||f==='qty'){
-        let vc=card.querySelector('.val-calc:not(.reorden-live)');
-        const v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
+        var vc=card.querySelector('.val-calc:not(.reorden-live)');
+        var v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
         if(v!==null&&!isNaN(v)){
-          if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; card.querySelector('[data-f="qty"]').closest('.mini-2col').after(vc); }
+          if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; var mc=card.querySelector('.mini-2col'); mc.after(vc); }
           vc.innerHTML='\u2713 Este insumo mueve <b>S/ '+v.toFixed(0)+'</b> al mes';
         } else if(vc){ vc.remove(); }
       }
-      const it2=insumos[i];
-      const cdDx=(it2.qty!==''&&!isNaN(parseFloat(it2.qty)))?parseFloat(it2.qty)/30:null;
-      const ltx=(it2.leadTime!==''&&!isNaN(parseFloat(it2.leadTime)))?parseFloat(it2.leadTime):null;
-      const mqx=(it2.maxQty!==''&&!isNaN(parseFloat(it2.maxQty)))?parseFloat(it2.maxQty):null;
-      const qtyx=(it2.qty!==''&&!isNaN(parseFloat(it2.qty)))?parseFloat(it2.qty):null;
-      let rv=card.querySelector('.reorden-live');
-      if(cdDx!==null&&ltx!==null&&mqx!==null&&qtyx!==null&&mqx>=qtyx){
-        const ssx=Math.ceil((mqx-qtyx)/30*ltx);
-        const prx=Math.ceil(cdDx*ltx+ssx);
-        if(!rv){ rv=document.createElement('div'); rv.className='val-calc reorden-live'; rv.style.cssText='background:#E3F5F5;color:#0A6A6A'; card.appendChild(rv); }
-        rv.innerHTML='\uD83D\uDCCC <b>Pedir cuando queden '+prx+' unidades</b>'
-          +' &nbsp;&middot;&nbsp; Stock seg.: '+ssx+' und'
-          +' &nbsp;&middot;&nbsp; SS en S/: '+(ssx*parseFloat(it2.cost||0)).toFixed(0);
-      } else if(rv){ rv.remove(); }
+      var rvOld=card.querySelector('.reorden-live');
+      var badge=renderReordenBadge(insumos[i]);
+      if(badge){
+        var tmp=document.createElement('div'); tmp.innerHTML=badge;
+        if(rvOld) rvOld.replaceWith(tmp.firstChild); else card.appendChild(tmp.firstChild);
+      } else if(rvOld){ rvOld.remove(); }
     }
     computeABC(); save();
   });
@@ -695,135 +719,125 @@ $('clearBtn').addEventListener('click', ()=>{
   location.reload();
 });
 
-// ── CLAUDE PROXY S5 ──────────────────────────────────────────────────────────
+// CLAUDE PROXY S5
 async function callClaudeS5(prompt){
   try{
-    const r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
+    var r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,
-        system:'Eres una consultora de operaciones experta, cálida y muy directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Usas los datos EXACTOS que te dan. Das pasos concretos y accionables para esta semana. Lenguaje simple y cercano. Resalta con **asteriscos** máximo 3 frases clave.',
+        system:'Eres una consultora de operaciones experta, calida y directa. Trabajas con microempresarias en Arequipa, Peru. Hablas de tu. Usas datos EXACTOS. Das pasos concretos para esta semana. Lenguaje simple como el de una amiga que sabe de negocios. Resalta con **asteriscos** max 3 frases clave.',
         messages:[{role:'user',content:prompt}]})
     });
     if(!r.ok){console.error('API S5',r.status);return null;}
-    const d=await r.json();
+    var d=await r.json();
     return d.content&&d.content[0]?d.content[0].text:null;
   }catch(e){console.error('callClaudeS5',e);return null;}
 }
-function renderNegS5(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function renderNegS5(txt){return(txt||''). replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 function dotsS5El(el){el.innerHTML='<div class="dots-s5"><span></span><span></span><span></span></div>';}
 function btnS5Original(){
-  const btn=$('saveCloudBtn');
-  btn.innerHTML='<div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Guardar y generar an&#225;lisis</div><div class="cb5-sub">Diagn&#243;stico personalizado con IA</div></div><div class="cb5-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg><span>Claude</span></div>';
-  btn.disabled=false;
+  var btn=$('saveCloudBtn'); btn.disabled=false;
+  btn.innerHTML='<div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Guardar y generar an&#225;lisis</div><div class="cb5-sub">Diagn&#243;stico personalizado con IA</div></div><div class="cb5-badge"><span>Claude</span></div>';
 }
 function btnS5Loading(){
-  const btn=$('saveCloudBtn'); btn.disabled=true;
-  btn.innerHTML='<div class="cb5-icon" style="animation:spin-s5 1s linear infinite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Generando an&#225;lisis...</div><div class="cb5-sub">Claude est&#225; procesando tu informaci&#243;n</div></div>';
+  var btn=$('saveCloudBtn'); btn.disabled=true;
+  btn.innerHTML='<div class="cb5-icon" style="animation:spin-s5 1s linear infinite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Generando an&#225;lisis...</div><div class="cb5-sub">Claude est&#225; procesando</div></div>';
 }
-
 // GUARDAR NUBE
-$('saveCloudBtn').addEventListener('click', async ()=>{
-  if(abcData.length<2){ showStatus('Agrega al menos 2 insumos con costo y cantidad.','err'); return; }
-  btnS5Loading();
-  showStatus('Guardando y generando an\u00e1lisis...','loading');
-  const rec=await binRead();
-  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); btnS5Original(); return; }
-  const entries=Array.isArray(rec.entries)?rec.entries:[];
-  const total=abcData.reduce((s,it)=>s+it.value,0);
-  const groupA=abcData.filter(i=>i.cat==='A');
-  const groupB=abcData.filter(i=>i.cat==='B');
-  const groupC=abcData.filter(i=>i.cat==='C');
-  const planATxt=$('planA').value.trim();
-  const planCTxt=$('planC').value.trim();
-  const reordenData=insumos.filter(it=>it.name&&it.cost&&it.qty&&it.leadTime&&it.maxQty&&parseFloat(it.maxQty)>=parseFloat(it.qty)).map(it=>{
-    const cdD=parseFloat(it.qty)/30;
-    const lt=parseFloat(it.leadTime);
-    const mq=parseFloat(it.maxQty);
-    const qty=parseFloat(it.qty);
-    const ss=Math.ceil((mq-qty)/30*lt);
-    const pr=Math.ceil(cdD*lt+ss);
-    const cat=(abcData.find(a=>a.name===it.name)||{cat:'?'}).cat;
-    return {name:it.name,cat,costo:parseFloat(it.cost),cdDiario:parseFloat(cdD.toFixed(2)),leadTime:lt,maxQty:mq,ss,pr,ssCosto:parseFloat((ss*parseFloat(it.cost)).toFixed(0))};
+$('saveCloudBtn').addEventListener('click', async function(){
+  if(abcData.length<2){ showStatus('Agrega al menos 2 insumos.','err'); return; }
+  btnS5Loading(); showStatus('Guardando y generando análisis...','loading');
+  var rec=await binRead();
+  if(rec===null){ showStatus('Error de conexión.','err'); btnS5Original(); return; }
+  var entries=Array.isArray(rec.entries)?rec.entries:[];
+  var total=abcData.reduce(function(s,it){return s+it.value;},0);
+  var groupA=abcData.filter(function(i){return i.cat==='A';});
+  var groupB=abcData.filter(function(i){return i.cat==='B';});
+  var groupC=abcData.filter(function(i){return i.cat==='C';});
+  var planATxt=$('planA').value.trim(), planCTxt=$('planC').value.trim();
+  // calcular reorden + EOQ para todos con datos completos
+  var reordenData=insumos.filter(function(it){return it.name&&it.cost&&it.qty&&it.leadTime&&it.maxQty&&parseFloat(it.maxQty)>=parseFloat(it.qty);}).map(function(it){
+    var r=calcReorden(it)||{};
+    var cat=(abcData.find(function(a){return a.name===it.name;})||{cat:'?'}).cat;
+    return {name:it.name,cat:cat,costo:parseFloat(it.cost),cdDiario:r.cdD||0,lt:r.lt||0,ss:r.ss||0,pr:r.pr||0,ssCosto:r.ssCosto||0,eoq:r.eoq||null,eoqCosto:r.eoqCosto||null,pedidosMes:r.pedidosMes||null};
   });
-  const payload={
-    dni:currentDNI, name:currentName,
-    insumos:abcData.map(it=>({name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat})),
-    insumoCount:abcData.length, totalValue:total, countA:groupA.length,
-    planA:planATxt, planC:planCTxt,
-    hasPlan: !!(planATxt||planCTxt),
-    reordenCount:reordenData.length,
-    savedAt:new Date().toISOString()
+  var payload={
+    dni:currentDNI,name:currentName,
+    insumos:abcData.map(function(it){return{name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat};}),
+    insumoCount:abcData.length,totalValue:total,countA:groupA.length,
+    planA:planATxt,planC:planCTxt,hasPlan:!!(planATxt||planCTxt),
+    reordenCount:reordenData.length,savedAt:new Date().toISOString()
   };
-  const idx=entries.findIndex(e=>e.dni===currentDNI);
+  var idx=entries.findIndex(function(e){return e.dni===currentDNI;});
   if(idx>=0) entries[idx]=payload; else entries.push(payload);
 
-  // ── Prompt 1: interpretacion coloquial de la grafica ABC ─────────────────
-  const firstName=currentName.trim().split(' ')[0];
-  const insTexto=abcData.map(it=>'- '+it.name+' (Grupo '+it.cat+'): S/'+it.cost.toFixed(0)+' c/u x '+it.qty+'/mes = S/'+it.value.toFixed(0)+'/mes = '+it.pct.toFixed(0)+'% de tu dinero').join('\n');
-  const elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
-
-  const ia1=await callClaudeS5(
-    'Emprendedora: '+firstName+'\nTotal invertido en inventario: S/'+total.toFixed(0)+' al mes\n\n'+
+  // Prompt 1: interpretacion coloquial de la grafica ABC
+  var firstName=currentName.trim().split(' ')[0];
+  var insTexto=abcData.map(function(it){return '- '+it.name+' (Grupo '+it.cat+'): S/'+it.cost.toFixed(0)+' c/u x '+it.qty+'/mes = S/'+it.value.toFixed(0)+'/mes = '+it.pct.toFixed(0)+'% de tu dinero';}).join('\n');
+  var elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
+  var ia1=await callClaudeS5(
+    'Emprendedora: '+firstName+'\nTotal en inventario: S/'+total.toFixed(0)+' al mes\n\n'+
     'Clasificacion ABC (de mayor a menor valor):\n'+insTexto+
     '\n\nEscribe una interpretacion COLOQUIAL de esta grafica ABC (max 90 palabras).\n'+
-    'Habla como si le explicaras a una amiga lo que ves en los numeros.\n'+
-    'SIN terminos tecnicos como pareto o distribucion.\n'+
-    'Di en palabras simples: cuanto dinero tiene atrapado en que productos, si hay algo llamativo o preocupante, que significa tener tanto en los A.\n'+
-    'Usa los montos reales en soles. Usa su nombre una vez al inicio. Resalta el hallazgo mas importante con **asteriscos**.'
+    'Como si le explicaras a una amiga lo que ves en los numeros. SIN terminos tecnicos.\n'+
+    'Di: cuanto dinero tiene atrapado en que productos, si hay algo llamativo, que significa tener tanto en los A.\n'+
+    'Usa montos reales en soles. Usa su nombre una vez. Resalta lo mas importante con **asteriscos**.'
   );
-  elA.innerHTML=renderNegS5(ia1||firstName+', la mayor parte de tu dinero esta concentrada en pocos insumos. Esos son los que mas cuidan tu negocio.');
+  elA.innerHTML=renderNegS5(ia1||firstName+', la mayor parte de tu dinero esta en pocos insumos. Esos son los que mas cuidan tu negocio.');
 
-  // ── Tabla de reorden calculada por la app ───────────────────────────────
-  const dEl=$('diagnosticoS5'); const dBody=$('diagnosticoS5Body');
+  // Tabla de reorden calculada por la app
+  var dEl=$('diagnosticoS5'); var dBody=$('diagnosticoS5Body');
   dEl.classList.add('visible');
-  let tablaHTML='';
+  var tablaHTML='';
   if(reordenData.length>0){
     tablaHTML='<div class="reorden-wrap">'+
-      '<div class="reorden-title">&#128204; Tus puntos de reorden y stock de seguridad</div>'+
+      '<div class="reorden-title">&#128204; Tus puntos de reorden, stock de seguridad y cantidad a pedir</div>'+
       '<div style="overflow-x:auto"><table class="reorden-table">'+
-      '<thead><tr><th>Insumo</th><th>Cat</th><th>Uso/dia</th><th>Lead time</th><th>Stock seg.</th><th>Pedir cuando queden</th><th>SS en S/</th></tr></thead><tbody>';
-    reordenData.forEach(r=>{
-      const catCls='cat-'+r.cat.toLowerCase();
+      '<thead><tr><th>Insumo</th><th>Cat</th><th>Uso/dia</th><th>Lead time</th><th>Stock seg.</th><th>Pedir cuando queden</th><th>Cantidad a pedir (EOQ)</th><th>Valor pedido</th><th>Frec./mes</th></tr></thead><tbody>';
+    reordenData.forEach(function(r){
+      var cc='cat-'+r.cat.toLowerCase();
       tablaHTML+='<tr>'+
         '<td><b>'+esc(r.name)+'</b></td>'+
-        '<td><span class="'+catCls+'">'+r.cat+'</span></td>'+
+        '<td><span class="'+cc+'">'+r.cat+'</span></td>'+
         '<td>'+r.cdDiario+' und</td>'+
-        '<td>'+r.leadTime+' dias</td>'+
+        '<td>'+r.lt+' dias</td>'+
         '<td class="val-ss">'+r.ss+' und</td>'+
         '<td class="val-pr"><b>'+r.pr+' und</b></td>'+
-        '<td>S/ '+r.ssCosto+'</td>'+
+        '<td class="val-pr">'+(r.eoq!==null?'<b>'+r.eoq+' und</b>':'sin dato')+'</td>'+
+        '<td>'+(r.eoqCosto!==null?'S/ '+r.eoqCosto:'-')+'</td>'+
+        '<td>'+(r.pedidosMes!==null?r.pedidosMes+'x':'-')+'</td>'+
         '</tr>';
     });
     tablaHTML+='</tbody></table></div>'+
       '<div style="font-size:10px;color:#6B7688;margin-top:6px;line-height:1.5">'+
-      'Stock seg. = (max − promedio)/30 × lead time &nbsp;·&nbsp; Pedir cuando queden = uso/dia × lead time + stock seg.</div>'+
-      '</div>';
+      'SS=(max-prom)/30×LT &nbsp;·&nbsp; Pedir cuando queden=uso/dia×LT+SS &nbsp;·&nbsp; EOQ=raiz(2×demanda anual×costo pedido / costo mantener 20%)'+
+      '</div></div>';
   }
 
-  // ── Prompt 2: pasos concretos basados en el plan que ella escribio ─────────
+  // Prompt 2: pasos concretos basados en su plan
   dotsS5El(dBody);
-  const topA=groupA.map(i=>i.name+' (S/'+i.value.toFixed(0)+'/mes)').join(', ')||'ninguno';
-  const topC=groupC.length?groupC.map(i=>i.name+' (S/'+i.value.toFixed(0)+'/mes)').join(', '):'ninguno';
-  const reordenRes=reordenData.length
-    ?reordenData.map(r=>'- '+r.name+' ('+r.cat+'): pedir al llegar a '+r.pr+' unidades, guardar '+r.ss+' de reserva (vale S/'+r.ssCosto+')').join('\n')
+  var topA=groupA.map(function(i){return i.name+' (S/'+i.value.toFixed(0)+'/mes)';}).join(', ')||'ninguno';
+  var topC=groupC.length?groupC.map(function(i){return i.name+' (S/'+i.value.toFixed(0)+'/mes)';}).join(', '):'ninguno';
+  var reordenRes=reordenData.length
+    ?reordenData.map(function(r){return '- '+r.name+' ('+r.cat+'): pedir cuando queden '+r.pr+' und'+(r.eoq!==null?', pedir '+r.eoq+' und (S/'+r.eoqCosto+') '+r.pedidosMes+'x al mes':'')+', SS='+r.ss+' und (S/'+r.ssCosto+')';}).join('\n')
     :'(no registro lead time ni maximo aun)';
-
-  const ia2=await callClaudeS5(
+  var ia2=await callClaudeS5(
     'Emprendedora: '+firstName+'\nInsumos A (criticos): '+topA+'\nInsumos C (liberar): '+topC+'\n'+
-    (planATxt?'\nLo que ella escribio para sus insumos A: "'+planATxt+'"':'\n(No escribio plan para A)')+
-    (planCTxt?'\nLo que ella escribio para sus insumos C: "'+planCTxt+'"':'\n(No escribio plan para C)')+
-    '\n\nPuntos de reorden calculados:\n'+reordenRes+
-    '\n\nEres su consultora. Escribe 3 pasos concretos y coloquiales (max 100 palabras) basados en lo que ella escribio.\n'+
+    (planATxt?'\nLo que ella escribio para A: "'+planATxt+'"':'\n(No escribio plan para A)')+
+    (planCTxt?'\nLo que ella escribio para C: "'+planCTxt+'"':'\n(No escribio plan para C)')+
+    '\n\nPuntos de reorden y EOQ calculados:\n'+reordenRes+
+    '\n\nEscribe 3 pasos concretos y coloquiales (max 100 palabras) basados en su plan.\n'+
     'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'+
-    'Si su plan es vago, hazlo especifico con los numeros reales calculados.\n'+
-    'Si menciono stock o reorden, usa los numeros exactos calculados arriba.\n'+
-    'Si no escribio plan, da 3 pasos practicos con sus datos reales.\n'+
+    'Si el plan es vago, especificalo con los numeros calculados.\n'+
+    'Si menciono stock o reorden, usa los numeros exactos de arriba.\n'+
+    'Si no escribio plan, da 3 pasos practicos con sus datos.\n'+
     'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso mas urgente.'
   );
-  dBody.innerHTML=tablaHTML+renderNegS5(ia2||firstName+', esta semana define tu stock minimo para los insumos A y deja de comprar de mas los C.');
-  const ok=await binWrite({entries});
+  dBody.innerHTML=tablaHTML+renderNegS5(ia2||firstName+', esta semana define tu stock minimo para los A y deja de comprar de mas los C.');
+
+  var ok=await binWrite({entries});
   showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
-  if(ok) setTimeout(()=>showStatus('',''),5000);
+  if(ok) setTimeout(function(){showStatus('','');},5000);
   btnS5Original();
 });
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }

@@ -340,7 +340,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       </div>
       <div class="kpi-box" style="border-top:3px solid #3B6D11">
         <div class="kpi-val" id="kValorTotal" style="color:#3B6D11">-</div>
-        <div class="kpi-lbl">S/ en inventario del aula</div>
+        <div class="kpi-lbl">S/ promedio en inventario por emprendedora</div>
       </div>
     </div>
 
@@ -1257,7 +1257,6 @@ async function loadDocData(){
   const totalIns=empEnt.reduce((s,e)=>s+(e.insumoCount||0),0);
   const conPlan=empEnt.filter(e=>e.hasPlan).length;
   const avgValor=total?Math.round(empEnt.reduce((s,e)=>s+(e.totalValue||0),0)/total):0;
-  const valorTotalAula=empEnt.reduce((s,e)=>s+(e.totalValue||0),0);
 
   // ABC totales y promedios
   const totA=empEnt.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0);
@@ -1272,7 +1271,7 @@ async function loadDocData(){
   $('kTotal').textContent=total;
   $('kPct').textContent=pct+'%';
   $('kInsumos').textContent=totalIns;
-  $('kValorTotal').textContent='S/'+valorTotalAula.toLocaleString();
+  $('kValorTotal').textContent='S/'+avgValor.toLocaleString();
   $('kPctLbl').textContent=total+' / '+TOTAL_EMP;
   $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su matriz ABC.';

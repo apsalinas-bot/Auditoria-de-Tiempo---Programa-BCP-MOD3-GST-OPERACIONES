@@ -1094,80 +1094,254 @@ async function generarExcelSolver(valid, rName, rTotal){
 }
 
 $('printBtn').addEventListener('click', () => {
-  // Recopilar datos para la ventana de impresión
-  const nombre = currentName || '';
-  const cuelloTxt = ($('cuelloText') && $('cuelloText').textContent) ? $('cuelloText').textContent : '';
-  const accion = action ? {'eliminar':'Eliminar','automatizar':'Automatizar','simplificar':'Simplificar'}[action]||action : '';
-  const planTxt = $('actionPlan') ? $('actionPlan').value.trim() : '';
-  const analisis1 = $('analisisPlanS4') ? $('analisisPlanS4').innerHTML : '';
-  const diagBody = $('diagnosticoS4MainBody') ? $('diagnosticoS4MainBody').innerHTML : '';
-  const hasDiag = diagBody && diagBody.trim() && !diagBody.includes('dots-s4');
-
-  // Recopilar productos
-  const validP = products.filter(p=>p.name&&p.price);
-  const recurso = $('recursoName') ? $('recursoName').value.trim() : '';
+  // ── Recopilar todos los datos ─────────────────────────────────────────────
+  const nombre     = currentName || '';
+  const cuelloTxt  = ($('cuelloText') && $('cuelloText').textContent) ? $('cuelloText').textContent.trim() : '';
+  const cuelloCauseTxt = ($('cuelloCause') && $('cuelloCause').textContent) ? $('cuelloCause').textContent.trim() : '';
+  const accion     = action ? ({'eliminar':'Eliminar','automatizar':'Automatizar','simplificar':'Simplificar'}[action]||action) : '';
+  const planTxt    = $('actionPlan') ? $('actionPlan').value.trim() : '';
+  // Análisis IA – Paso 1
+  const analisis1El = $('analisisPlanS4');
+  const analisis1  = (analisis1El && analisis1El.innerHTML && !analisis1El.innerHTML.includes('dots-s4')) ? analisis1El.innerHTML : '';
+  // Paso 2 – productos
+  const validP     = products.filter(p=>p.name&&p.price);
+  const recurso    = $('recursoName') ? $('recursoName').value.trim() : '';
   const recursoTotal = $('recursoTotal') ? $('recursoTotal').value.trim() : '';
-  const prodRows = validP.map(p=>'<tr><td style="padding:6px 8px;border:1px solid #ddd">'+esc(p.name)+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right">S/'+p.price+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right">S/'+(p.cost||0)+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right;color:#2F9E5F;font-weight:600">S/'+(Number(p.price)-Number(p.cost||0))+'</td></tr>').join('');
+  // Ecuación formal (lo que va al Solver)
+  const eqFormalEl = $('eqFormalBody');
+  const eqFormal   = (eqFormalEl && eqFormalEl.innerHTML && validP.length>=2) ? eqFormalEl.innerHTML : '';
+  // Ecuación resumen
+  const eqSumEl    = $('eqBody');
+  const eqSum      = (eqSumEl && eqSumEl.innerHTML && validP.length>=1) ? eqSumEl.innerHTML : '';
+  // Resultados Solver (si los subieron)
+  const hasSolver  = solverResults && solverResults.length>0;
+  const solverRows = hasSolver ? solverResults.map(r=>'<tr><td style="padding:6px 10px;border:1px solid #C8D4E8">'+esc(r.nombre)+'</td><td style="padding:6px 10px;border:1px solid #C8D4E8;text-align:right;font-weight:700;color:#002A8D">'+r.cantidad+'</td></tr>').join('') : '';
+  // Ganancia óptima calculada
+  let ganOpt = 0;
+  if(hasSolver) solverResults.forEach(function(sr){ const p=validP.find(function(p){return p.name.trim()===sr.nombre;}); if(p) ganOpt+=(Number(p.price)-Number(p.cost||0))*sr.cantidad; });
+  // Análisis mix S4 (diagnóstico de consultor del bloque solver)
+  const diagEl   = $('diagnosticoS4MainBody');
+  const diagBody = (diagEl && diagEl.innerHTML && !diagEl.innerHTML.includes('dots-s4')) ? diagEl.innerHTML : '';
+  const hasDiag  = diagBody && diagBody.trim().length > 0;
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>S4 - ${nombre}</title>
+  // Filas de productos para tabla Paso 2
+  const prodRows = validP.map(p=>'<tr>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;font-weight:600">'+esc(p.name)+'</td>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">S/ '+esc(p.price)+'</td>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">S/ '+esc(p.cost||'0')+'</td>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right;color:#2F9E5F;font-weight:700">S/ '+(Number(p.price)-Number(p.cost||0))+'</td>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">'+esc(p.resourcePerUnit||'-')+'</td>'
+    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right;color:#6B7688">'+esc(p.maxDemand||'-')+'</td>'
+    +'</tr>').join('');
+
+  // ── HTML con saltos de página forzados ────────────────────────────────────
+  // PAGE 1 = PASO 1 completo
+  // PAGE 2-3 = PASO 2 (tabla + ecuación + resultados Solver)
+  // RESTO = diagnóstico IA
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>S4 Resumen – ${esc(nombre)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#1C2536;line-height:1.6;padding:20px}
-  .header{background:#002A8D;color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:20px}
-  .header .eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7FA0FF;margin-bottom:4px}
-  .header h1{font-size:20px;font-weight:700;margin-bottom:2px}
-  .header h1 span{color:#EC6607}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#1C2536;line-height:1.6;background:#fff}
+
+  /* ── saltos de página ── */
+  .page{padding:18px 20px 14px;min-height:0}
+  .page-break{page-break-after:always;break-after:page}
+  .page-break-before{page-break-before:always;break-before:page}
+  .avoid-break{page-break-inside:avoid;break-inside:avoid}
+
+  /* ── cabecera ── */
+  .header{background:#002A8D;color:#fff;padding:14px 18px 12px;border-radius:8px;margin-bottom:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .header .eyebrow{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:#7FA0FF;margin-bottom:3px}
+  .header h1{font-size:18px;font-weight:700;margin-bottom:2px}
+  .header h1 span{color:#FF8C42}
   .header p{font-size:11px;color:#C6D2F5}
-  .section{margin-bottom:16px;padding:14px;border:1px solid #ddd;border-radius:8px}
-  .section-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#002A8D;margin-bottom:8px}
-  .cuello-box{background:#FDECEA;border:1.5px solid #D64545;border-radius:8px;padding:10px 14px;margin-bottom:10px}
-  .cuello-box .cb-label{font-size:10px;font-weight:700;color:#D64545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .action-pill{display:inline-block;background:#EEEDFE;color:#3C3489;font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;margin-bottom:8px}
-  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
-  th{background:#002A8D;color:#fff;padding:6px 8px;text-align:left}
-  .analisis{background:#EEF2FB;border-left:3px solid #002A8D;padding:12px 14px;border-radius:0 8px 8px 0;margin-top:10px;font-size:12.5px;line-height:1.65}
+
+  /* ── cuello ── */
+  .cuello-box{background:#FDECEA;border:1.5px solid #D64545;border-radius:8px;padding:10px 14px;margin-bottom:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cuello-box .cb-label{font-size:9px;font-weight:700;color:#D64545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .cuello-box .cb-cause{font-size:11px;color:#7C0000;margin-top:4px}
+
+  /* ── sección ── */
+  .section-label{font-size:8.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#002A8D;margin-bottom:8px;display:block}
+  .section{margin-bottom:14px;padding:13px 15px;border:1px solid #C8D4E8;border-radius:8px}
+  .action-pill{display:inline-block;background:#EEEDFE;color:#3C3489;font-weight:700;font-size:11.5px;padding:3px 12px;border-radius:20px;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ── análisis IA ── */
+  .analisis{background:#EEF2FB;border-left:3px solid #002A8D;padding:11px 13px;border-radius:0 8px 8px 0;margin-top:10px;font-size:12px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .analisis b{color:#002A8D;font-weight:700}
-  .diagnostico{background:#1a0a00;border-radius:10px;padding:18px;margin-top:12px;color:#FFD4A8}
-  .diag-ey{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C42;margin-bottom:6px}
-  .diag-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px}
-  .diag-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF8C42;margin:10px 0 5px}
-  .diag-body{font-size:12.5px;color:#FFD4A8;line-height:1.75}
-  .diag-body b{color:#fff;font-weight:700}
-  .footer{text-align:center;font-size:10px;color:#9AACBE;margin-top:20px;padding-top:12px;border-top:1px solid #eee}
-  @media print{body{padding:10px}@page{margin:1cm;size:A4 portrait}.diagnostico{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+  /* ── tablas ── */
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+  th{background:#002A8D;color:#fff;padding:6px 9px;text-align:left;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  td{padding:6px 9px;border:1px solid #C8D4E8;vertical-align:middle}
+
+  /* ── ecuación ── */
+  /* ── Así quedó planteado tu problema ── */
+  .eq-summary-box{background:#002A8D;border-radius:10px;padding:14px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .eq-sum-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#B79CFF;margin-bottom:10px}
+  .eq-sum-content{font-size:11.5px;color:#E4EAFF;line-height:1.9}
+  .eq-sum-content b{color:#fff}
+  .eq-sum-content .eq-goal{background:rgba(109,59,212,.4);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px;color:#E4EAFF}
+  .eq-sum-content .eq-goal b{color:#fff}
+  .eq-sum-content .eq-line{display:block;padding:2px 0;color:#C6D2F5}
+  .eq-sum-content .eq-line b{color:#fff}
+
+  .eq-formal-box{background:#0D1B2A;border-radius:10px;padding:14px 16px;margin-top:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .eq-formal-box .eq-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#F4A228;margin-bottom:10px}
+  .eq-formal-box .eq-content{font-size:11.5px;color:#E4EAFF;line-height:1.9}
+  .eq-formal-box .eq-content b{color:#B79CFF}
+  .eq-formal-box .eq-content .hl{color:#2F9E5F}
+  .eq-formal-box .eq-content .cmt{color:#8AACBD;font-size:10px;font-style:italic}
+
+  /* ── Solver results ── */
+  .solver-result{background:#F0FBF0;border:1.5px solid #2F9E5F;border-radius:8px;padding:12px 14px;margin-top:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .solver-result .sr-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#2F9E5F;margin-bottom:8px}
+  .solver-result .sr-gan{font-size:14px;font-weight:700;color:#2F9E5F;margin-top:8px}
+
+  /* ── diagnóstico IA consultor ── */
+  .diagnostico{background:#1a0a00;border-radius:10px;padding:18px;margin-top:14px;color:#FFD4A8;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .diagnostico .diag-ey{font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C42;margin-bottom:5px}
+  .diagnostico .diag-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
+  .diagnostico .diag-body{font-size:12px;color:#FFD4A8;line-height:1.8}
+  .diagnostico .diag-body b{color:#fff;font-weight:700}
+  .diagnostico .diag-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FF8C42;margin:10px 0 5px}
+
+  /* ── pie ── */
+  .footer{text-align:center;font-size:9.5px;color:#9AACBE;padding-top:10px;border-top:1px solid #E2E7F0;margin-top:14px}
+
+  @media print{
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    body{padding:0}
+    @page{margin:1.1cm;size:A4 portrait}
+  }
 </style></head><body>
-<div class="header">
-  <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES</div>
-  <h1>La Limpieza <span>(Optimización)</span></h1>
-  <p>${nombre}</p>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PÁGINA 1 — PASO 1: FLUJOGRAMA 2.0 / PLAN DE MEJORA
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES</div>
+    <h1>La Limpieza <span>(Optimización)</span></h1>
+    <p>${esc(nombre)}</p>
+  </div>
+
+  <div class="section avoid-break">
+    <span class="section-label">Paso 1 · Flujograma 2.0 — Atacar el cuello de botella</span>
+
+    ${cuelloTxt ? `<div class="cuello-box">
+      <div class="cb-label">🔴 Tu cuello de botella</div>
+      <strong style="font-size:13.5px">${esc(cuelloTxt)}</strong>
+      ${cuelloCauseTxt ? `<div class="cb-cause">${esc(cuelloCauseTxt)}</div>` : ''}
+    </div>` : ''}
+
+    ${accion ? `<div><span class="action-pill">Acción elegida: ${esc(accion)}</span></div>` : ''}
+
+    ${planTxt ? `<div style="margin-top:8px">
+      <div style="font-size:9px;font-weight:700;color:#002A8D;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Mi plan concreto</div>
+      <p style="font-size:12.5px;color:#1C2536;line-height:1.7;white-space:pre-wrap">${esc(planTxt)}</p>
+    </div>` : ''}
+
+    ${analisis1 ? `<div style="margin-top:12px">
+      <div style="font-size:9px;font-weight:700;color:#002A8D;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Análisis IA de tu plan</div>
+      <div class="analisis">${analisis1}</div>
+    </div>` : ''}
+  </div>
+
+  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
 </div>
 
-${cuelloTxt ? `<div class="cuello-box"><div class="cb-label">🔴 Tu cuello de botella</div><strong>${esc(cuelloTxt)}</strong></div>` : ''}
+${(validP.length >= 1) ? `<!-- ══════════════════════════════════════════════════════════════
+     PÁGINAS 2-3 — PASO 2: OPTIMIZADOR DE MIX
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="page">
 
-${accion||planTxt ? `<div class="section">
-  <div class="section-label">Paso 1 · Plan de mejora</div>
-  ${accion ? `<div class="action-pill">Acción: ${esc(accion)}</div>` : ''}
-  ${planTxt ? `<p style="font-size:12.5px;color:#333;margin-top:6px">${esc(planTxt)}</p>` : ''}
-  ${analisis1 ? `<div class="analisis">${analisis1}</div>` : ''}
+  <div class="header">
+    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES — continuación</div>
+    <h1>La Limpieza <span>(Optimización)</span></h1>
+    <p>${esc(nombre)} — Paso 2: Tu mezcla ideal</p>
+  </div>
+
+  <div class="section avoid-break">
+    <span class="section-label">Paso 2 · Optimizador de mix — ¿Cuánto hacer de cada producto?</span>
+
+    <p style="font-size:11.5px;color:#6B7688;margin-bottom:10px">
+      Recurso limitante: <strong style="color:#002A8D">${esc(recurso||'—')}</strong>
+      ${recursoTotal ? ` &nbsp;·&nbsp; Disponible por semana: <strong style="color:#002A8D">${esc(recursoTotal)}</strong>` : ''}
+    </p>
+
+    <table class="avoid-break">
+      <thead>
+        <tr>
+          <th>Producto / Servicio</th>
+          <th style="text-align:right">Precio (S/)</th>
+          <th style="text-align:right">Costo (S/)</th>
+          <th style="text-align:right">Margen (S/)</th>
+          <th style="text-align:right">Recurso c/u</th>
+          <th style="text-align:right">Máx/sem</th>
+        </tr>
+      </thead>
+      <tbody>${prodRows}</tbody>
+    </table>
+  </div>
+
+  ${eqSum ? `<div class="section avoid-break">
+    <div class="eq-summary-box">
+      <div class="eq-sum-title">📊 Así quedó planteado tu problema</div>
+      <div class="eq-sum-content">${eqSum}</div>
+    </div>
+  </div>` : ''}
+
+  ${eqFormal ? `<div class="section avoid-break" style="padding:0;overflow:hidden">
+    <div class="eq-formal-box">
+      <div class="eq-title">🧮 Tu ecuación (esto va al Solver)</div>
+      <div class="eq-content">${eqFormal}</div>
+    </div>
+  </div>` : ''}
+
+  ${hasSolver ? `<div class="section avoid-break">
+    <div class="solver-result">
+      <div class="sr-label">✅ Resultados del Solver — Mezcla óptima</div>
+      <table>
+        <thead><tr><th>Producto</th><th style="text-align:right">Cantidad óptima</th></tr></thead>
+        <tbody>${solverRows}</tbody>
+      </table>
+      <div class="sr-gan">Ganancia total óptima: S/ ${ganOpt.toFixed(0)}</div>
+    </div>
+  </div>` : ''}
+
+  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
 </div>` : ''}
 
-${validP.length>=2 ? `<div class="section">
-  <div class="section-label">Paso 2 · Mezcla de productos</div>
-  <p style="font-size:12px;color:#666;margin-bottom:6px">Recurso limitante: <strong>${esc(recurso)}</strong>${recursoTotal?' ('+esc(recursoTotal)+' disponibles)':''}</p>
-  <table><thead><tr><th>Producto</th><th style="text-align:right">Precio</th><th style="text-align:right">Costo</th><th style="text-align:right">Margen</th></tr></thead>
-  <tbody>${prodRows}</tbody></table>
+${hasDiag ? `<!-- ══════════════════════════════════════════════════════════════
+     PÁGINA FINAL — DIAGNÓSTICO IA: HOJA DE RUTA
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="page">
+
+  <div class="header">
+    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES — diagnóstico</div>
+    <h1>La Limpieza <span>(Optimización)</span></h1>
+    <p>${esc(nombre)} — Diagnóstico de consultor</p>
+  </div>
+
+  <div class="diagnostico avoid-break">
+    <div class="diag-ey">◆ Diagnóstico de consultor</div>
+    <div class="diag-title">🔥 Tu hoja de ruta esta semana</div>
+    <div class="diag-body">${diagBody}</div>
+  </div>
+
+  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
 </div>` : ''}
 
-${hasDiag ? `<div class="diagnostico">
-  <div class="diag-ey">◆ Diagnóstico de consultor</div>
-  <div class="diag-title">🔥 Tu hoja de ruta esta semana</div>
-  <div class="diag-body">${diagBody}</div>
-</div>` : ''}
-
-<div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4</div>
 </body></html>`;
 
-  const win = window.open('','_blank','width=800,height=900');
+  const win = window.open('','_blank','width=820,height=960');
+  if(!win){ alert('El navegador bloqueó la ventana emergente. Permite popups para este sitio e intenta de nuevo.'); return; }
   win.document.write(html);
   win.document.close();
   win.onload = function(){ win.focus(); win.print(); };

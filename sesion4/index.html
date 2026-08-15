@@ -467,7 +467,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Trabajos guardados</div></div>
       <div class="kpi-box purple"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
       <div class="kpi-box green"><div class="kpi-val" id="kPlan">-</div><div class="kpi-lbl">Definieron plan de mejora</div></div>
-      <div class="kpi-box"><div class="kpi-val" id="kOpt">-</div><div class="kpi-lbl">Plantearon optimizaci&oacute;n</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kCombo">-</div><div class="kpi-lbl">Encontraron su combinaci&oacute;n &oacute;ptima</div></div>
     </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -477,10 +477,26 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
     </div>
     <div id="docAlerts"></div>
+
+    <div class="section-title">Promedios y tendencias del grupo</div>
+    <div class="kpi-grid">
+      <div class="kpi-box green"><div class="kpi-val" id="kGanProm">-</div><div class="kpi-lbl">Ganancia &oacute;ptima promedio /sem (S/)</div></div>
+      <div class="kpi-box purple"><div class="kpi-val" id="kTopAction">-</div><div class="kpi-lbl">Acci&oacute;n m&aacute;s elegida</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kAvgProd">-</div><div class="kpi-lbl">Productos promedio por negocio</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kTopRecurso">-</div><div class="kpi-lbl">Recurso limitante m&aacute;s com&uacute;n</div></div>
+    </div>
+    <div class="card" id="accionBreakdownCard" style="padding:14px 18px;display:none">
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">&iquest;Qu&eacute; est&aacute; haciendo el grupo con su cuello de botella?</div>
+      <div id="accionBreakdownBody"></div>
+    </div>
+    <div class="card" id="cuelloTopCard" style="padding:14px 18px;display:none">
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">Cuellos de botella m&aacute;s repetidos en el aula</div>
+      <div id="cuelloTopBody"></div>
+    </div>
     <div class="section-title">Trabajos registrados</div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="emp-table">
-        <thead><tr><th>#</th><th>Emprendedora</th><th>Acci&oacute;n</th><th>Productos</th></tr></thead>
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Acci&oacute;n</th><th>Combinaci&oacute;n &oacute;ptima</th></tr></thead>
         <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
       </table>
     </div>
@@ -897,7 +913,7 @@ async function generarAnalisisMixS4Main(){
   const recurso=$('recursoName').value.trim()||'recurso';
   const recursoTotal=$('recursoTotal').value.trim();
   const valid=products.filter(p=>p.name&&p.price);
-  if(!solverResults.length||valid.length<2) return;
+  if(!solverResults.length||valid.length<2) return null;
 
   const prodTexto=valid.map(function(p){
     return '- '+p.name+': S/'+p.price+' precio, S/'+(p.cost||0)+' costo, margen S/'+(Number(p.price)-Number(p.cost||0))+', usa '+p.resourcePerUnit+' '+recurso;
@@ -939,16 +955,21 @@ async function generarAnalisisMixS4Main(){
     '\nDirecta, cercana, sin redundancia. Resalta con **asteriscos** la acción más importante.'
   );
 
+  const ia1Txt = ia1||'Produce la mezcla que el Solver calculó para maximizar tu ganancia.';
+  const ia2Txt = ia2||firstName+', arranca esta semana produciendo la mezcla óptima y mide tus resultados al final.';
+
   // Mostrar los 2 bloques
   dBody.innerHTML =
     '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.15)">' +
     '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">📊 Lo que dice el Solver</div>' +
-    renderNegS4(ia1||'Produce la mezcla que el Solver calculó para maximizar tu ganancia.') +
+    renderNegS4(ia1Txt) +
     '</div>' +
     '<div>' +
     '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">🎯 Qué hacer con esto</div>' +
-    renderNegS4(ia2||firstName+', arranca esta semana produciendo la mezcla óptima y mide tus resultados al final.') +
+    renderNegS4(ia2Txt) +
     '</div>';
+
+  return { solverOptimal: solverResults.slice(), gananciaOptima: ganOpt, diagnosticoFinal: ia1Txt+'\n\n'+ia2Txt };
 }
 
 // Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
@@ -1446,11 +1467,18 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
       '\nAcción elegida: '+accionLabel+(plan?'\nSu plan concreto: "'+plan+'"':'')+
       '\n\nEscribe 2-3 oraciones directas y muy personales (máx 80 palabras): qué va a ganar exactamente con esta decisión (en tiempo, dinero o energía), qué riesgo debe cuidar esta semana, y si su plan es suficientemente concreto o necesita más detalle. Usa su nombre una vez. Habla de tú. Resalta la ganancia esperada.'
     );
-    el1.innerHTML=renderNegS4(ia1||firstName+', esta acción tiene potencial real. Asegúrate de ejecutar el primer paso antes del viernes.');
+    const ia1Final=ia1||firstName+', esta acción tiene potencial real. Asegúrate de ejecutar el primer paso antes del viernes.';
+    el1.innerHTML=renderNegS4(ia1Final);
+    payload.analisisPlan=ia1Final;
   }
   // Si tiene resultados del Solver, generar el análisis de mezcla + diagnóstico
   if(solverResults.length && valid.length>=2){
-    await generarAnalisisMixS4Main();
+    const mixData=await generarAnalisisMixS4Main();
+    if(mixData){
+      payload.solverOptimal=mixData.solverOptimal;
+      payload.gananciaOptima=mixData.gananciaOptima;
+      payload.diagnosticoFinal=mixData.diagnosticoFinal;
+    }
   }
   // Mostrar zona de upload Solver si tiene 2+ productos
   if(valid.length>=2){
@@ -1472,9 +1500,23 @@ async function restaurarAnalisisS4(){
     const saved=entries.find(function(e){return e.dni===currentDNI;});
     if(!saved) return;
     if(saved.analisisPlan){const el=$('analisisPlanS4');el.classList.add('visible');el.innerHTML=renderNegS4(saved.analisisPlan);}
-    if(saved.analisisMix){const el=$('analisisMixS4');el.classList.add('visible');el.innerHTML=renderNegS4(saved.analisisMix);}
-    if(saved.diagnosticoFinal){$('diagnosticoS4').classList.add('visible');$('diagnosticoS4Body').innerHTML=renderNegS4(saved.diagnosticoFinal);}
-    if(saved.products&&saved.products.length>=2) $('uploadSolverBox').classList.add('visible');
+    if(saved.products&&saved.products.length>=2){ $('uploadSolverBox').classList.add('visible'); $('solverUploadZone').style.display='block'; }
+    if(Array.isArray(saved.solverOptimal)&&saved.solverOptimal.length){
+      solverResults=saved.solverOptimal.slice();
+      const resEl=$('uploadSolverResult2');
+      if(resEl){ resEl.style.display='block'; resEl.textContent='\u2705 Tu \u00faltima combinaci\u00f3n \u00f3ptima guardada \u2014 '+solverResults.length+' productos.'; resEl.style.color='#3B6D11'; }
+    }
+    if(saved.diagnosticoFinal){
+      const parts=saved.diagnosticoFinal.split('\n\n');
+      const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
+      dEl.classList.add('visible');
+      dBody.innerHTML =
+        '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.15)">' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">📊 Lo que dice el Solver</div>' +
+        renderNegS4(parts[0]||'') + '</div>' +
+        '<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">🎯 Qué hacer con esto</div>' +
+        renderNegS4(parts[1]||'') + '</div>';
+    }
   }catch(e){console.error('restaurar S4',e);}
 }
 
@@ -1507,15 +1549,61 @@ async function loadDocData(){
   docEntries=Array.isArray(rec.entries)?rec.entries:[];
   const total=docEntries.length, pct=Math.round(total/25*100);
   const conPlan=docEntries.filter(e=>e.hasPlan).length;
-  const conOpt=docEntries.filter(e=>e.hasOpt).length;
+  const conCombo=docEntries.filter(e=>Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0).length;
   $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
-  $('kPlan').textContent=conPlan; $('kOpt').textContent=conOpt;
+  $('kPlan').textContent=conPlan; $('kCombo').textContent=conCombo;
   $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su trabajo.';
+
+  // ── Promedios y tendencias ─────────────────────────────────────────────
+  const conGanancia=docEntries.filter(e=>typeof e.gananciaOptima==='number'&&e.gananciaOptima>0);
+  const ganProm=conGanancia.length?Math.round(conGanancia.reduce((s,e)=>s+e.gananciaOptima,0)/conGanancia.length):null;
+  $('kGanProm').textContent=ganProm!==null?('S/ '+ganProm):'\u2013';
+
+  const accionLbl={eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar'};
+  const accionCounts={eliminar:0,automatizar:0,simplificar:0,sin:0};
+  docEntries.forEach(e=>{ const a=e.action; if(a&&accionCounts.hasOwnProperty(a)) accionCounts[a]++; else accionCounts.sin++; });
+  let topActionKey=null, topActionVal=-1;
+  Object.keys(accionLbl).forEach(k=>{ if(accionCounts[k]>topActionVal){ topActionVal=accionCounts[k]; topActionKey=k; } });
+  $('kTopAction').textContent=(total>0&&topActionVal>0)?accionLbl[topActionKey]:'\u2013';
+
+  const prodCounts=docEntries.map(e=>e.productCount||0).filter(n=>n>0);
+  const avgProd=prodCounts.length?(prodCounts.reduce((s,n)=>s+n,0)/prodCounts.length).toFixed(1):null;
+  $('kAvgProd').textContent=avgProd!==null?avgProd:'\u2013';
+
+  const recCounts={};
+  docEntries.forEach(e=>{ const r=(e.recursoName||'').trim(); if(!r) return; const key=r.toLowerCase(); recCounts[key]=recCounts[key]||{label:r,n:0}; recCounts[key].n++; });
+  const recTop=Object.values(recCounts).sort((a,b)=>b.n-a.n)[0];
+  $('kTopRecurso').textContent=recTop?recTop.label:'\u2013';
+
+  // Desglose de acciones (barra de tags)
+  const abCard=$('accionBreakdownCard'), abBody=$('accionBreakdownBody');
+  if(total>0){
+    abCard.style.display='block';
+    let ab='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+    Object.keys(accionLbl).forEach(k=>{
+      ab+='<span class="tag '+(k===topActionKey&&accionCounts[k]>0?'purple':'gray')+'" style="font-size:11px;padding:5px 11px">'+accionLbl[k]+': '+accionCounts[k]+'</span>';
+    });
+    ab+='<span class="tag gray" style="font-size:11px;padding:5px 11px">Sin definir: '+accionCounts.sin+'</span>';
+    ab+='</div>';
+    abBody.innerHTML=ab;
+  } else { abCard.style.display='none'; }
+
+  // Cuellos de botella más repetidos
+  const cuCard=$('cuelloTopCard'), cuBody=$('cuelloTopBody');
+  const cuCounts={};
+  docEntries.forEach(e=>{ const c=(e.cuello||'').trim(); if(!c) return; const key=c.toLowerCase(); cuCounts[key]=cuCounts[key]||{label:c,n:0}; cuCounts[key].n++; });
+  const cuTop=Object.values(cuCounts).sort((a,b)=>b.n-a.n).slice(0,5);
+  if(cuTop.length>0){
+    cuCard.style.display='block';
+    cuBody.innerHTML=cuTop.map(c=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span>'+esc(c.label)+'</span><span style="font-weight:700;color:var(--purple);flex-shrink:0">'+c.n+(c.n===1?' caso':' casos')+'</span></div>').join('');
+  } else { cuCard.style.display='none'; }
+
   let al='';
   if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay trabajos guardados.</b></div>';
   else { if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
-    if(conOpt<total && total>=3) al+='<div class="alert-box amber"><b>'+(total-conOpt)+' a\u00fan no plantearon su optimizaci\u00f3n de mix.</b> Muchas quiz\u00e1 solo tienen un producto \u2014 revisa cu\u00e1les s\u00ed necesitan Solver.</div>'; }
+    const conOpt=docEntries.filter(e=>e.hasOpt).length;
+    if(conOpt>conCombo && total>=3) al+='<div class="alert-box amber"><b>'+(conOpt-conCombo)+' plantearon su optimizaci\u00f3n pero a\u00fan no suben el resultado del Solver.</b> Ya armaron la ecuaci\u00f3n \u2014 falta correr Solver y subir el Excel para ver su combinaci\u00f3n \u00f3ptima.</div>'; }
   $('docAlerts').innerHTML=al;
   if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
   else {
@@ -1524,9 +1612,20 @@ async function loadDocData(){
       const first=(e.name||e.dni).split(' ')[0];
       const actTag=e.action?'<span class="tag purple">'+esc(e.action)+'</span>':'<span class="tag gray">sin acci\u00f3n</span>';
       const pc=e.productCount||0;
+      let comboTag;
+      if(Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0){
+        const g=typeof e.gananciaOptima==='number'?(' \u00b7 S/'+Math.round(e.gananciaOptima)):'';
+        comboTag='<span class="tag green">\u2713 \u00d3ptimo'+g+'</span>';
+      } else if(pc>=2){
+        comboTag='<span class="tag gray">Pendiente Solver</span>';
+      } else if(pc===1){
+        comboTag='<span class="tag gray">1 producto</span>';
+      } else {
+        comboTag='<span class="tag gray">\u2013</span>';
+      }
       rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
         '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
-        '<td>'+actTag+'</td><td>'+(pc>=2?'<span class="tag green">'+pc+' productos</span>':'<span class="tag gray">'+pc+'</span>')+'</td></tr>';
+        '<td>'+actTag+'</td><td>'+comboTag+'</td></tr>';
     });
     $('docTableBody').innerHTML=rows;
   }
@@ -1542,10 +1641,50 @@ function openModal(idx){
   $('modalMeta').textContent=(e.savedAt?e.savedAt.slice(0,16).replace('T',' '):'-');
   let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Cuello de botella</b><div style="font-size:13px;margin-top:4px">'+esc(e.cuello||'-')+'</div></div>';
   b+='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Acci\u00f3n: '+esc(e.action||'-')+'</b><div style="font-size:13px;margin-top:4px;color:var(--muted)">'+esc(e.actionPlan||'(sin plan escrito)')+'</div></div>';
+
+  // Diagnóstico IA sobre el plan de mejora (si existe)
+  if(e.analisisPlan){
+    b+='<div style="margin-bottom:12px;padding:10px 12px;background:#EEF2FB;border-left:3px solid var(--navy);border-radius:0 8px 8px 0"><b style="font-size:11px;color:var(--navy);text-transform:uppercase;letter-spacing:.4px">An\u00e1lisis IA del plan</b><div style="font-size:12.5px;margin-top:5px;line-height:1.55">'+renderNegS4(e.analisisPlan)+'</div></div>';
+  }
+
   if(e.products&&e.products.length){
-    b+='<div><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Optimizaci\u00f3n ('+esc(e.recursoName||'recurso')+': '+esc(e.recursoTotal||'?')+')</b>';
-    e.products.forEach(p=>{ b+='<div style="font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)"><b>'+esc(p.name)+'</b> \u2014 gana S/'+esc(p.profit)+', usa '+esc(p.resourcePerUnit||'?')+', m\u00e1x '+esc(p.maxDemand||'?')+'</div>'; });
-    b+='</div>';
+    // Mapa de cantidades óptimas por nombre de producto (si ya corrieron el Solver)
+    const optMap={};
+    if(Array.isArray(e.solverOptimal)) e.solverOptimal.forEach(r=>{ optMap[(r.nombre||'').trim().toLowerCase()]=r.cantidad; });
+    const hasCombo=Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0;
+
+    b+='<div style="margin-bottom:6px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Optimizaci\u00f3n ('+esc(e.recursoName||'recurso')+': '+esc(e.recursoTotal||'?')+' por semana)</b></div>';
+    b+='<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px">';
+    b+='<thead><tr>'+
+      '<th style="text-align:left;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Producto</th>'+
+      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Gana c/u</th>'+
+      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Usa</th>'+
+      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">M\u00e1x/sem</th>'+
+      (hasCombo?'<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--green);font-size:10.5px;text-transform:uppercase">\u00d3ptimo</th>':'')+
+      '</tr></thead><tbody>';
+    e.products.forEach(p=>{
+      const gan=(typeof p.price!=='undefined'&&typeof p.cost!=='undefined')?(Number(p.price)-Number(p.cost||0)):null;
+      const optCant=optMap[(p.name||'').trim().toLowerCase()];
+      b+='<tr>'+
+        '<td style="padding:6px;border-bottom:1px solid var(--line);font-weight:600">'+esc(p.name)+'</td>'+
+        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;color:var(--green)">'+(gan!==null&&!isNaN(gan)?('S/'+gan):'-')+'</td>'+
+        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right">'+esc(p.resourcePerUnit||'?')+'</td>'+
+        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;color:var(--muted)">'+esc(p.maxDemand||'?')+'</td>'+
+        (hasCombo?'<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;font-weight:700;color:var(--purple)">'+(typeof optCant!=='undefined'?optCant:'-')+'</td>':'')+
+        '</tr>';
+    });
+    b+='</tbody></table>';
+
+    if(hasCombo){
+      b+='<div style="background:#E6F8EE;border:1.5px solid var(--green);border-radius:10px;padding:10px 12px;margin-bottom:10px">'+
+        '<div style="font-size:11px;font-weight:700;color:#1A5C35;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">\u2713 Combinaci\u00f3n \u00f3ptima encontrada</div>'+
+        '<div style="font-size:14px;font-weight:700;color:var(--green)">Ganancia m\u00e1xima: S/ '+(typeof e.gananciaOptima==='number'?Math.round(e.gananciaOptima):'-')+' por semana</div>'+
+        '</div>';
+    }
+
+    if(e.diagnosticoFinal){
+      b+='<div style="padding:10px 12px;background:#FFF6EA;border-left:3px solid var(--orange);border-radius:0 8px 8px 0"><b style="font-size:11px;color:var(--orange-d);text-transform:uppercase;letter-spacing:.4px">Diagn\u00f3stico de consultor (IA)</b><div style="font-size:12.5px;margin-top:5px;line-height:1.55">'+renderNegS4(e.diagnosticoFinal)+'</div></div>';
+    }
   }
   $('modalBody').innerHTML=b;
   $('detailModal').classList.add('on'); document.body.style.overflow='hidden';

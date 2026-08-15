@@ -817,16 +817,22 @@ $('printBtn').addEventListener('click', function(){
   var analisis1=$('analisisAbcS5')?$('analisisAbcS5').innerHTML:'';
   var analisis1ok=analisis1&&!analisis1.includes('dots-s5');
   var diagBody=$('diagnosticoS5Body')?$('diagnosticoS5Body').innerHTML:'';
+  // Quitar la tabla reorden-wrap del diagBody (ya aparece arriba)
   var diagText=diagBody;
   var rwStart=diagText.indexOf('<div class="reorden-wrap">');
   if(rwStart>=0){
-    var depth=0, rwPos=rwStart;
-    while(rwPos<diagText.length){
-      if(diagText.substr(rwPos,4)==='<div') depth++;
-      else if(diagText.substr(rwPos,6)==='</div>'){ depth--; if(depth===0){rwPos+=6;break;} }
-      rwPos++;
+    // Buscar el cierre </div> que corresponde al reorden-wrap
+    // La tabla siempre termina con </div></div></div> al final del bloque
+    // Usamos el marcador de clase nota para encontrar el fin
+    var notaEnd=diagText.indexOf('</div></div>',rwStart);
+    if(notaEnd>=0){
+      // Avanzar hasta el cierre del wrapper externo
+      var closeEnd=diagText.indexOf('</div>',notaEnd+12);
+      if(closeEnd>=0) diagText=diagText.substring(0,rwStart)+diagText.substring(closeEnd+6);
+      else diagText=diagText.substring(0,rwStart);
+    } else {
+      diagText=diagText.substring(0,rwStart);
     }
-    diagText=diagText.substring(0,rwStart)+diagText.substring(rwPos);
   }
   diagText=diagText.trim();
   var diagOk=diagText&&!diagText.includes('dots-s5');
@@ -858,7 +864,7 @@ $('printBtn').addEventListener('click', function(){
     +'.header h1 span{color:#5FD4D4}'
     +'.header p{font-size:10px;color:#C6D2F5}'
     +'.section{margin-bottom:10px;padding:10px 12px;border:1px solid #C8D4E8;border-radius:8px}'
-    +'.sec-label{font-size:8px;font-weight:700;text-transform:uppercase;color:#0A6A6A;margin-bottom:6px;display:block}'
+    +'.sec-label{font-size:8.5px;font-weight:700;color:#0A6A6A;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #C8D4E8;display:block}'
     +'.bridge{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:8px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.55;margin-bottom:10px}'
     +'.analisis{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:9px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.6}'
     +'.analisis b{color:#0A6A6A}'
@@ -889,7 +895,7 @@ $('printBtn').addEventListener('click', function(){
 
     // Paso 1: Lista de insumos
     +'<div class="section avoid">'
-    +'<span class="sec-label">Paso 1 \u00b7 Lista de insumos y productos de inventario</span>'
+    +'<span class="sec-label">PASO 1 · Lista de insumos y productos de inventario</span>'
     +'<table>'
     +'<thead><tr><th>#</th><th>Insumo</th><th style="text-align:right">Costo unit.</th><th style="text-align:right">Cant./mes</th><th style="text-align:right">Valor/mes</th><th style="text-align:right">Lead time</th><th style="text-align:right">M\u00e1x/mes</th><th style="text-align:right">Costo pedido</th></tr></thead>'
     +'<tbody>'+insRows+'</tbody>'
@@ -898,7 +904,7 @@ $('printBtn').addEventListener('click', function(){
 
     // Paso 2: Matriz ABC
     +'<div class="section">'
-    +'<span class="sec-label">Paso 2 \u00b7 Tu Matriz ABC \u2014 As\u00ed se reparte tu dinero</span>'
+    +'<span class="sec-label">PASO 2 · Tu Matriz ABC — Así se reparte tu dinero</span>'
     +'<p style="font-size:10.5px;color:#6B7688;margin-bottom:7px">Total en inventario: <strong style="color:#002A8D">S/ '+total.toFixed(0)+'</strong> al mes</p>'
     +barraABC
     +'<div style="background:#F7F9FC;border:1px solid #C8D4E8;border-radius:8px;padding:10px;margin-bottom:8px">'

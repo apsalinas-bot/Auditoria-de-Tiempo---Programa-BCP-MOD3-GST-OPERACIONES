@@ -211,6 +211,20 @@ input[type=password]{-webkit-appearance:none}
 .sb-main{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
 .sb-sub{font-size:10px;color:rgba(255,255,255,0.7);font-weight:500}
 .sb-badge{background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 8px;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+/* mini bar charts (docente) */
+.mbar-card{padding:16px 18px}
+.mbar-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--navy);margin-bottom:2px}
+.mbar-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.mbar-row{display:grid;grid-template-columns:96px 1fr 46px;align-items:center;gap:10px;margin-bottom:11px}
+.mbar-row:last-of-type{margin-bottom:0}
+.mbar-label{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbar-track{background:#EEF1F7;border-radius:99px;height:10px;overflow:hidden;position:relative}
+.mbar-fill{height:100%;border-radius:99px;min-width:3px;transition:width .4s ease}
+.mbar-count{font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
+.mbar-ratio{font-size:9.5px;color:var(--muted);text-align:right;display:block;font-weight:500}
+.mbar-summary{font-size:12px;color:var(--muted);line-height:1.55;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.mbar-summary b{color:var(--ink)}
+@media(max-width:380px){ .mbar-row{grid-template-columns:74px 1fr 40px} }
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
@@ -481,13 +495,19 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
     <div class="section-title">Promedios y tendencias del grupo</div>
     <div class="kpi-grid">
       <div class="kpi-box green"><div class="kpi-val" id="kGanProm">-</div><div class="kpi-lbl">Ganancia &oacute;ptima promedio /sem (S/)</div></div>
-      <div class="kpi-box purple"><div class="kpi-val" id="kTopAction">-</div><div class="kpi-lbl">Acci&oacute;n m&aacute;s elegida</div></div>
       <div class="kpi-box"><div class="kpi-val" id="kAvgProd">-</div><div class="kpi-lbl">Productos promedio por negocio</div></div>
-      <div class="kpi-box"><div class="kpi-val" id="kTopRecurso">-</div><div class="kpi-lbl">Recurso limitante m&aacute;s com&uacute;n</div></div>
     </div>
-    <div class="card" id="accionBreakdownCard" style="padding:14px 18px;display:none">
-      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">&iquest;Qu&eacute; est&aacute; haciendo el grupo con su cuello de botella?</div>
-      <div id="accionBreakdownBody"></div>
+    <div class="card mbar-card" id="accionBarCard" style="display:none">
+      <div class="mbar-title">Qu&eacute; est&aacute; priorizando el aula</div>
+      <div class="mbar-sub">Acci&oacute;n elegida para atacar el cuello de botella &mdash; de m&aacute;s a menos frecuente</div>
+      <div id="accionBarBody"></div>
+      <div class="mbar-summary" id="accionBarSummary"></div>
+    </div>
+    <div class="card mbar-card" id="recursoBarCard" style="display:none">
+      <div class="mbar-title">Recursos limitantes del aula</div>
+      <div class="mbar-sub">Lo que m&aacute;s repiten las emprendedoras como su recurso escaso &mdash; de m&aacute;s a menos frecuente</div>
+      <div id="recursoBarBody"></div>
+      <div class="mbar-summary" id="recursoBarSummary"></div>
     </div>
     <div class="card" id="cuelloTopCard" style="padding:14px 18px;display:none">
       <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">Cuellos de botella m&aacute;s repetidos en el aula</div>
@@ -1561,33 +1581,57 @@ async function loadDocData(){
   $('kGanProm').textContent=ganProm!==null?('S/ '+ganProm):'\u2013';
 
   const accionLbl={eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar'};
+  const accionColor={eliminar:'#D64545',automatizar:'#6D3BD4',simplificar:'#0891B2'};
   const accionCounts={eliminar:0,automatizar:0,simplificar:0,sin:0};
   docEntries.forEach(e=>{ const a=e.action; if(a&&accionCounts.hasOwnProperty(a)) accionCounts[a]++; else accionCounts.sin++; });
-  let topActionKey=null, topActionVal=-1;
-  Object.keys(accionLbl).forEach(k=>{ if(accionCounts[k]>topActionVal){ topActionVal=accionCounts[k]; topActionKey=k; } });
-  $('kTopAction').textContent=(total>0&&topActionVal>0)?accionLbl[topActionKey]:'\u2013';
 
   const prodCounts=docEntries.map(e=>e.productCount||0).filter(n=>n>0);
   const avgProd=prodCounts.length?(prodCounts.reduce((s,n)=>s+n,0)/prodCounts.length).toFixed(1):null;
   $('kAvgProd').textContent=avgProd!==null?avgProd:'\u2013';
 
-  const recCounts={};
-  docEntries.forEach(e=>{ const r=(e.recursoName||'').trim(); if(!r) return; const key=r.toLowerCase(); recCounts[key]=recCounts[key]||{label:r,n:0}; recCounts[key].n++; });
-  const recTop=Object.values(recCounts).sort((a,b)=>b.n-a.n)[0];
-  $('kTopRecurso').textContent=recTop?recTop.label:'\u2013';
-
-  // Desglose de acciones (barra de tags)
-  const abCard=$('accionBreakdownCard'), abBody=$('accionBreakdownBody');
+  // ── Gráfico de barras: acciones priorizadas ─────────────────────────────
+  const abCard=$('accionBarCard'), abBody=$('accionBarBody'), abSum=$('accionBarSummary');
   if(total>0){
     abCard.style.display='block';
-    let ab='<div style="display:flex;flex-wrap:wrap;gap:8px">';
-    Object.keys(accionLbl).forEach(k=>{
-      ab+='<span class="tag '+(k===topActionKey&&accionCounts[k]>0?'purple':'gray')+'" style="font-size:11px;padding:5px 11px">'+accionLbl[k]+': '+accionCounts[k]+'</span>';
-    });
-    ab+='<span class="tag gray" style="font-size:11px;padding:5px 11px">Sin definir: '+accionCounts.sin+'</span>';
-    ab+='</div>';
-    abBody.innerHTML=ab;
+    const rows=[
+      {key:'automatizar',label:'Automatizar',n:accionCounts.automatizar,color:accionColor.automatizar},
+      {key:'simplificar',label:'Simplificar',n:accionCounts.simplificar,color:accionColor.simplificar},
+      {key:'eliminar',label:'Eliminar',n:accionCounts.eliminar,color:accionColor.eliminar},
+      {key:'sin',label:'Sin definir',n:accionCounts.sin,color:'#B9C2D4'}
+    ].filter(r=>r.n>0).sort((a,b)=>b.n-a.n);
+    const maxN=rows.length?rows[0].n:1;
+    abBody.innerHTML=rows.map(r=>
+      '<div class="mbar-row">'+
+        '<span class="mbar-label">'+esc(r.label)+'</span>'+
+        '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxN*100))+'%;background:'+r.color+'"></div></div>'+
+        '<div><span class="mbar-count" style="color:'+r.color+'">'+r.n+'</span><span class="mbar-ratio">'+(r.n/total).toFixed(1)+'/emp</span></div>'+
+      '</div>'
+    ).join('');
+    if(rows.length){
+      const top=rows[0];
+      abSum.innerHTML='La acci\u00f3n m\u00e1s elegida es "<b>'+esc(top.label)+'</b>" ('+top.n+' de '+total+' casos, '+Math.round(top.n/total*100)+'% del aula)'+(rows[1]?'. Le sigue "<b>'+esc(rows[1].label)+'</b>" ('+rows[1].n+').':'.');
+    }
   } else { abCard.style.display='none'; }
+
+  // ── Gráfico de barras: recursos limitantes ──────────────────────────────
+  const rbCard=$('recursoBarCard'), rbBody=$('recursoBarBody'), rbSum=$('recursoBarSummary');
+  const recCounts={};
+  docEntries.forEach(e=>{ const r=(e.recursoName||'').trim(); if(!r) return; const key=r.toLowerCase(); recCounts[key]=recCounts[key]||{label:r,n:0}; recCounts[key].n++; });
+  const recRows=Object.values(recCounts).sort((a,b)=>b.n-a.n).slice(0,6);
+  const recPalette=['#002A8D','#6D3BD4','#0891B2','#EC6607','#E8A800','#94A3B8'];
+  if(recRows.length>0){
+    rbCard.style.display='block';
+    const maxR=recRows[0].n;
+    rbBody.innerHTML=recRows.map((r,i)=>
+      '<div class="mbar-row">'+
+        '<span class="mbar-label" title="'+esc(r.label)+'">'+esc(r.label)+'</span>'+
+        '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxR*100))+'%;background:'+recPalette[i%recPalette.length]+'"></div></div>'+
+        '<div><span class="mbar-count" style="color:'+recPalette[i%recPalette.length]+'">'+r.n+'</span><span class="mbar-ratio">'+(r.n/total).toFixed(1)+'/emp</span></div>'+
+      '</div>'
+    ).join('');
+    const distintos=Object.keys(recCounts).length;
+    rbSum.innerHTML='El recurso m\u00e1s citado es "<b>'+esc(recRows[0].label)+'</b>" ('+recRows[0].n+' casos). Recursos distintos registrados en el aula: <b>'+distintos+'</b>.';
+  } else { rbCard.style.display='none'; }
 
   // Cuellos de botella más repetidos
   const cuCard=$('cuelloTopCard'), cuBody=$('cuelloTopBody');

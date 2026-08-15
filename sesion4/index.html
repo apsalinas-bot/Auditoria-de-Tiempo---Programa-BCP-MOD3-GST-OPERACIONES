@@ -370,12 +370,6 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
           </label>
           <div class="up-result" id="uploadSolverResult" style="margin-top:10px;display:none;padding:8px 12px;background:#EAF3DE;border-radius:8px;font-size:12px;color:#3B6D11;font-weight:500"></div>
         </div>
-        <div class="analisis-mix-s4" id="analisisMixS4Inline"></div>
-        <div class="diagnostico-s4" id="diagnosticoS4Inline">
-          <div class="d4-eyebrow">Diagnóstico de consultor</div>
-          <div class="d4-title">🔥 Tu hoja de ruta esta semana</div>
-          <div class="d4-body" id="diagnosticoS4InlineBody"></div>
-        </div>
       </div>
 
 
@@ -397,12 +391,6 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
 
     <!-- Análisis IA S4 -->
     <div class="analisis-s4-wrap">
-      <div class="analisis-mix-s4" id="analisisMixS4"></div>
-      <div class="diagnostico-s4" id="diagnosticoS4">
-        <div class="d4-eyebrow">Diagnóstico de consultor</div>
-        <div class="d4-title">🔥 Tu hoja de ruta esta semana</div>
-        <div class="d4-body" id="diagnosticoS4Body"></div>
-      </div>
     </div>
     <button class="claude-btn-s4 no-print" id="saveCloudBtn">
       <div class="cb4-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div>
@@ -430,7 +418,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
         </label>
         <div id="uploadSolverResult2" style="display:none;margin:0 12px 12px;padding:10px 14px;background:#EAF3DE;border-radius:8px;font-size:13px;color:#3B6D11;font-weight:600;text-align:center"></div>
       </div>
-      <div class="analisis-mix-s4" id="analisisMixS4Main" style="margin-top:8px"></div>
+      <div id="analisisMixS4Main" style="display:none"></div>
       <div class="diagnostico-s4" id="diagnosticoS4Main" style="margin-top:8px">
         <div class="d4-eyebrow">Diagnóstico de consultor</div>
         <div class="d4-title">🔥 Tu hoja de ruta esta semana</div>
@@ -888,31 +876,35 @@ async function generarAnalisisMixS4Main(){
   const recursoTotal=$('recursoTotal').value.trim();
   const valid=products.filter(p=>p.name&&p.price);
   if(!solverResults.length||valid.length<2) return;
-  const el2=$('analisisMixS4Main'); el2.classList.add('visible'); dotsS4El(el2);
-  const prodTexto=valid.map(p=>'- '+p.name+': precio S/'+p.price+', costo S/'+(p.cost||0)+', usa '+p.resourcePerUnit+' '+recurso).join('\n');
-  const solverTexto=solverResults.map(r=>r.nombre+': '+r.cantidad+' unidades').join(', ');
+
+  const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
+  dEl.classList.add('visible'); dotsS4El(dBody);
+
+  const prodTexto=valid.map(function(p){
+    return '- '+p.name+': S/'+p.price+' precio, S/'+(p.cost||0)+' costo, margen S/'+(Number(p.price)-Number(p.cost||0))+', usa '+p.resourcePerUnit+' '+recurso;
+  }).join('\n');
+  const solverTexto=solverResults.map(function(r){return r.nombre+': '+r.cantidad+' unidades';}).join(', ');
   const ganOpt=solverResults.reduce(function(s,sr){
     const p=valid.find(function(p){return p.name.trim()===sr.nombre;});
     return s+(p?(Number(p.price)-Number(p.cost||0))*sr.cantidad:0);
   },0);
-  const ia2=await callClaudeS4(
-    'Emprendedora: '+firstName+'\nRecurso: '+recurso+(recursoTotal?' ('+recursoTotal+' disponibles)':'')+
-    '\n\nProductos:\n'+prodTexto+
-    '\n\nResultado del Solver:\n'+solverTexto+
-    '\nGanancia óptima: S/'+ganOpt.toFixed(0)+
-    '\n\nInterpreta los resultados del Solver y escribe 3 oraciones concretas (máx 90 palabras):\n1. Qué combinación exacta debe producir esta semana (usa los números del Solver).\n2. Por qué esa combinación maximiza su ganancia (en términos simples, sin fórmulas).\n3. Qué tiene que ajustar operativamente YA para lograrlo (acción específica, con verbo).\nUsa su nombre. Resalta el producto estrella con **asteriscos**. Sin rodeos.'
-  );
-  el2.innerHTML=renderNegS4(ia2||'Prioriza el producto con mayor margen por unidad de recurso.');
-  // Diagnóstico integrador
-  const ia1txt=$('analisisPlanS4').innerHTML;
-  const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
-  dEl.classList.add('visible'); dotsS4El(dBody);
+  const planTxt=$('analisisPlanS4').innerHTML.replace(/<[^>]+>/g,' ').trim();
+
   const iaF=await callClaudeS4(
-    (ia1txt?'Análisis plan:\n'+ia1txt.replace(/<[^>]+>/g,' ')+'\n\n':'')+
-    'Análisis mezcla:\n'+el2.innerHTML.replace(/<[^>]+>/g,' ')+
-    '\n\nEres su consultora. Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\nEscribe 3 oraciones directas y sin rodeos:\n1. La acción MÁS urgente esta semana (con día o plazo concreto).\n2. La segunda acción en orden de impacto.\n3. Cómo saber que está funcionando (métrica simple y observable).\nCero redundancia. Solo hechos y acciones. Tono de consultora que la conoce y confía en que puede lograrlo.'
+    'Emprendedora: '+firstName+
+    '\nRecurso limitante: '+recurso+(recursoTotal?' (total disponible: '+recursoTotal+')':'')+
+    '\n\nSus productos con márgenes:\n'+prodTexto+
+    '\n\nResultado del Solver (mezcla óptima):\n'+solverTexto+
+    '\nGanancia total con esta mezcla: S/'+ganOpt.toFixed(0)+
+    (planTxt?'\n\nSu plan de mejora operativa: '+planTxt:'')+
+    '\n\nEres su consultora de negocios. Escribe UN SOLO mensaje directo y personal (máx 4 oraciones, máx 100 palabras).'+
+    '\nEmpieza EXACTAMENTE con "'+firstName+'," (nombre+coma).'+
+    '\nEl mensaje debe:\n1. Decirle exactamente cuánto producir de cada producto esta semana (usa los números del Solver, no porcentajes).'+
+    '\n2. Explicarle en una frase simple por qué esa combinación le conviene más (sin fórmulas).'+
+    '\n3. Darle 1 sola acción concreta para arrancar HOY o mañana.'+
+    '\nSin introducción, sin resumen al final. Solo el mensaje. Resalta con **asteriscos** el producto que debe priorizar.'
   );
-  dBody.innerHTML=renderNegS4(iaF||firstName+', tienes todo para arrancar esta semana con tu plan de mejora y la mezcla óptima.');
+  dBody.innerHTML=renderNegS4(iaF||firstName+', esta semana produce la mezcla que el Solver calculó y arranca ajustando tu operación desde mañana.');
 }
 
 // Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
@@ -1118,50 +1110,6 @@ document.addEventListener('change',async function(e){
     generarAnalisisMixS4();
   }catch(e){resEl.textContent='Error: '+e.message; resEl.style.color='#A32D2D';}
 });
-
-async function generarAnalisisMixS4(){
-  const firstName=currentName.trim().split(' ')[0];
-  const recurso=$('recursoName').value.trim()||'recurso';
-  const recursoTotal=$('recursoTotal').value.trim();
-  const valid=products.filter(p=>p.name&&p.price);
-  if(!solverResults.length||valid.length<2) return;
-  const _el2a=$('analisisMixS4'); if(_el2a){_el2a.classList.add('visible');dotsS4El(_el2a);}
-  const _el2b=$('analisisMixS4Inline'); if(_el2b){_el2b.classList.add('visible');dotsS4El(_el2b);}const el2=_el2a||_el2b;
-  const prodTexto=valid.map(p=>'- '+p.name+': precio S/'+p.price+', costo S/'+(p.cost||0)+', usa '+p.resourcePerUnit+' '+recurso).join('\n');
-  const solverTexto=solverResults.map(r=>r.nombre+': '+r.cantidad+' unidades').join(', ');
-  const ganOpt=solverResults.reduce(function(s,sr){
-    const p=valid.find(function(p){return p.name.trim()===sr.nombre;});
-    return s+(p?(Number(p.price)-Number(p.cost||0))*sr.cantidad:0);
-  },0);
-  const ia2=await callClaudeS4(
-    'Emprendedora: '+firstName+'\nRecurso limitante: '+recurso+(recursoTotal?' ('+recursoTotal+' disponibles)':'')+
-    '\n\nSus productos:\n'+prodTexto+
-    '\n\nResultado del Solver (mezcla óptima):\n'+solverTexto+
-    '\nGanancia óptima estimada: S/'+ganOpt.toFixed(0)+
-    '\n\nEscribe 2-3 oraciones muy prácticas (máx 80 palabras): cuál producto debe priorizar y por qué, qué ajuste operativo concreto necesita para lograr esa mezcla esta semana. Usa su nombre. Sé específica con los números.'
-  );
-  const _rtxt=renderNegS4(ia2||'Prioriza el producto con mayor margen por unidad de recurso.');
-  if($('analisisMixS4'))$('analisisMixS4').innerHTML=_rtxt;
-  if($('analisisMixS4Inline'))$('analisisMixS4Inline').innerHTML=_rtxt;
-  // Actualizar cierre integrador si ya había análisis del plan
-  const ia1txt=$('analisisPlanS4').innerHTML;
-  if(ia1txt && !ia1txt.includes('dots-s4')) generarDiagnosticoFinalS4(ia1txt, el2.innerHTML);
-}
-
-async function generarDiagnosticoFinalS4(txt1, txt2){
-  const firstName=currentName.trim().split(' ')[0];
-  const el=$('diagnosticoS4'), elB=$('diagnosticoS4Body');
-  el.classList.add('visible'); dotsS4El(elB);
-  const iaF=await callClaudeS4(
-    'Análisis plan de acción:\n'+txt1.replace(/<[^>]+>/g,' ')+
-    '\n\nAnálisis mezcla óptima:\n'+txt2.replace(/<[^>]+>/g,' ')+
-    '\n\nEscribe el diagnóstico final. Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma). Máx 4 oraciones. Combina ambos análisis en una hoja de ruta clara: qué hacer primero, qué hacer segundo, cómo saber que está funcionando. Tono de consultora que la conoce y confía en ella.'
-  );
-  elB.innerHTML=renderNegS4(iaF||firstName+', tienes todo para arrancar. Esta semana ejecuta el plan de mejora y ajusta tu mix de producción hacia los productos de mayor margen.');
-  // También llenar diagnóstico inline en zona solver
-  const elI=$('diagnosticoS4Inline'), elIB=$('diagnosticoS4InlineBody');
-  if(elI && elIB){ elI.classList.add('visible'); elIB.innerHTML=elB.innerHTML; }
-}
 
 $('saveCloudBtn').addEventListener('click', async ()=>{
   if(!action && products.filter(p=>p.name&&p.price).length===0){ showStatus('Completa al menos el plan de mejora o un producto.','err'); return; }

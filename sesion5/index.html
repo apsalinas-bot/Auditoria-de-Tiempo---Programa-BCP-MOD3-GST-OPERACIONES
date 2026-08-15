@@ -507,11 +507,11 @@ function calcReorden(it){
 function renderReordenBadge(it){
   var r=calcReorden(it); if(!r) return '';
   var h='<div class="reorden-live" style="background:#E3F5F5;border-left:3px solid #0E8C8C;border-radius:0 10px 10px 0;padding:10px 12px;margin-top:8px;font-size:12px;color:#0A6A6A">';
-  h+='<div style="font-weight:700;margin-bottom:5px">&#128204; Pedir cuando queden <b>'+r.pr+' unidades</b></div>';
-  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px"><span>Stock seguridad: <b>'+r.ss+' und</b></span><span>SS en S/: <b>'+r.ssCosto+'</b></span></div>';
+  h+='<div style="font-weight:700;margin-bottom:5px">&#128204; Pedir cuando queden <b>'+r.pr+' unidades</b> <span style="font-weight:600;opacity:.75">(R)</span></div>';
+  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px"><span>Stock seguridad (Ss): <b>'+r.ss+' und</b></span><span>SS en S/: <b>'+r.ssCosto+'</b></span></div>';
   if(r.eoq!==null){
     h+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(14,140,140,0.25);display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px">';
-    h+='&#128730; Cantidad a pedir: <b>'+r.eoq+' unidades</b> &nbsp;<span>Valor: <b>S/ '+r.eoqCosto+'</b></span><span>Frec.: <b>'+r.pedidosMes+'x/mes</b></span></div>';
+    h+='&#128230; Cantidad a pedir (EOQ): <b>'+r.eoq+' unidades</b> &nbsp;<span>Valor: <b>S/ '+r.eoqCosto+'</b></span><span>Frec.: <b>'+r.pedidosMes+'x/mes</b></span></div>';
   }
   return h+'</div>';
 }
@@ -540,14 +540,14 @@ function renderInsumos(){
       '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">'+
       '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px">&#128203; Reorden y cantidad a pedir</div>'+
       '<div class="mini-2col">'+
-        '<div class="mini-field"><label>Días que tarda tu proveedor <span class="unit">(lead time)</span></label>'+
+        '<div class="mini-field"><label>Días que tarda tu proveedor <span class="unit">(lead time &middot; Ld)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="leadTime" value="'+esc(it.leadTime||'')+'" placeholder="Ej: 7" inputmode="decimal">'+
         '<div class="ex-hint">Días desde que pides hasta que llega</div></div>'+
         '<div class="mini-field"><label>Máximo que usas en un mes <span class="unit">(und)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="maxQty" value="'+esc(it.maxQty||'')+'" placeholder="Ej: 80" inputmode="decimal">'+
         '<div class="ex-hint">En tu mes más ocupado, ¿cuánto usaste?</div></div>'+
       '</div>'+
-      '<div class="mini-field" style="margin-top:4px"><label>¿Cuánto te cuesta hacer UN pedido? <span class="unit">(S/)</span></label>'+
+      '<div class="mini-field" style="margin-top:4px"><label>¿Cuánto te cuesta hacer UN pedido? <span class="unit">(S/ &middot; S)</span></label>'+
       '<input type="number" data-i="'+i+'" data-f="orderCost" value="'+esc(it.orderCost||'')+'" placeholder="Ej: 25" inputmode="decimal">'+
       '<div class="ex-hint">Transporte + tu tiempo. Ej: moto a recogerlo (1h=S/20 + S/5 combustible) = <b>S/25 por pedido</b></div></div>'+
       renderReordenBadge(it)+'</div>';
@@ -1407,7 +1407,7 @@ function openModal(idx){
       +'<th style="padding:5px 6px;text-align:left">Insumo</th>'
       +'<th style="padding:5px 4px">Ld</th>'
       +'<th style="padding:5px 4px">Ss</th>'
-      +'<th style="padding:5px 4px">PR</th>'
+      +'<th style="padding:5px 4px">R</th>'
       +'<th style="padding:5px 4px">EOQ</th>'
       +'</tr></thead><tbody>'
       +reordenE.map(function(r){
@@ -1420,7 +1420,7 @@ function openModal(idx){
           +'</tr>';
       }).join('')
       +'</tbody></table></div>'
-      +'<div style="font-size:9.5px;color:var(--muted);margin-top:4px">Ld=lead time (d\u00edas) &middot; Ss=stock de seguridad &middot; PR=punto de reorden &middot; EOQ=cantidad econ\u00f3mica de pedido</div>'
+      +'<div style="font-size:9.5px;color:var(--muted);margin-top:4px">Ld=lead time (d\u00edas) &middot; Ss=stock de seguridad &middot; R=punto de reorden &middot; EOQ=cantidad econ\u00f3mica de pedido</div>'
       +'</div>';
   }
 

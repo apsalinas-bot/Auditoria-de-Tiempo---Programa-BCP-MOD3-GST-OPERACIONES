@@ -814,7 +814,7 @@ function renderFishbone(){
   const LINEH = fontSize * 1.3;
   const MAXCH = maxC<=2 ? 20 : maxC<=4 ? 18 : 16;
   // Longitud de ramita adaptativa
-  const ramLen = maxC<=2 ? 38 : maxC<=4 ? 32 : 26;
+  const ramLen = maxC<=2 ? 52 : maxC<=4 ? 44 : 36;
   // Altura dinámica
   const W=920, H=Math.max(480, 400+maxC*38);
   const spineY=H/2, tailX=20, headW=128, headH=72;
@@ -875,9 +875,8 @@ function renderFishbone(){
       s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(c.root?5:3)+'" fill="'+(c.root?RED:MUTED)+'"/>';
 
       // Ramita perpendicular larga hacia el exterior
-      const rpx=sinA*(top?-1:1)*ramLen;
-      const rpy=cosA*(top?1:-1)*ramLen;
-      const rx2=px+rpx, ry2=py+rpy;
+      const rx2=px;
+      const ry2=py+(top?-ramLen:ramLen);
       s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+rx2.toFixed(1)+'" y2="'+ry2.toFixed(1)+'" stroke="'+(c.root?RED:SOFT)+'" stroke-width="'+(c.root?1.5:1.2)+'"/>';
 
       // Texto en la punta de la ramita — siempre hacia exterior

@@ -147,6 +147,32 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
 @media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
+/* ── Claude IA S5 ── */
+@keyframes shimmer-s5{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes spin-s5{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse-s5{0%,100%{opacity:.25}50%{opacity:1}}
+.claude-btn-s5{background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);background-size:300% auto;animation:shimmer-s5 4s linear infinite;border:none;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.35);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.claude-btn-s5:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
+.claude-btn-s5:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.cb5-icon{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.3)}
+.cb5-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px;flex:1}
+.cb5-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
+.cb5-sub{font-size:10px;color:rgba(255,255,255,0.65);letter-spacing:.5px;font-weight:500}
+.cb5-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;flex-shrink:0}
+.cb5-badge span{font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.4px}
+.dots-s5{display:inline-flex;align-items:center;gap:4px;padding:4px 0}
+.dots-s5 span{width:6px;height:6px;border-radius:50%;background:#0E8C8C;display:inline-block;animation:pulse-s5 1.2s ease-in-out infinite}
+.dots-s5 span:nth-child(2){animation-delay:.2s}
+.dots-s5 span:nth-child(3){animation-delay:.4s}
+.analisis-abc-s5{padding:14px 16px;background:linear-gradient(135deg,#F0FAFA,#E3F5F5);border-left:3px solid #0E8C8C;border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px}
+.analisis-abc-s5.visible{display:block}
+.analisis-abc-s5 b{color:#0A6A6A;font-weight:700}
+.diagnostico-s5{background:linear-gradient(135deg,#001a1a,#003a3a);border-radius:14px;padding:22px;margin-bottom:10px;display:none;position:relative;overflow:hidden}
+.diagnostico-s5.visible{display:block}
+.d5-eyebrow{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#5FD4D4;margin-bottom:6px}
+.d5-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:12px}
+.d5-body{font-size:13.5px;color:#A8E6E6;line-height:1.8}
+.d5-body b{color:#fff;font-weight:700}
 </style>
 </head>
 <body>
@@ -244,7 +270,21 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <textarea class="plan-input" id="planC" placeholder="Ej: comprar menos cantidad, solo cuando se necesite..."></textarea>
     </div>
 
-    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi trabajo</button>
+    <!-- Análisis IA ABC -->
+    <div class="analisis-abc-s5" id="analisisAbcS5"></div>
+    <div class="diagnostico-s5" id="diagnosticoS5">
+      <div class="d5-eyebrow">&#9670; Diagn&#243;stico de consultor</div>
+      <div class="d5-title">&#127807; Tu plan de inventario esta semana</div>
+      <div class="d5-body" id="diagnosticoS5Body"></div>
+    </div>
+    <button class="claude-btn-s5 no-print" id="saveCloudBtn">
+      <div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div>
+      <div class="cb5-text">
+        <div class="cb5-main">Guardar y generar an&#225;lisis</div>
+        <div class="cb5-sub">Diagn&#243;stico personalizado con IA</div>
+      </div>
+      <div class="cb5-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg><span>Claude</span></div>
+    </button>
     <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Matriz ABC (.xlsx)</button>
     <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF resumen</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
@@ -610,30 +650,102 @@ $('clearBtn').addEventListener('click', ()=>{
   location.reload();
 });
 
+// ── CLAUDE PROXY S5 ──────────────────────────────────────────────────────────
+async function callClaudeS5(prompt){
+  try{
+    const r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,
+        system:'Eres una consultora de operaciones experta, cálida y muy directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Usas los datos EXACTOS que te dan. Das pasos concretos y accionables para esta semana. Lenguaje simple y cercano. Resalta con **asteriscos** máximo 3 frases clave.',
+        messages:[{role:'user',content:prompt}]})
+    });
+    if(!r.ok){console.error('API S5',r.status);return null;}
+    const d=await r.json();
+    return d.content&&d.content[0]?d.content[0].text:null;
+  }catch(e){console.error('callClaudeS5',e);return null;}
+}
+function renderNegS5(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function dotsS5El(el){el.innerHTML='<div class="dots-s5"><span></span><span></span><span></span></div>';}
+function btnS5Original(){
+  const btn=$('saveCloudBtn');
+  btn.innerHTML='<div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Guardar y generar an&#225;lisis</div><div class="cb5-sub">Diagn&#243;stico personalizado con IA</div></div><div class="cb5-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg><span>Claude</span></div>';
+  btn.disabled=false;
+}
+function btnS5Loading(){
+  const btn=$('saveCloudBtn'); btn.disabled=true;
+  btn.innerHTML='<div class="cb5-icon" style="animation:spin-s5 1s linear infinite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#5FD4D4"/></svg></div><div class="cb5-text"><div class="cb5-main">Generando an&#225;lisis...</div><div class="cb5-sub">Claude est&#225; procesando tu informaci&#243;n</div></div>';
+}
+
 // GUARDAR NUBE
 $('saveCloudBtn').addEventListener('click', async ()=>{
   if(abcData.length<2){ showStatus('Agrega al menos 2 insumos con costo y cantidad.','err'); return; }
-  showStatus('Guardando...','loading');
+  btnS5Loading();
+  showStatus('Guardando y generando an\u00e1lisis...','loading');
   const rec=await binRead();
-  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); return; }
+  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); btnS5Original(); return; }
   const entries=Array.isArray(rec.entries)?rec.entries:[];
   const total=abcData.reduce((s,it)=>s+it.value,0);
   const groupA=abcData.filter(i=>i.cat==='A');
+  const groupB=abcData.filter(i=>i.cat==='B');
+  const groupC=abcData.filter(i=>i.cat==='C');
+  const planATxt=$('planA').value.trim();
+  const planCTxt=$('planC').value.trim();
   const payload={
     dni:currentDNI, name:currentName,
     insumos:abcData.map(it=>({name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat})),
-    insumoCount:abcData.length,
-    totalValue:total,
-    countA:groupA.length,
-    planA:$('planA').value.trim(), planC:$('planC').value.trim(),
-    hasPlan: !!($('planA').value.trim() || $('planC').value.trim()),
+    insumoCount:abcData.length, totalValue:total, countA:groupA.length,
+    planA:planATxt, planC:planCTxt,
+    hasPlan: !!(planATxt||planCTxt),
     savedAt:new Date().toISOString()
   };
   const idx=entries.findIndex(e=>e.dni===currentDNI);
   if(idx>=0) entries[idx]=payload; else entries.push(payload);
+
+  // ── Prompt 1: análisis ABC personalizado ─────────────────────────────────
+  const firstName=currentName.trim().split(' ')[0];
+  const insTexto=abcData.map(it=>'- '+it.name+' ('+it.cat+'): S/'+it.cost.toFixed(0)+' x '+it.qty+'/mes = S/'+it.value.toFixed(0)+' ('+it.pct.toFixed(0)+'% del dinero)').join('\n');
+  const elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
+
+  const ia1=await callClaudeS5(
+    'Emprendedora: '+firstName+'\nTotal en inventario: S/'+total.toFixed(0)+'/mes\n\n'+
+    'Clasificacion ABC de sus insumos (mayor a menor valor):\n'+insTexto+
+    (planATxt?'\n\nSu plan para insumos criticos (A): "'+planATxt+'"':'')+
+    (planCTxt?'\nSu plan para insumos de bajo valor (C): "'+planCTxt+'"':'')+
+    '\n\nEscribe 2-3 oraciones muy directas (max 80 palabras):\n'+
+    '- Que representa la concentracion de dinero en sus insumos A (usa los montos reales).\n'+
+    '- Si su plan para los A es suficientemente concreto o necesita mas detalle.\n'+
+    '- Una senal de alerta u oportunidad concreta en su distribucion.\n'+
+    'Usa su nombre una vez. Habla de tu. Resalta el dato mas importante con **asteriscos**.'
+  );
+  elA.innerHTML=renderNegS5(ia1||firstName+', tu clasificacion ABC esta lista. Revisa tus insumos A son los que mas cuidan tu flujo de caja.');
+
+  // ── Prompt 2: diagnóstico de consultor ────────────────────────────────────
+  const dEl=$('diagnosticoS5'); const dBody=$('diagnosticoS5Body');
+  dEl.classList.add('visible'); dotsS5El(dBody);
+  const topA=groupA.map(i=>i.name+' (S/'+i.value.toFixed(0)+')').join(', ')||'ninguno';
+  const topC=groupC.length?groupC.map(i=>i.name+' (S/'+i.value.toFixed(0)+')').join(', '):'ninguno';
+
+  const ia2=await callClaudeS5(
+    'Emprendedora: '+firstName+'\nTotal inventario: S/'+total.toFixed(0)+'/mes\n'+
+    'Insumos A (criticos, '+groupA.length+'): '+topA+'\n'+
+    (groupB.length?'Insumos B ('+groupB.length+'): '+groupB.map(i=>i.name).join(', ')+'\n':'')+
+    'Insumos C (liberar, '+groupC.length+'): '+topC+'\n'+
+    (planATxt?'Plan A declarado: "'+planATxt+'"\n':'')+
+    (planCTxt?'Plan C declarado: "'+planCTxt+'"\n':'')+
+    '\nEres su consultora de inventarios. Escribe el diagnostico de accion (max 90 palabras).\n'+
+    'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'+
+    'Escribe 3 cosas concretas:\n'+
+    '1. Que hace PRIMERO esta semana con sus insumos A (accion especifica, con verbo).\n'+
+    '2. Como liberar dinero de los insumos C (una accion concreta).\n'+
+    '3. Como sabra que esta funcionando (senal o numero concreto).\n'+
+    'Directa, cercana, sin redundancia. Resalta con **asteriscos** la accion mas importante.'
+  );
+  dBody.innerHTML=renderNegS5(ia2||firstName+', esta semana asegura el stock minimo de tus insumos A y revisa que insumos C puedes dejar de comprar en exceso.');
+
   const ok=await binWrite({entries});
-  showStatus(ok?'\u2705 Guardado correctamente.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
-  if(ok) setTimeout(()=>showStatus('',''),4000);
+  showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''),5000);
+  btnS5Original();
 });
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
 

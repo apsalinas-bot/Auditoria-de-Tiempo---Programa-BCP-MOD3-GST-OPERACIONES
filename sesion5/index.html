@@ -318,8 +318,8 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
     <h1>Tablero de <span style="color:#5FD4D4">Control</span></h1>
     <p id="docWelcome">Insumos e Inventario &mdash; Clasificaci&oacute;n ABC</p>
   </div>
-  <div class="logout-row no-print" style="display:flex;gap:8px;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #e2e7f0">
-    <button class="refresh-btn" onclick="loadDocData()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px">&#8635; Actualizar datos</button>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
     <button class="logout-btn" onclick="doLogout()">Salir</button>
   </div>
   <div class="wrap">
@@ -1242,48 +1242,87 @@ async function loadDocData(){
     $('docTableBody').innerHTML='<tr><td colspan="6" style="padding:16px"><div class="alert-box amber"><b>Error de conexión.</b> Verifica internet.</div></td></tr>'; return;
   }
   docEntries=Array.isArray(rec.entries)?rec.entries:[];
-  const total=docEntries.length, pct=Math.round(total/25*100);
-  const totalIns=docEntries.reduce((s,e)=>s+(e.insumoCount||0),0);
-  const conPlan=docEntries.filter(e=>e.hasPlan).length;
-  const conReorden=docEntries.filter(e=>(e.reordenCount||0)>0).length;
-  // Promedios ABC
-  const allIns=docEntries.flatMap(e=>e.insumos||[]);
-  const avgA=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0)/total).toFixed(1):0;
-  const avgB=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='B').length,0)/total).toFixed(1):0;
-  const avgC=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='C').length,0)/total).toFixed(1):0;
 
+  // Excluir controles del conteo
+  const CTRL=new Set(['70003701','70003702']); // Franchesca y Beatriz si tuvieran DNI
+  const CTRL_NAMES=new Set(['Franchesca Quezada Cabrera','Beatriz Palacios Espinoza']);
+  const empEnt=docEntries.filter(e=>!CTRL_NAMES.has(e.name||''));
+  const TOTAL_EMP=25;
+  const total=empEnt.length;
+  const pct=Math.round(total/TOTAL_EMP*100);
+
+  // Métricas
+  const totalIns=empEnt.reduce((s,e)=>s+(e.insumoCount||0),0);
+  const conPlan=empEnt.filter(e=>e.hasPlan).length;
+  const conReorden=empEnt.filter(e=>(e.reordenCount||0)>0).length;
+  const avgValor=total?Math.round(empEnt.reduce((s,e)=>s+(e.totalValue||0),0)/total):0;
+
+  // ABC totales y promedios
+  const totA=empEnt.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0);
+  const totB=empEnt.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='B').length,0);
+  const totC=empEnt.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='C').length,0);
+  const totABC=totA+totB+totC||1;
+  const avgA=total?+(totA/total).toFixed(1):0;
+  const avgB=total?+(totB/total).toFixed(1):0;
+  const avgC=total?+(totC/total).toFixed(1):0;
+
+  // KPIs principales
   $('kTotal').textContent=total;
   $('kPct').textContent=pct+'%';
   $('kInsumos').textContent=totalIns;
   $('kPlan').textContent=conPlan;
-  $('kAvgA').textContent=avgA;
-  $('kAvgB').textContent=avgB;
-  $('kAvgC').textContent=avgC;
   $('kConReorden').textContent=conReorden;
-  $('kPctLbl').textContent=total+' / 25';
+  $('kPctLbl').textContent=total+' / '+TOTAL_EMP;
   $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su matriz ABC.';
 
-  // Alertas múltiples contextuales
-  var alerts2='';
-  if(total===0){
-    alerts2='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Pide a las emprendedoras que abran la app y guarden.</div>';
-  } else {
-    if(pct<50) alerts2+='<div class="alert-box amber"><b>Participación baja ('+pct+'%).</b> Da unos minutos más.</div>';
-    else if(pct>=80) alerts2+='<div class="alert-box green"><b>✅ '+pct+'% del grupo completó ('+total+'/25).</b></div>';
-    else alerts2+='<div class="alert-box navy"><b>'+total+' de 25 guardaron</b> — '+pct+'% completado.</div>';
-    if(conPlan<total&&total>0) alerts2+='<div class="alert-box amber"><b>'+(total-conPlan)+' aún no definieron plan A y C.</b> Anima a completar el Paso 3.</div>';
-    if(conReorden>0) alerts2+='<div class="alert-box green"><b>'+conReorden+' calcularon su punto de reorden.</b> ¡Excelente nivel!</div>';
-    else if(total>=5) alerts2+='<div class="alert-box navy"><b>Nadie ha ingresado lead time aún.</b> Recuerda los campos de reorden en Paso 1.</div>';
+  // Barras distribución ABC
+  const abcGrid=$('abcDistGrid');
+  if(abcGrid){
+    if(total>0){
+      const cats=[
+        {cat:'A',label:'Críticos (A)',color:'#0E8C8C',tot:totA,avg:avgA,pct:Math.round(totA/totABC*100)},
+        {cat:'B',label:'Intermedios (B)',color:'#E8A800',tot:totB,avg:avgB,pct:Math.round(totB/totABC*100)},
+        {cat:'C',label:'Bajo valor (C)',color:'#8AACBD',tot:totC,avg:avgC,pct:Math.round(totC/totABC*100)}
+      ];
+      abcGrid.innerHTML=cats.map(d=>
+        '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div style="width:26px;height:26px;border-radius:6px;background:'+d.color+';color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+d.cat+'</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--ink);width:120px;flex-shrink:0">'+d.label+'</div>'+
+        '<div style="flex:1;background:#F0F2F7;border-radius:99px;height:10px;overflow:hidden">'+
+          '<div style="width:'+d.pct+'%;height:100%;border-radius:99px;background:'+d.color+';transition:.4s"></div>'+
+        '</div>'+
+        '<div style="font-size:12px;font-weight:700;color:'+d.color+';width:28px;text-align:right">'+d.tot+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);width:48px;text-align:right">'+d.avg+'/emp</div>'+
+        '</div>'
+      ).join('');
+      if($('abcDistNote')) $('abcDistNote').textContent=
+        'Total: '+totABC+' insumos. Promedio en inventario: S/'+avgValor.toLocaleString()+'/emprendedora.';
+    } else {
+      abcGrid.innerHTML='<p style="font-size:12px;color:var(--muted)">Sin datos aún.</p>';
+    }
   }
-  $('docAlerts').innerHTML=alerts2;
 
-  // Tabla
+  // Alertas contextuales
+  let al='';
   if(total===0){
-    $('docTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Aún no hay registros.</td></tr>';
+    al='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Pide a las emprendedoras que guarden.</div>';
+  } else {
+    if(pct>=80) al+='<div class="alert-box green"><b>✅ '+pct+'% del grupo completó ('+total+'/'+TOTAL_EMP+').</b></div>';
+    else if(pct>=50) al+='<div class="alert-box navy"><b>'+total+' de '+TOTAL_EMP+' guardaron</b> — '+pct+'% completado.</div>';
+    else al+='<div class="alert-box amber"><b>Participación baja ('+pct+'%).</b> Da unos minutos más.</div>';
+    if(conPlan<total) al+='<div class="alert-box amber"><b>'+(total-conPlan)+' aún sin plan A y C.</b> Anima a completar el Paso 3.</div>';
+    if(conReorden>0) al+='<div class="alert-box green"><b>'+conReorden+' calcularon punto de reorden.</b> ¡Gran nivel!</div>';
+    else if(total>=5) al+='<div class="alert-box navy"><b>Nadie ingresó lead time aún.</b> Recuerda los campos de reorden en Paso 1.</div>';
+  }
+  $('docAlerts').innerHTML=al;
+
+  // Tabla de emprendedoras
+  if(total===0){
+    $('docTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros aún.</td></tr>';
   } else {
     let rows='';
-    docEntries.forEach((e,idx)=>{
+    empEnt.forEach((e,idx)=>{
       const nombre=e.name||e.dni;
       const first=nombre.split(' ')[0];
       const ins=e.insumos||[];
@@ -1304,7 +1343,7 @@ async function loadDocData(){
           '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#E8A800;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nB+'</span> '+
           '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#8AACBD;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nC+'</span>'+
         '</td>'+
-        '<td style="text-align:center">'+(e.hasPlan?'<span class="tag green">✓ sí</span>':'<span class="tag gray">no</span>')+'</td>'+
+        '<td style="text-align:center">'+(e.hasPlan?'<span class="tag green">✓</span>':'<span class="tag gray">–</span>')+'</td>'+
         '<td style="text-align:center">'+(tieneReorden?'<span class="tag teal">✓</span>':'<span class="tag gray">–</span>')+'</td>'+
       '</tr>';
     });
@@ -1312,20 +1351,20 @@ async function loadDocData(){
   }
 
   // Pendientes
-  const reg=new Set(docEntries.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d,n])=>!reg.has(d)&&n!=='Franchesca Quezada Cabrera'&&n!=='Beatriz Palacios Espinoza');
+  const reg=new Set(empEnt.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d,n])=>!reg.has(d)&&!CTRL_NAMES.has(n));
   if(pend.length===0){
-    $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas guardaron su matriz!</b> 25/25 completado.</div>';
+    $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas guardaron!</b> '+TOTAL_EMP+'/'+TOTAL_EMP+' completado.</div>';
   } else {
-    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px"><b>'+pend.length+'</b> sin guardar aún:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px"><b>'+pend.length+'</b> sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
     pend.forEach(([,nm])=>{
-      const fn=nm.split(' ')[0];
-      ph+='<span style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;border-radius:20px;padding:4px 11px;font-size:12px">'+esc(fn)+'</span>';
+      ph+='<span style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;border-radius:20px;padding:4px 11px;font-size:12px">'+esc(nm.split(' ')[0])+'</span>';
     });
     ph+='</div>';
     $('docPending').innerHTML=ph;
   }
 }
+
 function openModal(idx){
   const e=docEntries[idx]; if(!e) return;
   $('modalName').textContent=e.name||e.dni;

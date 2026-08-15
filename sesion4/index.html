@@ -630,7 +630,7 @@ function mostrarSelectorCuellos(cuellos,raizTxt){
   div.appendChild(lbl);
   cuellos.forEach(function(r){
     var b=document.createElement('button');
-    b.textContent='[rojo] '+r.text;
+    b.textContent='\u{1F534} '+r.text;
     b.dataset.cuelloText=r.text;
     b.style.cssText='display:block;width:100%;text-align:left;padding:10px 13px;margin-bottom:6px;border:1.5px solid var(--red);border-radius:9px;background:#fff;cursor:pointer;font-size:13px;color:var(--ink)';
     div.appendChild(b);

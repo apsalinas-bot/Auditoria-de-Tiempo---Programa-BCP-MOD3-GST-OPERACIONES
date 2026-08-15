@@ -857,17 +857,19 @@ $('printBtn').addEventListener('click', function(){
   diagText=diagText.trim();
   var diagOk=diagText&&!diagText.includes('dots-s5');
 
-  // Tabla de insumos ingresados (Paso 1)
-  var insRows = insumos.filter(function(it){return it.name&&it.cost&&it.qty;}).map(function(it,idx2){
+  // Tabla de insumos ingresados (Paso 1) — cruzar con insumos[] para datos completos
+  var insRows = abcData.map(function(it,idx2){
+    // Buscar datos de reorden en insumos[] por nombre
+    var raw=insumos.find(function(r){return r.name===it.name;})||{};
     return '<tr>'
       +'<td>'+(idx2+1)+'</td>'
       +'<td style="font-weight:600">'+esc(it.name)+'</td>'
-      +'<td style="text-align:right">S/ '+parseFloat(it.cost).toFixed(0)+'</td>'
+      +'<td style="text-align:right">S/ '+it.cost.toFixed(0)+'</td>'
       +'<td style="text-align:right">'+it.qty+'</td>'
-      +'<td style="text-align:right;font-weight:700;color:#0A6A6A">S/ '+(parseFloat(it.cost)*parseFloat(it.qty)).toFixed(0)+'</td>'
-      +(it.leadTime?'<td style="text-align:right">'+it.leadTime+' dias</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
-      +(it.maxQty?'<td style="text-align:right">'+it.maxQty+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
-      +(it.orderCost?'<td style="text-align:right">S/ '+parseFloat(it.orderCost).toFixed(0)+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +'<td style="text-align:right;font-weight:700;color:#0A6A6A">S/ '+it.value.toFixed(0)+'</td>'
+      +(raw.leadTime?'<td style="text-align:right">'+raw.leadTime+' dias</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +(raw.maxQty?'<td style="text-align:right">'+raw.maxQty+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +(raw.orderCost?'<td style="text-align:right">S/ '+parseFloat(raw.orderCost).toFixed(0)+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
       +'</tr>';
   }).join('');
 
@@ -940,13 +942,13 @@ $('printBtn').addEventListener('click', function(){
     +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
     +'</div>'
 
-    // ══ PÁG 2: Paso 3 (plan) + Análisis IA coloquial ═══════════════════════
+    // ══ PÁG 2: Paso 3 + Análisis + Reorden + Diagnóstico (todo junto, sin page-break intermedio) ══
     +'<div class="page-break"></div>'
     +'<div class="page">'
     +'<div class="header">'
     +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES \u2014 continuaci\u00f3n</div>'
     +'<h1>Insumos e <span>Inventario</span></h1>'
-    +'<p>'+esc(nombre)+' \u2014 Plan de acci\u00f3n y an\u00e1lisis</p>'
+    +'<p>'+esc(nombre)+'</p>'
     +'</div>'
 
     // Paso 3: Plan
@@ -956,37 +958,34 @@ $('printBtn').addEventListener('click', function(){
       +(planCTxt?'<p style="font-size:11.5px"><strong style="color:#6B7688">Insumos C (poco valor) \u2014 \u00bfc\u00f3mo liberar ese dinero?</strong><br><span style="font-size:11px;color:#1C2536">'+esc(planCTxt)+'</span></p>':'')
       +'</div>':'')
 
-    // Análisis IA coloquial
+    // Análisis IA
     +(analisis1ok?'<div class="section avoid"><span class="sec-label">An\u00e1lisis de tu Matriz ABC</span><div class="analisis">'+analisis1+'</div></div>':'')
+
+    // Reorden + EOQ (si tiene datos)
+    +(reordenRows?'<div class="section avoid">'
+      +'<span class="sec-label">&#128204; Puntos de reorden, stock de seguridad y cantidad a pedir (EOQ)</span>'
+      +'<div style="overflow-x:auto"><table>'
+      +'<thead><tr><th>Insumo</th><th>Cat</th><th style="text-align:right">Uso/dia</th><th style="text-align:right">Lead time</th><th style="text-align:right">Stock seg.</th><th style="text-align:right">Pedir cuando queden</th><th style="text-align:right">Cantidad (EOQ)</th><th style="text-align:right">Valor pedido</th><th style="text-align:right">Frec./mes</th></tr></thead>'
+      +'<tbody>'+reordenRows+'</tbody>'
+      +'</table></div>'
+      +'<div class="nota">SS=(max-prom)/30\u00d7LT \u00b7 Pedir cuando queden=uso/dia\u00d7LT+SS \u00b7 EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)</div>'
+      +'</div>':'')
+
+    // Diagnóstico IA (lo más valioso — siempre al final de esta misma hoja)
+    +(diagOk
+      ?'<div class="diag avoid"><div class="diag-ey">\u25c6 Diagn\u00f3stico de consultor</div><h2>Tu plan de inventario esta semana</h2><div class="diag-body">'+diagText+'</div></div>'
+      :(analisis1ok?'':'')
+    )
 
     +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
     +'</div>'
-
-    // ══ PÁG 3: Reorden + EOQ + Diagnóstico ══════════════════════════════════
-    +(reordenRows?'<div class="page-break"></div><div class="page">'
-      +'<div class="header">'
-      +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES \u2014 continuaci\u00f3n</div>'
-      +'<h1>Insumos e <span>Inventario</span></h1>'
-      +'<p>'+esc(nombre)+' \u2014 Puntos de reorden y cantidad a pedir</p>'
-      +'</div>'
-      +'<div class="section avoid">'
-      +'<span class="sec-label">&#128204; Puntos de reorden, stock de seguridad y cantidad a pedir (EOQ)</span>'
-      +'<div style="overflow-x:auto"><table>'
-      +'<thead><tr><th>Insumo</th><th>Cat</th><th style="text-align:right">Uso/dia</th><th style="text-align:right">Lead time</th><th style="text-align:right">Stock seg.</th><th style="text-align:right">Pedir cuando queden</th><th style="text-align:right">Cantidad a pedir (EOQ)</th><th style="text-align:right">Valor pedido</th><th style="text-align:right">Frec./mes</th></tr></thead>'
-      +'<tbody>'+reordenRows+'</tbody>'
-      +'</table></div>'
-      +'<div class="nota">SS=(max-prom)/30\u00d7LT &nbsp;\u00b7&nbsp; Pedir cuando queden=uso/dia\u00d7LT+SS &nbsp;\u00b7&nbsp; EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)</div>'
-      +'</div>'
-      +(diagOk?'<div class="diag avoid"><div class="diag-ey">\u25c6 Diagn\u00f3stico de consultor</div><h2>Tu plan de inventario esta semana</h2><div class="diag-body">'+diagText+'</div></div>':'')
-      +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
-      +'</div>':'')
 
     +'</body></html>';
 
   // Abrir ventana, imprimir directamente como PDF
   var pdfBtn=$("printBtn");
   pdfBtn.disabled=true; pdfBtn.textContent="Preparando PDF...";
-  var win=window.open("","_blank","width=900,height=700");
+  var win=window.open("","_blank","width=1,height=1,left=-2000,top=-2000");
   if(!win){
     // Si popups bloqueados: fallback a descarga de HTML
     var blob=new Blob([html],{type:"text/html;charset=utf-8"});

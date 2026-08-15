@@ -846,11 +846,11 @@ async function procesarArchivoSolver(file){
     });
     if(!solverResults.length){resEl.textContent='No se encontraron resultados. Verifica el archivo.';return;}
     // Solo mostrar éxito limpio, sin los datos crudos
-    resEl.textContent='✅ Excel cargado correctamente — '+solverResults.length+' productos con resultados del Solver.';
+    resEl.textContent='\u2705 Excel cargado correctamente \u2014 '+solverResults.length+' productos con resultados del Solver.';
     resEl.style.color='#3B6D11';
     if(dz){ dz.style.border='2px solid #3B6D11'; dz.style.background='#F0FBF0'; }
-    // Generar análisis automáticamente
-    generarAnalisisMixS4Main();
+    // NO generar análisis aquí — se genera al presionar el botón guardar
+  
   }catch(e){resEl.textContent='Error al leer el archivo: '+e.message; resEl.style.color='#A32D2D';}
 }
 document.addEventListener('change',function(e){
@@ -877,9 +877,6 @@ async function generarAnalisisMixS4Main(){
   const valid=products.filter(p=>p.name&&p.price);
   if(!solverResults.length||valid.length<2) return;
 
-  const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
-  dEl.classList.add('visible'); dotsS4El(dBody);
-
   const prodTexto=valid.map(function(p){
     return '- '+p.name+': S/'+p.price+' precio, S/'+(p.cost||0)+' costo, margen S/'+(Number(p.price)-Number(p.cost||0))+', usa '+p.resourcePerUnit+' '+recurso;
   }).join('\n');
@@ -890,21 +887,46 @@ async function generarAnalisisMixS4Main(){
   },0);
   const planTxt=$('analisisPlanS4').innerHTML.replace(/<[^>]+>/g,' ').trim();
 
-  const iaF=await callClaudeS4(
+  // Mostrar contenedor
+  const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
+  dEl.classList.add('visible'); dotsS4El(dBody);
+
+  // Prompt 1: qué dice el Solver (traducción simple)
+  const ia1=await callClaudeS4(
     'Emprendedora: '+firstName+
-    '\nRecurso limitante: '+recurso+(recursoTotal?' (total disponible: '+recursoTotal+')':'')+
-    '\n\nSus productos con márgenes:\n'+prodTexto+
-    '\n\nResultado del Solver (mezcla óptima):\n'+solverTexto+
-    '\nGanancia total con esta mezcla: S/'+ganOpt.toFixed(0)+
-    (planTxt?'\n\nSu plan de mejora operativa: '+planTxt:'')+
-    '\n\nEres su consultora de negocios. Escribe UN SOLO mensaje directo y personal (máx 4 oraciones, máx 100 palabras).'+
-    '\nEmpieza EXACTAMENTE con "'+firstName+'," (nombre+coma).'+
-    '\nEl mensaje debe:\n1. Decirle exactamente cuánto producir de cada producto esta semana (usa los números del Solver, no porcentajes).'+
-    '\n2. Explicarle en una frase simple por qué esa combinación le conviene más (sin fórmulas).'+
-    '\n3. Darle 1 sola acción concreta para arrancar HOY o mañana.'+
-    '\nSin introducción, sin resumen al final. Solo el mensaje. Resalta con **asteriscos** el producto que debe priorizar.'
+    '\nRecurso: '+recurso+(recursoTotal?' (total: '+recursoTotal+')':'')+
+    '\n\nProductos:\n'+prodTexto+
+    '\n\nResultado del Solver:\n'+solverTexto+
+    '\nGanancia óptima: S/'+ganOpt.toFixed(0)+
+    '\n\nEn 2 oraciones simples y directas (máx 60 palabras), explícale qué significa este resultado del Solver para su negocio:'+
+    '\n- Cuánto producir de cada producto exactamente (usa los números).'+
+    '\n- Por qué esa mezcla le genera más ganancia que producir todo igual.'+
+    '\nSin tecnicismos. Como si se lo explicaras a alguien sin formación matemática. Empieza con el producto que más debe producir.'
   );
-  dBody.innerHTML=renderNegS4(iaF||firstName+', esta semana produce la mezcla que el Solver calculó y arranca ajustando tu operación desde mañana.');
+
+  // Prompt 2: diagnóstico de consultor — qué hacer primero
+  const ia2=await callClaudeS4(
+    'Resultado del Solver para '+firstName+':\n'+solverTexto+'\nGanancia: S/'+ganOpt.toFixed(0)+
+    (planTxt?'\nSu plan de mejora operativa: '+planTxt:'')+
+    '\n\nEres su consultora. Escribe el diagnóstico de acción (máx 80 palabras).'+
+    '\nEmpieza EXACTAMENTE con "'+firstName+'," (nombre+coma).'+
+    '\nEscribe 3 cosas concretas en orden:'+
+    '\n1. Qué hace PRIMERO esta semana (acción específica, con verbo y día si puedes).'+
+    '\n2. Qué ajuste operativo necesita para lograr esa mezcla (una cosa puntual).'+
+    '\n3. Cómo sabrá que le está funcionando (señal o número concreto).'+
+    '\nDirecta, cercana, sin redundancia. Resalta con **asteriscos** la acción más importante.'
+  );
+
+  // Mostrar los 2 bloques
+  dBody.innerHTML =
+    '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.15)">' +
+    '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">📊 Lo que dice el Solver</div>' +
+    renderNegS4(ia1||'Produce la mezcla que el Solver calculó para maximizar tu ganancia.') +
+    '</div>' +
+    '<div>' +
+    '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">🎯 Qué hacer con esto</div>' +
+    renderNegS4(ia2||firstName+', arranca esta semana produciendo la mezcla óptima y mide tus resultados al final.') +
+    '</div>';
 }
 
 // Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
@@ -1147,8 +1169,10 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
       '\n\nEscribe 2-3 oraciones directas y muy personales (máx 80 palabras): qué va a ganar exactamente con esta decisión (en tiempo, dinero o energía), qué riesgo debe cuidar esta semana, y si su plan es suficientemente concreto o necesita más detalle. Usa su nombre una vez. Habla de tú. Resalta la ganancia esperada.'
     );
     el1.innerHTML=renderNegS4(ia1||firstName+', esta acción tiene potencial real. Asegúrate de ejecutar el primer paso antes del viernes.');
-    // Si ya tiene solver results, generar cierre integrador
-    if(solverResults.length) generarDiagnosticoFinalS4(el1.innerHTML, $('analisisMixS4').innerHTML);
+  }
+  // Si tiene resultados del Solver, generar el análisis de mezcla + diagnóstico
+  if(solverResults.length && valid.length>=2){
+    await generarAnalisisMixS4Main();
   }
   // Mostrar zona de upload Solver si tiene 2+ productos
   if(valid.length>=2){

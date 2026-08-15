@@ -50,6 +50,12 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .gate-panel-label{font-size:13.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px}
 .gate-dni-input,.gate-pw-input{width:100%;padding:15px 16px;font-size:18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-family:inherit;color:var(--ink);letter-spacing:4px}
 .gate-dni-input::placeholder{letter-spacing:1px;color:#BEC6D2;font-size:16px}
+.pw-eye-btn{position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#BEC6D2;padding:0}
+.pw-eye-btn:hover{color:var(--navy)}
+.pw-eye-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
+input[type=password]::-webkit-credentials-auto-fill-button{display:none !important}
+input[type=password]{-webkit-appearance:none}
 .gate-dni-input:focus,.gate-pw-input:focus{outline:none;border-color:var(--navy);border-width:2px}
 .gate-err{font-size:12.5px;color:var(--red);font-weight:600;min-height:18px;margin-top:6px}
 .gate-btn{width:100%;padding:16px;font-size:16px;font-weight:700;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:inherit;margin-top:12px}
@@ -257,13 +263,19 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
-        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputEmp" placeholder="8 dígitos" maxlength="8" inputmode="numeric" style="padding-right:46px">
+          <button type="button" id="toggleDni" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errEmp"></div>
         <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
       </div>
       <div class="gate-panel" id="panelDoc">
         <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
-        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div style="position:relative">
+          <input class="gate-pw-input" type="password" id="inputDoc" placeholder="••••••••" style="padding-right:46px">
+          <button type="button" id="toggleDoc" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
       </div>
@@ -507,10 +519,10 @@ async function getCuelloS3(dni){
     const e = entries.find(x => x.dni===dni);
     if(!e) return null;
     // el paso rojo del semaforo + la causa raiz del ishikawa
-    const rojo = (e.semaforo||[]).find(s => s.light==='red');
-    let root=null;
-    if(e.causes){ Object.keys(e.causes).forEach(m => { (e.causes[m]||[]).forEach(c => { if(c.root) root = { text:c.text, m:m }; }); }); }
-    return { cuello: rojo ? rojo.text : (e.symptom||null), root: root, symptom: e.symptom||null };
+    var rojos=(e.semaforo||[]).filter(function(s){return s.light==='red';});
+    var root=null;
+    if(e.causes){Object.keys(e.causes).forEach(function(m){(e.causes[m]||[]).forEach(function(c){if(c.root)root={text:c.text,m:m};});});}
+    return {cuellos:rojos,cuello:rojos.length===1?rojos[0].text:(rojos.length>1?null:e.symptom||null),root:root,symptom:e.symptom||null};
   }catch(e){ return null; }
 }
 
@@ -583,7 +595,12 @@ async function cargarDatos(){
     if(s3 && s3.cuello){
       showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
       const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
-      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.' + raizTxt + ' Hoy ya no diagnosticamos \u2014 hoy lo arreglamos.';
+      if(data.cuellos&&data.cuellos.length>1){
+      mostrarSelectorCuellos(data.cuellos,raizTxt);
+      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b>'+raizTxt+' Elige cu\u00e1l vas a atacar hoy.';
+    } else {
+      msg.innerHTML='\u2713 <b>Retomamos tu trabajo de la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.'+raizTxt+' Hoy ya no diagnosticamos \u2014 hoy lo arreglamos.';
+    }
       msg.className='source-msg';
     } else {
       msg.innerHTML='No encontramos tu diagn\u00f3stico de la Sesi\u00f3n 3 en la nube. Aseg\u00farate de haberlo guardado en S3, o escribe tu cuello manualmente en el plan de abajo.';
@@ -605,6 +622,30 @@ async function cargarDatos(){
   bindOptInputs();
 }
 
+function mostrarSelectorCuellos(cuellos,raizTxt){
+  var div=document.createElement('div');
+  div.style.marginTop='10px';
+  var lbl=document.createElement('div');
+  lbl.style.cssText='font-size:12px;font-weight:600;color:var(--red);margin-bottom:8px';
+  lbl.textContent='Tienes '+cuellos.length+' pasos en rojo - cual vas a atacar hoy?';
+  div.appendChild(lbl);
+  cuellos.forEach(function(r){
+    var b=document.createElement('button');
+    b.textContent='[rojo] '+r.text;
+    b.dataset.cuelloText=r.text;
+    b.style.cssText='display:block;width:100%;text-align:left;padding:10px 13px;margin-bottom:6px;border:1.5px solid var(--red);border-radius:9px;background:#fff;cursor:pointer;font-size:13px;color:var(--ink)';
+    div.appendChild(b);
+  });
+  $('cuelloBox').appendChild(div);
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-cuello-text]');
+  if(!b) return;
+  b.parentElement.querySelectorAll('[data-cuello-text]').forEach(function(x){x.style.background='#fff';x.style.fontWeight='400';});
+  b.style.background='#FDECEA'; b.style.fontWeight='700';
+  showCuello(b.dataset.cuelloText,$('cuelloBox')._cause);
+  $('cuelloText').textContent=b.dataset.cuelloText;
+});
 function showCuello(text, cause){
   $('cuelloBox').style.display='block';
   $('cuelloText').textContent=text;
@@ -623,7 +664,12 @@ document.getElementById('reloadS3Btn').addEventListener('click', async ()=>{
   if(s3 && s3.cuello){
     showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
     const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
-    msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.' + raizTxt;
+    if(data.cuellos&&data.cuellos.length>1){
+      mostrarSelectorCuellos(data.cuellos,raizTxt);
+      msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b>'+raizTxt+' Elige cu\u00e1l vas a atacar hoy.';
+    } else {
+      msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.'+raizTxt;
+    }
     msg.className='source-msg';
     save();
   } else {
@@ -1243,7 +1289,15 @@ $('docPrintBtn').addEventListener('click',()=>window.print());
 $('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
 $('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
 
+function setupEye(bId,iId){
+  var b=$(bId),i=$(iId); if(!b||!i) return;
+  var EO='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EC='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  b.addEventListener('click',function(){ var s=i.type!=='password'; i.type=s?'password':'text'; b.innerHTML=s?EO:EC; i.focus(); });
+}
 pickRole('emp');
+setupEye('toggleDni','inputEmp');
+setupEye('toggleDoc','inputDoc');
 tryResume();
 </script>
 </body>

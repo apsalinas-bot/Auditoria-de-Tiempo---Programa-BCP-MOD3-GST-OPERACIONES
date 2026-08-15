@@ -366,26 +366,9 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
       <div id="poeSections" style="margin-top:14px"></div>
     </div>
 
-    <!-- PASO 3: FICHA DE VALIDACIÓN -->
+    <!-- PASO 3: FICHA DE PROCESO (responsable + indicador) -->
     <div class="card">
-      <span class="step-label">Paso 3 &middot; La prueba de fuego</span>
-      <h2>Valida tu procedimiento</h2>
-      <p class="hint">Entrega tu procedimiento a una compa&ntilde;era. Ella intenta seguirlo <b>sin preguntarte nada</b> y anota lo que no entienda. Esa retroalimentaci&oacute;n mejora tu manual.</p>
-      <div class="fuego-box">
-        <h3>&#128293; &iquest;Qui&eacute;n prob&oacute; tu procedimiento?</h3>
-        <div class="mini-field" style="margin-bottom:10px">
-          <label style="font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:3px">Nombre de la compa&ntilde;era que lo prob&oacute;</label>
-          <input type="text" class="tarea-input" id="validadorInput" placeholder="Nombre de tu compa&ntilde;era" maxlength="50" style="font-size:14px">
-        </div>
-        <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">&iquest;Qu&eacute; no se entendi&oacute; o qu&eacute; hay que mejorar?</label>
-        <textarea class="poe-textarea" id="feedbackInput" placeholder="Anota aqu&iacute; lo que tu compa&ntilde;era no entendi&oacute;, para corregirlo despu&eacute;s..."></textarea>
-        <div class="fuego-check" style="margin-top:12px"><input type="checkbox" id="chkPassed"><label for="chkPassed"><b>Mi compa&ntilde;era pudo seguir el procedimiento sin preguntarme</b></label></div>
-      </div>
-    </div>
-
-    <!-- PASO 4: FICHA DE PROCESO (responsable + indicador) -->
-    <div class="card">
-      <span class="step-label">Paso 4 &middot; Ficha de tu proceso</span>
+      <span class="step-label">Paso 3 &middot; Ficha de tu proceso</span>
       <h2>&iquest;Qui&eacute;n lo hace y c&oacute;mo sabes que funciona?</h2>
       <p class="hint">Dos datos simples que completan tu manual: qui&eacute;n es responsable de este proceso, y c&oacute;mo vas a saber si est&aacute; funcionando bien.</p>
       <div class="ficha-box">
@@ -406,6 +389,23 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
       <span class="step-label">Tu procedimiento listo</span>
       <h2>As&iacute; qued&oacute; tu documento</h2>
       <div class="doc-preview" id="docPreview"></div>
+    </div>
+
+    <!-- PASO 4: FICHA DE VALIDACIÓN -->
+    <div class="card">
+      <span class="step-label">Paso 4 &middot; La prueba de fuego</span>
+      <h2>Valida tu procedimiento</h2>
+      <p class="hint">Entrega tu procedimiento a una compa&ntilde;era. Ella intenta seguirlo <b>sin preguntarte nada</b> y anota lo que no entienda. Esa retroalimentaci&oacute;n mejora tu manual &mdash; hazlo antes de generar el an&aacute;lisis para que la IA tome en cuenta lo que encontraron.</p>
+      <div class="fuego-box">
+        <h3>&#128293; &iquest;Qui&eacute;n prob&oacute; tu procedimiento?</h3>
+        <div class="mini-field" style="margin-bottom:10px">
+          <label style="font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:3px">Nombre de la compa&ntilde;era que lo prob&oacute;</label>
+          <input type="text" class="tarea-input" id="validadorInput" placeholder="Nombre de tu compa&ntilde;era" maxlength="50" style="font-size:14px">
+        </div>
+        <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">&iquest;Qu&eacute; no se entendi&oacute; o qu&eacute; hay que mejorar?</label>
+        <textarea class="poe-textarea" id="feedbackInput" placeholder="Anota aqu&iacute; lo que tu compa&ntilde;era no entendi&oacute;, para corregirlo despu&eacute;s..."></textarea>
+        <div class="fuego-check" style="margin-top:12px"><input type="checkbox" id="chkPassed"><label for="chkPassed"><b>Mi compa&ntilde;era pudo seguir el procedimiento sin preguntarme</b></label></div>
+      </div>
     </div>
 
     <!-- ANÁLISIS CON IA -->
@@ -830,20 +830,26 @@ $('wordBtn').addEventListener('click', ()=>{
   }
 
   // Fila estándar: etiqueta a la izquierda, contenido a la derecha
+  // Ancho total fijo del documento (en puntos) — todas las tablas hijas se calculan sobre esta base fija.
+  // Esto evita que Word colapse columnas basadas en % cuando no hay un ancho de página explícito.
+  const W=450; // pt
+
   function fila(label, contentHtml){
     return '<tr>'+
-      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10pt;font-weight:bold;color:#002A8D;width:26%;vertical-align:top">'+label+'</td>'+
-      '<td style="border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10.5pt;vertical-align:top">'+contentHtml+'</td>'+
+      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10pt;font-weight:bold;color:#002A8D;width:'+Math.round(W*0.26)+'pt;vertical-align:top" width="'+Math.round(W*0.26)+'" valign="top">'+label+'</td>'+
+      '<td style="background:#ffffff;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10.5pt;vertical-align:top" width="'+Math.round(W*0.74)+'" valign="top">'+contentHtml+'</td>'+
       '</tr>';
   }
-  function pFila(txt){ return '<p style="font-size:10.5pt;line-height:1.5;text-align:justify;margin:0">'+txt+'</p>'; }
+  function pFila(txt){ return '<p style="font-size:10.5pt;line-height:1.5;text-align:left;margin:0">'+txt+'</p>'; }
   // Banner de sección: barra de color a ancho completo
   function banner(text, color, span){
-    return '<tr><td colspan="'+(span||2)+'" style="background:'+(color||'#002A8D')+';color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;letter-spacing:.4pt">'+text+'</td></tr>';
+    return '<tr><td colspan="'+(span||2)+'" style="background:'+(color||'#002A8D')+';color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;letter-spacing:.4pt" width="'+W+'">'+text+'</td></tr>';
   }
-  // Etiqueta de fase PHVA con color propio
+  // Etiqueta de fase PHVA: texto plano con la letra en color (evita el bug de Word
+  // donde las tablas anidadas dentro de una celda no respetan vertical-align y
+  // terminan "flotando" al fondo de la celda anterior).
   function phvaLabel(letra, texto, color){
-    return '<span style="display:inline-block;width:20pt;height:16pt;background:'+color+';color:#fff;text-align:center;line-height:16pt;border-radius:3pt;font-size:9pt;font-weight:bold;margin-right:7pt">'+letra+'</span>'+texto;
+    return '<span style="background:'+color+';color:#fff;font-weight:bold;padding:2pt 5pt;font-size:9.5pt">'+letra+'</span> '+texto;
   }
 
   const respTxt=$('responsableInput').value.trim();
@@ -877,22 +883,23 @@ $('wordBtn').addEventListener('click', ()=>{
 
   // ═══ BLOQUE II · CARACTERIZACIÓN SIPOC ════════════════════════════════════
   filas+=banner('II.  CARACTERIZACIÓN DEL PROCESO (SIPOC)');
+  const sipocColW=Math.round(W/5);
   filas+='<tr>'+
-    '<td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0">'+
-    '<table style="border-collapse:collapse;width:100%">'+
+    '<td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0;background:#ffffff" width="'+W+'">'+
+    '<table style="border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
-      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">PROVEEDORES</td>'+
-      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">ENTRADAS</td>'+
-      '<td style="background:#E85D2F;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #E85D2F;width:20%">PROCESO</td>'+
-      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">SALIDAS</td>'+
-      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">CLIENTES</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">PROVEEDORES</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">ENTRADAS</td>'+
+      '<td style="background:#E85D2F;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #E85D2F" width="'+sipocColW+'">PROCESO</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">SALIDAS</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">CLIENTES</td>'+
     '</tr>'+
     '<tr>'+
-      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocProv)+'</td>'+
-      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocEnt)+'</td>'+
-      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle;font-weight:bold;color:#C2431A">'+esc(tarea)+'</td>'+
-      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocSal)+'</td>'+
-      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocCli)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocProv)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocEnt)+'</td>'+
+      '<td style="background:#FDECE4;color:#C2431A;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle;font-weight:bold">'+esc(tarea)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocSal)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocCli)+'</td>'+
     '</tr>'+
     '</table>'+
     '</td></tr>';
@@ -914,17 +921,18 @@ $('wordBtn').addEventListener('click', ()=>{
 
   // ═══ BLOQUE IV · FICHA DE INDICADOR ═══════════════════════════════════════
   filas+=banner('IV.  INDICADOR DE GESTIÓN');
-  filas+='<tr><td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0">'+
-    '<table style="border-collapse:collapse;width:100%">'+
+  const kpiColW=Math.round(W/3);
+  filas+='<tr><td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0;background:#ffffff" width="'+W+'">'+
+    '<table style="border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
-      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:34%">Indicador</td>'+
-      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:33%">Meta</td>'+
-      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:33%">Frecuencia de medición</td>'+
+      '<td style="background:#FDECE4;color:#C2431A;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #C8D4E8" width="'+kpiColW+'">Indicador</td>'+
+      '<td style="background:#FDECE4;color:#C2431A;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #C8D4E8" width="'+kpiColW+'">Meta</td>'+
+      '<td style="background:#FDECE4;color:#C2431A;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #C8D4E8" width="'+kpiColW+'">Frecuencia de medición</td>'+
     '</tr>'+
     '<tr>'+
-      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiInd)+'</td>'+
-      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiMet)+'</td>'+
-      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiFrec)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiInd)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiMet)+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiFrec)+'</td>'+
     '</tr>'+
     '</table></td></tr>';
 
@@ -942,43 +950,48 @@ $('wordBtn').addEventListener('click', ()=>{
 
   // ═══ Bloque de control documentario (sello superior derecho) ═════════════
   function stampRow(l,v){
-    return '<tr><td style="background:#002A8D;color:#fff;font-size:8pt;font-weight:bold;padding:4pt 7pt;width:42%">'+l+'</td>'+
-      '<td style="font-size:8pt;padding:4pt 7pt;border-left:0.5pt solid #C8D4E8">'+v+'</td></tr>';
+    return '<tr><td style="background:#002A8D;color:#fff;font-size:8pt;font-weight:bold;padding:4pt 7pt" width="60">'+l+'</td>'+
+      '<td style="background:#ffffff;color:#1C2536;font-size:8pt;padding:4pt 7pt;border-left:0.5pt solid #C8D4E8" width="80">'+v+'</td></tr>';
   }
-  const stampBox='<table style="border-collapse:collapse;width:100%;border:1pt solid #002A8D">'+
+  const stampW=140;
+  const stampBox='<table style="border-collapse:collapse;width:'+stampW+'pt;border:1pt solid #002A8D" width="'+stampW+'" cellpadding="0" cellspacing="0">'+
     stampRow('Código','CP-01')+stampRow('Versión','1.0')+stampRow('Fecha',fecha)+'</table>';
 
-  const headerBlock='<table style="width:100%;border-collapse:collapse;margin-bottom:0"><tr>'+
-    '<td style="vertical-align:bottom;padding:0">'+
+  const titleColW=W-stampW-10;
+  const headerBlock='<table style="width:'+W+'pt;border-collapse:collapse;margin-bottom:0" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
+    '<td style="vertical-align:bottom;padding:0;background:#ffffff" width="'+titleColW+'">'+
       '<p style="font-size:8.5pt;color:#6B7688;letter-spacing:1.5pt;margin:0;text-transform:uppercase">Programa de Impulso Pyme &middot; Mujeres Emprendedoras de Arequipa</p>'+
       '<p style="color:#002A8D;font-size:19pt;font-weight:bold;margin:5pt 0 0;line-height:1.15">Caracterizaci&oacute;n de Proceso</p>'+
       '<p style="font-size:9.5pt;color:#E85D2F;margin:4pt 0 0;font-weight:bold">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 6</p>'+
     '</td>'+
-    '<td style="vertical-align:top;padding:0 0 0 14pt;width:150pt">'+stampBox+'</td>'+
+    '<td style="vertical-align:top;padding:0 0 0 10pt;background:#ffffff" width="'+stampW+'">'+stampBox+'</td>'+
     '</tr></table>'+
-    '<table style="width:100%;border-collapse:collapse;margin:10pt 0 16pt"><tr>'+
-    '<td style="background:#002A8D;height:4pt;width:72%;font-size:1pt;line-height:4pt">&nbsp;</td>'+
-    '<td style="background:#E85D2F;height:4pt;width:28%;font-size:1pt;line-height:4pt">&nbsp;</td>'+
+    // Barra decorativa: línea única (más confiable en Word que un borde de dos colores,
+    // que puede fallar a renderizar si el ancho de columna colapsa).
+    '<table style="width:'+W+'pt;border-collapse:collapse;margin:10pt 0 16pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
+    '<td style="border-bottom:3pt solid #002A8D;font-size:1pt;line-height:1pt;padding:0" width="'+W+'">&nbsp;</td>'+
     '</tr></table>';
 
   // ═══ BLOQUE VI · HISTORIAL DE REVISIONES ══════════════════════════════════
-  function histCellH(t){ return '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:5pt 7pt;border:0.5pt solid #002A8D">'+t+'</td>'; }
-  function histCellD(t){ return '<td style="font-size:9pt;padding:5pt 7pt;border:0.5pt solid #C8D4E8">'+t+'</td>'; }
+  function histCellH(t,w){ return '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:5pt 7pt;border:0.5pt solid #002A8D" width="'+w+'">'+t+'</td>'; }
+  function histCellD(t,w){ return '<td style="background:#ffffff;color:#1C2536;font-size:9pt;padding:5pt 7pt;border:0.5pt solid #C8D4E8" width="'+w+'">'+t+'</td>'; }
+  const hV=55, hF=65, hE=140, hD=W-hV-hF-hE;
   const historial='<p style="background:#002A8D;color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;margin:16pt 0 0;letter-spacing:.4pt">VI.  HISTORIAL DE REVISIONES</p>'+
-    '<table style="border-collapse:collapse;width:100%;border:0.75pt solid #002A8D">'+
-    '<tr>'+histCellH('Versión')+histCellH('Fecha')+histCellH('Descripción del cambio')+histCellH('Elaborado por')+'</tr>'+
-    '<tr>'+histCellD('1.0')+histCellD(fecha)+histCellD('Versión inicial del documento')+histCellD(esc(currentName))+'</tr>'+
+    '<table style="border-collapse:collapse;width:'+W+'pt;border:0.75pt solid #002A8D" width="'+W+'" cellpadding="0" cellspacing="0">'+
+    '<tr>'+histCellH('Versi&oacute;n',hV)+histCellH('Fecha',hF)+histCellH('Descripci&oacute;n del cambio',hD)+histCellH('Elaborado por',hE)+'</tr>'+
+    '<tr>'+histCellD('1.0',hV)+histCellD(fecha,hF)+histCellD('Versi&oacute;n inicial del documento',hD)+histCellD(esc(currentName),hE)+'</tr>'+
     '</table>';
 
   // ═══ Bloque de firmas: Elaborado / Revisado (en blanco) / Aprobado (dueña) ═
+  const firmaW=Math.round(W/3);
   function firmaCol(rol, nombre, cargo){
-    return '<td style="width:33.33%;padding:0 8pt;vertical-align:top">'+
+    return '<td style="width:'+firmaW+'pt;padding:0 6pt;vertical-align:top;background:#ffffff" width="'+firmaW+'">'+
       '<div style="border-top:1pt solid #1C2536;padding-top:5pt;margin-top:34pt;font-size:8.5pt;color:#1C2536">'+
       '<b>'+rol+':</b><br>'+(nombre?esc(nombre):'&nbsp;')+
       '<br><span style="color:#6B7688">Cargo:</span> '+(cargo?esc(cargo):'&nbsp;')+
       '</div></td>';
   }
-  const firmas='<table style="width:100%;border-collapse:collapse;margin-top:26pt"><tr>'+
+  const firmas='<table style="width:'+W+'pt;border-collapse:collapse;margin-top:26pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
     firmaCol('Elaborado por','','')+
     firmaCol('Revisado por','','')+
     firmaCol('Aprobado por', currentName, 'Propietaria del negocio')+
@@ -989,14 +1002,18 @@ $('wordBtn').addEventListener('click', ()=>{
     '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->'+
     '</head>'+
     '<body style="'+S+'">'+
+    // Tabla maestra de ancho fijo: todo el documento vive dentro de esta base para que
+    // los porcentajes/anchos de las tablas hijas se calculen de forma consistente en Word.
+    '<table style="width:'+W+'pt;border-collapse:collapse" width="'+W+'" cellpadding="0" cellspacing="0"><tr><td style="padding:0;background:#ffffff">'+
     headerBlock+
     // caracterización: tabla principal con banners de sección
-    '<table style="border-collapse:collapse;width:100%;border:0.75pt solid #002A8D">'+filas+'</table>'+
+    '<table style="border-collapse:collapse;width:'+W+'pt;border:0.75pt solid #002A8D" width="'+W+'" cellpadding="0" cellspacing="0">'+filas+'</table>'+
     historial+
     firmas+
     // footer
     '<p style="font-size:8pt;color:#9AACBE;text-align:center;margin-top:18pt">Documento controlado &middot; P&aacute;gina 1 de 1</p>'+
     '<p style="font-size:8pt;color:#9AACBE;text-align:center;margin-top:2pt">Programa de Impulso Pyme &middot; BCP &times; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 6</p>'+
+    '</td></tr></table>'+
     '</body></html>';
 
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});

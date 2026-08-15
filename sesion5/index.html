@@ -1164,7 +1164,11 @@ $('saveCloudBtn').addEventListener('click', async function(){
   });
   var payload={
     dni:currentDNI,name:currentName,
-    insumos:abcData.map(function(it){return{name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat};}),
+    insumos:abcData.map(function(it){
+      var raw=insumos.find(function(r){return r.name===it.name;})||{};
+      return{name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat,
+             leadTime:raw.leadTime||'',maxQty:raw.maxQty||'',orderCost:raw.orderCost||''};
+    }),
     insumoCount:abcData.length,totalValue:total,countA:groupA.length,
     planA:planATxt,planC:planCTxt,hasPlan:!!(planATxt||planCTxt),
     reordenCount:reordenData.length,

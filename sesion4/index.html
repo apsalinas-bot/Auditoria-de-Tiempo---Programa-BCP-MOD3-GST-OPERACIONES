@@ -857,9 +857,12 @@ async function procesarArchivoSolver(file){
     if(!ws){resEl.textContent='No se pudo leer el archivo.';return;}
     solverResults=[];
     ws.eachRow(function(row,rn){
-      if(rn<3) return;
+      // Solo filas de productos: columna A debe ser exactamente X1, X2, X3...
+      const varCell = row.getCell(1).value;
+      if(!varCell || typeof varCell !== 'string') return;
+      if(!/^X\d+$/.test(varCell.toString().trim())) return;
       const nom=row.getCell(2).value, cant=row.getCell(8).value;
-      if(nom&&typeof nom==='string'&&nom.trim()&&!nom.includes('TOTAL')&&cant!==null){
+      if(nom&&typeof nom==='string'&&nom.trim()){
         solverResults.push({nombre:nom.trim(),cantidad:Number(cant)||0});
       }
     });
@@ -1390,9 +1393,12 @@ document.addEventListener('change',async function(e){
     if(!ws){resEl.textContent='No se pudo leer el archivo.';return;}
     solverResults=[];
     ws.eachRow(function(row,rn){
-      if(rn<3) return;
+      // Solo filas de productos: columna A debe ser exactamente X1, X2, X3...
+      const varCell = row.getCell(1).value;
+      if(!varCell || typeof varCell !== 'string') return;
+      if(!/^X\d+$/.test(varCell.toString().trim())) return;
       const nom=row.getCell(2).value, cant=row.getCell(8).value;
-      if(nom&&typeof nom==='string'&&nom.trim()&&!nom.includes('TOTAL')&&cant!==null&&cant!==undefined){
+      if(nom&&typeof nom==='string'&&nom.trim()){
         solverResults.push({nombre:nom.trim(), cantidad:Number(cant)||0});
       }
     });

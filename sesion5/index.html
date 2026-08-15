@@ -339,8 +339,8 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
         <div class="kpi-lbl">Insumos analizados</div>
       </div>
       <div class="kpi-box" style="border-top:3px solid #3B6D11">
-        <div class="kpi-val" id="kPlan" style="color:#3B6D11">-</div>
-        <div class="kpi-lbl">Definieron plan A y C</div>
+        <div class="kpi-val" id="kValorTotal" style="color:#3B6D11">-</div>
+        <div class="kpi-lbl">S/ en inventario del aula</div>
       </div>
     </div>
 
@@ -365,18 +365,6 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <div id="abcDistGrid" style="display:flex;flex-direction:column;gap:10px"></div>
       <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.45" id="abcDistNote"></div>
     </div>
-    <!-- KPI reorden y plan -->
-    <div class="kpi-grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
-      <div class="kpi-box" style="border-top:3px solid #0E8C8C">
-        <div class="kpi-val" id="kConReorden" style="color:#0A6A6A">-</div>
-        <div class="kpi-lbl">Calcularon punto<br>de reorden</div>
-      </div>
-      <div class="kpi-box" style="border-top:3px solid #3B6D11">
-        <div class="kpi-val" id="kPlan" style="color:#3B6D11">-</div>
-        <div class="kpi-lbl">Definieron plan<br>A y C</div>
-      </div>
-    </div>
-
     <!-- Tabla de emprendedoras -->
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 6px">Matrices registradas</div>
     <div class="card" style="padding:0;overflow:hidden">
@@ -1268,8 +1256,8 @@ async function loadDocData(){
   // Métricas
   const totalIns=empEnt.reduce((s,e)=>s+(e.insumoCount||0),0);
   const conPlan=empEnt.filter(e=>e.hasPlan).length;
-  const conReorden=empEnt.filter(e=>(e.reordenCount||0)>0).length;
   const avgValor=total?Math.round(empEnt.reduce((s,e)=>s+(e.totalValue||0),0)/total):0;
+  const valorTotalAula=empEnt.reduce((s,e)=>s+(e.totalValue||0),0);
 
   // ABC totales y promedios
   const totA=empEnt.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0);
@@ -1284,8 +1272,7 @@ async function loadDocData(){
   $('kTotal').textContent=total;
   $('kPct').textContent=pct+'%';
   $('kInsumos').textContent=totalIns;
-  $('kPlan').textContent=conPlan;
-  $('kConReorden').textContent=conReorden;
+  $('kValorTotal').textContent='S/'+valorTotalAula.toLocaleString();
   $('kPctLbl').textContent=total+' / '+TOTAL_EMP;
   $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su matriz ABC.';
@@ -1323,8 +1310,6 @@ async function loadDocData(){
     al='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Pide a las emprendedoras que guarden.</div>';
   } else {
     if(conPlan<total) al+='<div class="alert-box amber"><b>'+(total-conPlan)+' aún sin plan A y C.</b> Anima a completar el Paso 3.</div>';
-    if(conReorden>0) al+='<div class="alert-box green"><b>'+conReorden+' calcularon punto de reorden.</b> ¡Gran nivel!</div>';
-    else if(total>=5) al+='<div class="alert-box navy"><b>Nadie ingresó lead time aún.</b> Recuerda los campos de reorden en Paso 1.</div>';
   }
   $('docAlerts').innerHTML=al;
 

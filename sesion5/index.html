@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -982,15 +983,28 @@ $('printBtn').addEventListener('click', function(){
 
     +'</body></html>';
 
-  // Descarga directa como archivo HTML (sin diálogo de impresión)
-  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download='S5_Inventario_'+nombre.replace(/\s+/g,'_')+'.html';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  // Generar PDF con html2pdf.js (descarga directa, sin ventana)
+  var pdfBtn=$("printBtn");
+  pdfBtn.disabled=true; pdfBtn.textContent="Generando PDF...";
+  var container=document.createElement("div");
+  container.style.cssText="position:fixed;left:-9999px;top:0;width:210mm;background:#fff";
+  container.innerHTML=html;
+  document.body.appendChild(container);
+  var fname="S5_Inventario_"+nombre.replace(/\s+/g,"_")+".pdf";
+  html2pdf().set({
+    margin:[10,10,10,10],
+    filename:fname,
+    image:{type:"jpeg",quality:0.97},
+    html2canvas:{scale:2,useCORS:true,logging:false,letterRendering:true},
+    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+    pagebreak:{mode:["css","legacy"]}
+  }).from(container).save().then(function(){
+    document.body.removeChild(container);
+    pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
+  }).catch(function(){
+    document.body.removeChild(container);
+    pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
+  });
 });
 
 

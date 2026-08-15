@@ -424,19 +424,48 @@ function renderInsumos(){
     const c=document.createElement('div'); c.className='ins-card';
     const first=(i===0 && ej);
     const exN=first?'<div class="ex-hint">Ej: '+esc(ej.insumo)+'</div>':'';
-    const exC=first?'<div class="ex-hint">Ej: cu\u00e1nto te cuesta UNA unidad</div>':'';
-    const exQ=first?'<div class="ex-hint">Ej: cu\u00e1ntas usas o vendes al mes</div>':'';
+    const exC=first?'<div class="ex-hint">Ej: cuánto te cuesta UNA unidad</div>':'';
+    const exQ=first?'<div class="ex-hint">Ej: cuántas usas o vendes al mes</div>':'';
     const val=(it.cost!=='' && it.qty!=='')?(parseFloat(it.cost)*parseFloat(it.qty)):null;
     const valTxt=(val!==null && !isNaN(val))?'<div class="val-calc">\u2713 Este insumo mueve <b>S/ '+val.toFixed(0)+'</b> al mes</div>':'';
+    const cdD2=(it.qty!==''&&!isNaN(parseFloat(it.qty)))?parseFloat(it.qty)/30:null;
+    const lt2=(it.leadTime!==''&&!isNaN(parseFloat(it.leadTime)))?parseFloat(it.leadTime):null;
+    const mq2=(it.maxQty!==''&&!isNaN(parseFloat(it.maxQty)))?parseFloat(it.maxQty):null;
+    const qty2=(it.qty!==''&&!isNaN(parseFloat(it.qty)))?parseFloat(it.qty):null;
+    let reordenTxt='';
+    if(cdD2!==null&&lt2!==null&&mq2!==null&&qty2!==null&&mq2>=qty2){
+      const ss2=Math.ceil((mq2-qty2)/30*lt2);
+      const pr2=Math.ceil(cdD2*lt2+ss2);
+      reordenTxt='<div class="val-calc reorden-live" style="background:#E3F5F5;color:#0A6A6A">'
+        +'\uD83D\uDCCC <b>Pedir cuando queden '+pr2+' unidades</b>'
+        +' &nbsp;&middot;&nbsp; Stock seg.: '+ss2+' und'
+        +' &nbsp;&middot;&nbsp; SS en S/: '+(ss2*parseFloat(it.cost||0)).toFixed(0)+'</div>';
+    }
     c.innerHTML=
       '<h3>Insumo '+(i+1)+'</h3>'+
       (insumos.length>1?'<button class="ins-del" data-del="'+i+'">&#10005; quitar</button>':'')+
-      '<div class="mini-field"><label>&iquest;Qu&eacute; insumo o producto es?</label><input type="text" data-i="'+i+'" data-f="name" value="'+esc(it.name)+'" placeholder="Nombre del insumo" maxlength="40">'+exN+'</div>'+
+      '<div class="mini-field"><label>&iquest;Qu&eacute; insumo o producto es?</label>'+
+      '<input type="text" data-i="'+i+'" data-f="name" value="'+esc(it.name)+'" placeholder="Nombre del insumo" maxlength="40">'+exN+'</div>'+
       '<div class="mini-2col">'+
-        '<div class="mini-field"><label>Costo por unidad <span class="unit">(S/)</span></label><input type="number" data-i="'+i+'" data-f="cost" value="'+esc(it.cost)+'" placeholder="costo" inputmode="decimal">'+exC+'</div>'+
-        '<div class="mini-field"><label>Cantidad al mes <span class="unit">(uso/venta)</span></label><input type="number" data-i="'+i+'" data-f="qty" value="'+esc(it.qty)+'" placeholder="cantidad" inputmode="decimal">'+exQ+'</div>'+
+        '<div class="mini-field"><label>Costo por unidad <span class="unit">(S/)</span></label>'+
+        '<input type="number" data-i="'+i+'" data-f="cost" value="'+esc(it.cost)+'" placeholder="costo" inputmode="decimal">'+exC+'</div>'+
+        '<div class="mini-field"><label>Cantidad al mes <span class="unit">(uso/venta)</span></label>'+
+        '<input type="number" data-i="'+i+'" data-f="qty" value="'+esc(it.qty)+'" placeholder="cantidad" inputmode="decimal">'+exQ+'</div>'+
       '</div>'+
-      valTxt;
+      valTxt+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:6px">'+
+      '\uD83D\uDCCB Para calcular tu punto de reorden</div>'+
+      '<div class="mini-2col">'+
+        '<div class="mini-field"><label>Días que tarda tu proveedor <span class="unit">(lead time)</span></label>'+
+        '<input type="number" data-i="'+i+'" data-f="leadTime" value="'+esc(it.leadTime||'')+'" placeholder="Ej: 7" inputmode="decimal">'+
+        '<div class="ex-hint">Días desde que pides hasta que llega</div></div>'+
+        '<div class="mini-field"><label>Máximo que usas en un mes <span class="unit">(unidades)</span></label>'+
+        '<input type="number" data-i="'+i+'" data-f="maxQty" value="'+esc(it.maxQty||'')+'" placeholder="Ej: 80" inputmode="decimal">'+
+        '<div class="ex-hint">En tu mes más ocupado, ¿cuánto usaste?</div></div>'+
+      '</div>'+
+      reordenTxt+
+      '</div>';
     list.appendChild(c);
   });
   computeABC();
@@ -446,15 +475,31 @@ function bindInsInputs(){
     const inp=e.target.closest('input[data-i]'); if(!inp) return;
     const i=parseInt(inp.dataset.i,10), f=inp.dataset.f;
     insumos[i][f]=inp.value;
-    // actualizar valor sin re-render
-    if(f==='cost'||f==='qty'){
+    // actualizar valor y reorden sin re-render
+    if(f==='cost'||f==='qty'||f==='leadTime'||f==='maxQty'){
       const card=inp.closest('.ins-card');
-      let vc=card.querySelector('.val-calc');
-      const v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
-      if(v!==null&&!isNaN(v)){
-        if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; card.appendChild(vc); }
-        vc.innerHTML='\u2713 Este insumo mueve <b>S/ '+v.toFixed(0)+'</b> al mes';
-      } else if(vc){ vc.remove(); }
+      if(f==='cost'||f==='qty'){
+        let vc=card.querySelector('.val-calc:not(.reorden-live)');
+        const v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
+        if(v!==null&&!isNaN(v)){
+          if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; card.querySelector('[data-f="qty"]').closest('.mini-2col').after(vc); }
+          vc.innerHTML='\u2713 Este insumo mueve <b>S/ '+v.toFixed(0)+'</b> al mes';
+        } else if(vc){ vc.remove(); }
+      }
+      const it2=insumos[i];
+      const cdDx=(it2.qty!==''&&!isNaN(parseFloat(it2.qty)))?parseFloat(it2.qty)/30:null;
+      const ltx=(it2.leadTime!==''&&!isNaN(parseFloat(it2.leadTime)))?parseFloat(it2.leadTime):null;
+      const mqx=(it2.maxQty!==''&&!isNaN(parseFloat(it2.maxQty)))?parseFloat(it2.maxQty):null;
+      const qtyx=(it2.qty!==''&&!isNaN(parseFloat(it2.qty)))?parseFloat(it2.qty):null;
+      let rv=card.querySelector('.reorden-live');
+      if(cdDx!==null&&ltx!==null&&mqx!==null&&qtyx!==null&&mqx>=qtyx){
+        const ssx=Math.ceil((mqx-qtyx)/30*ltx);
+        const prx=Math.ceil(cdDx*ltx+ssx);
+        if(!rv){ rv=document.createElement('div'); rv.className='val-calc reorden-live'; rv.style.cssText='background:#E3F5F5;color:#0A6A6A'; card.appendChild(rv); }
+        rv.innerHTML='\uD83D\uDCCC <b>Pedir cuando queden '+prx+' unidades</b>'
+          +' &nbsp;&middot;&nbsp; Stock seg.: '+ssx+' und'
+          +' &nbsp;&middot;&nbsp; SS en S/: '+(ssx*parseFloat(it2.cost||0)).toFixed(0);
+      } else if(rv){ rv.remove(); }
     }
     computeABC(); save();
   });
@@ -690,58 +735,92 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
   const groupC=abcData.filter(i=>i.cat==='C');
   const planATxt=$('planA').value.trim();
   const planCTxt=$('planC').value.trim();
+  const reordenData=insumos.filter(it=>it.name&&it.cost&&it.qty&&it.leadTime&&it.maxQty&&parseFloat(it.maxQty)>=parseFloat(it.qty)).map(it=>{
+    const cdD=parseFloat(it.qty)/30;
+    const lt=parseFloat(it.leadTime);
+    const mq=parseFloat(it.maxQty);
+    const qty=parseFloat(it.qty);
+    const ss=Math.ceil((mq-qty)/30*lt);
+    const pr=Math.ceil(cdD*lt+ss);
+    const cat=(abcData.find(a=>a.name===it.name)||{cat:'?'}).cat;
+    return {name:it.name,cat,costo:parseFloat(it.cost),cdDiario:parseFloat(cdD.toFixed(2)),leadTime:lt,maxQty:mq,ss,pr,ssCosto:parseFloat((ss*parseFloat(it.cost)).toFixed(0))};
+  });
   const payload={
     dni:currentDNI, name:currentName,
     insumos:abcData.map(it=>({name:it.name,cost:it.cost,qty:it.qty,value:it.value,cat:it.cat})),
     insumoCount:abcData.length, totalValue:total, countA:groupA.length,
     planA:planATxt, planC:planCTxt,
     hasPlan: !!(planATxt||planCTxt),
+    reordenCount:reordenData.length,
     savedAt:new Date().toISOString()
   };
   const idx=entries.findIndex(e=>e.dni===currentDNI);
   if(idx>=0) entries[idx]=payload; else entries.push(payload);
 
-  // ── Prompt 1: análisis ABC personalizado ─────────────────────────────────
+  // ── Prompt 1: interpretacion coloquial de la grafica ABC ─────────────────
   const firstName=currentName.trim().split(' ')[0];
-  const insTexto=abcData.map(it=>'- '+it.name+' ('+it.cat+'): S/'+it.cost.toFixed(0)+' x '+it.qty+'/mes = S/'+it.value.toFixed(0)+' ('+it.pct.toFixed(0)+'% del dinero)').join('\n');
+  const insTexto=abcData.map(it=>'- '+it.name+' (Grupo '+it.cat+'): S/'+it.cost.toFixed(0)+' c/u x '+it.qty+'/mes = S/'+it.value.toFixed(0)+'/mes = '+it.pct.toFixed(0)+'% de tu dinero').join('\n');
   const elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
 
   const ia1=await callClaudeS5(
-    'Emprendedora: '+firstName+'\nTotal en inventario: S/'+total.toFixed(0)+'/mes\n\n'+
-    'Clasificacion ABC de sus insumos (mayor a menor valor):\n'+insTexto+
-    (planATxt?'\n\nSu plan para insumos criticos (A): "'+planATxt+'"':'')+
-    (planCTxt?'\nSu plan para insumos de bajo valor (C): "'+planCTxt+'"':'')+
-    '\n\nEscribe 2-3 oraciones muy directas (max 80 palabras):\n'+
-    '- Que representa la concentracion de dinero en sus insumos A (usa los montos reales).\n'+
-    '- Si su plan para los A es suficientemente concreto o necesita mas detalle.\n'+
-    '- Una senal de alerta u oportunidad concreta en su distribucion.\n'+
-    'Usa su nombre una vez. Habla de tu. Resalta el dato mas importante con **asteriscos**.'
+    'Emprendedora: '+firstName+'\nTotal invertido en inventario: S/'+total.toFixed(0)+' al mes\n\n'+
+    'Clasificacion ABC (de mayor a menor valor):\n'+insTexto+
+    '\n\nEscribe una interpretacion COLOQUIAL de esta grafica ABC (max 90 palabras).\n'+
+    'Habla como si le explicaras a una amiga lo que ves en los numeros.\n'+
+    'SIN terminos tecnicos como pareto o distribucion.\n'+
+    'Di en palabras simples: cuanto dinero tiene atrapado en que productos, si hay algo llamativo o preocupante, que significa tener tanto en los A.\n'+
+    'Usa los montos reales en soles. Usa su nombre una vez al inicio. Resalta el hallazgo mas importante con **asteriscos**.'
   );
-  elA.innerHTML=renderNegS5(ia1||firstName+', tu clasificacion ABC esta lista. Revisa tus insumos A son los que mas cuidan tu flujo de caja.');
+  elA.innerHTML=renderNegS5(ia1||firstName+', la mayor parte de tu dinero esta concentrada en pocos insumos. Esos son los que mas cuidan tu negocio.');
 
-  // ── Prompt 2: diagnóstico de consultor ────────────────────────────────────
+  // ── Tabla de reorden calculada por la app ───────────────────────────────
   const dEl=$('diagnosticoS5'); const dBody=$('diagnosticoS5Body');
-  dEl.classList.add('visible'); dotsS5El(dBody);
-  const topA=groupA.map(i=>i.name+' (S/'+i.value.toFixed(0)+')').join(', ')||'ninguno';
-  const topC=groupC.length?groupC.map(i=>i.name+' (S/'+i.value.toFixed(0)+')').join(', '):'ninguno';
+  dEl.classList.add('visible');
+  let tablaHTML='';
+  if(reordenData.length>0){
+    tablaHTML='<div class="reorden-wrap">'+
+      '<div class="reorden-title">&#128204; Tus puntos de reorden y stock de seguridad</div>'+
+      '<div style="overflow-x:auto"><table class="reorden-table">'+
+      '<thead><tr><th>Insumo</th><th>Cat</th><th>Uso/dia</th><th>Lead time</th><th>Stock seg.</th><th>Pedir cuando queden</th><th>SS en S/</th></tr></thead><tbody>';
+    reordenData.forEach(r=>{
+      const catCls='cat-'+r.cat.toLowerCase();
+      tablaHTML+='<tr>'+
+        '<td><b>'+esc(r.name)+'</b></td>'+
+        '<td><span class="'+catCls+'">'+r.cat+'</span></td>'+
+        '<td>'+r.cdDiario+' und</td>'+
+        '<td>'+r.leadTime+' dias</td>'+
+        '<td class="val-ss">'+r.ss+' und</td>'+
+        '<td class="val-pr"><b>'+r.pr+' und</b></td>'+
+        '<td>S/ '+r.ssCosto+'</td>'+
+        '</tr>';
+    });
+    tablaHTML+='</tbody></table></div>'+
+      '<div style="font-size:10px;color:#6B7688;margin-top:6px;line-height:1.5">'+
+      'Stock seg. = (max − promedio)/30 × lead time &nbsp;·&nbsp; Pedir cuando queden = uso/dia × lead time + stock seg.</div>'+
+      '</div>';
+  }
+
+  // ── Prompt 2: pasos concretos basados en el plan que ella escribio ─────────
+  dotsS5El(dBody);
+  const topA=groupA.map(i=>i.name+' (S/'+i.value.toFixed(0)+'/mes)').join(', ')||'ninguno';
+  const topC=groupC.length?groupC.map(i=>i.name+' (S/'+i.value.toFixed(0)+'/mes)').join(', '):'ninguno';
+  const reordenRes=reordenData.length
+    ?reordenData.map(r=>'- '+r.name+' ('+r.cat+'): pedir al llegar a '+r.pr+' unidades, guardar '+r.ss+' de reserva (vale S/'+r.ssCosto+')').join('\n')
+    :'(no registro lead time ni maximo aun)';
 
   const ia2=await callClaudeS5(
-    'Emprendedora: '+firstName+'\nTotal inventario: S/'+total.toFixed(0)+'/mes\n'+
-    'Insumos A (criticos, '+groupA.length+'): '+topA+'\n'+
-    (groupB.length?'Insumos B ('+groupB.length+'): '+groupB.map(i=>i.name).join(', ')+'\n':'')+
-    'Insumos C (liberar, '+groupC.length+'): '+topC+'\n'+
-    (planATxt?'Plan A declarado: "'+planATxt+'"\n':'')+
-    (planCTxt?'Plan C declarado: "'+planCTxt+'"\n':'')+
-    '\nEres su consultora de inventarios. Escribe el diagnostico de accion (max 90 palabras).\n'+
+    'Emprendedora: '+firstName+'\nInsumos A (criticos): '+topA+'\nInsumos C (liberar): '+topC+'\n'+
+    (planATxt?'\nLo que ella escribio para sus insumos A: "'+planATxt+'"':'\n(No escribio plan para A)')+
+    (planCTxt?'\nLo que ella escribio para sus insumos C: "'+planCTxt+'"':'\n(No escribio plan para C)')+
+    '\n\nPuntos de reorden calculados:\n'+reordenRes+
+    '\n\nEres su consultora. Escribe 3 pasos concretos y coloquiales (max 100 palabras) basados en lo que ella escribio.\n'+
     'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'+
-    'Escribe 3 cosas concretas:\n'+
-    '1. Que hace PRIMERO esta semana con sus insumos A (accion especifica, con verbo).\n'+
-    '2. Como liberar dinero de los insumos C (una accion concreta).\n'+
-    '3. Como sabra que esta funcionando (senal o numero concreto).\n'+
-    'Directa, cercana, sin redundancia. Resalta con **asteriscos** la accion mas importante.'
+    'Si su plan es vago, hazlo especifico con los numeros reales calculados.\n'+
+    'Si menciono stock o reorden, usa los numeros exactos calculados arriba.\n'+
+    'Si no escribio plan, da 3 pasos practicos con sus datos reales.\n'+
+    'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso mas urgente.'
   );
-  dBody.innerHTML=renderNegS5(ia2||firstName+', esta semana asegura el stock minimo de tus insumos A y revisa que insumos C puedes dejar de comprar en exceso.');
-
+  dBody.innerHTML=tablaHTML+renderNegS5(ia2||firstName+', esta semana define tu stock minimo para los insumos A y deja de comprar de mas los C.');
   const ok=await binWrite({entries});
   showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);

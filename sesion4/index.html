@@ -211,7 +211,23 @@ input[type=password]{-webkit-appearance:none}
 .sb-main{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
 .sb-sub{font-size:10px;color:rgba(255,255,255,0.7);font-weight:500}
 .sb-badge{background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 8px;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
-@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
+  .no-print{display:none!important}
+  #gateScreen,#docView,#detailModal{display:none!important}
+  #empView{display:block!important}
+  .card{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid}
+  .diagnostico-s4{break-inside:avoid!important;page-break-inside:avoid!important;display:block!important}
+  .analisis-plan-s4{break-inside:avoid;page-break-inside:avoid;display:block!important}
+  .cuello-box{break-inside:avoid;page-break-inside:avoid}
+  .top{border-radius:0!important;break-after:avoid}
+  .wrap{max-width:100%!important;padding:8px 14px!important}
+  .step-label{break-after:avoid}
+  .prod-card{break-inside:avoid}
+  #solverUploadZone{display:none!important}
+  @page{margin:1.2cm;size:A4 portrait}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
@@ -1074,7 +1090,13 @@ async function generarExcelSolver(valid, rName, rTotal){
   return wb;
 }
 
-$('printBtn').addEventListener('click', ()=>window.print());
+$('printBtn').addEventListener('click', () => {
+  // Asegurar que los análisis estén visibles
+  const aw=$('analisisPlanS4'); if(aw) aw.style.display='block';
+  const dm=$('diagnosticoS4Main'); if(dm) dm.style.display='block';
+  // Pequeño delay para que el DOM se actualice
+  setTimeout(()=>window.print(), 100);
+});
 
 let clearArmed=false;
 $('clearBtn').addEventListener('click', ()=>{

@@ -1094,12 +1094,85 @@ async function generarExcelSolver(valid, rName, rTotal){
 }
 
 $('printBtn').addEventListener('click', () => {
-  // Asegurar visibilidad de todos los análisis
-  const aw=$('analisisPlanS4'); if(aw&&aw.innerHTML.trim()) aw.style.display='block';
-  const dm=$('diagnosticoS4Main'); if(dm&&dm.innerHTML.trim()) dm.style.display='block';
-  const db=$('diagnosticoS4MainBody'); if(db) db.style.display='block';
-  setTimeout(()=>window.print(), 150);
+  // Recopilar datos para la ventana de impresión
+  const nombre = currentName || '';
+  const cuelloTxt = ($('cuelloText') && $('cuelloText').textContent) ? $('cuelloText').textContent : '';
+  const accion = action ? {'eliminar':'Eliminar','automatizar':'Automatizar','simplificar':'Simplificar'}[action]||action : '';
+  const planTxt = $('actionPlan') ? $('actionPlan').value.trim() : '';
+  const analisis1 = $('analisisPlanS4') ? $('analisisPlanS4').innerHTML : '';
+  const diagBody = $('diagnosticoS4MainBody') ? $('diagnosticoS4MainBody').innerHTML : '';
+  const hasDiag = diagBody && diagBody.trim() && !diagBody.includes('dots-s4');
+
+  // Recopilar productos
+  const validP = products.filter(p=>p.name&&p.price);
+  const recurso = $('recursoName') ? $('recursoName').value.trim() : '';
+  const recursoTotal = $('recursoTotal') ? $('recursoTotal').value.trim() : '';
+  const prodRows = validP.map(p=>'<tr><td style="padding:6px 8px;border:1px solid #ddd">'+esc(p.name)+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right">S/'+p.price+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right">S/'+(p.cost||0)+'</td><td style="padding:6px 8px;border:1px solid #ddd;text-align:right;color:#2F9E5F;font-weight:600">S/'+(Number(p.price)-Number(p.cost||0))+'</td></tr>').join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>S4 - ${nombre}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#1C2536;line-height:1.6;padding:20px}
+  .header{background:#002A8D;color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:20px}
+  .header .eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7FA0FF;margin-bottom:4px}
+  .header h1{font-size:20px;font-weight:700;margin-bottom:2px}
+  .header h1 span{color:#EC6607}
+  .header p{font-size:11px;color:#C6D2F5}
+  .section{margin-bottom:16px;padding:14px;border:1px solid #ddd;border-radius:8px}
+  .section-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#002A8D;margin-bottom:8px}
+  .cuello-box{background:#FDECEA;border:1.5px solid #D64545;border-radius:8px;padding:10px 14px;margin-bottom:10px}
+  .cuello-box .cb-label{font-size:10px;font-weight:700;color:#D64545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .action-pill{display:inline-block;background:#EEEDFE;color:#3C3489;font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+  th{background:#002A8D;color:#fff;padding:6px 8px;text-align:left}
+  .analisis{background:#EEF2FB;border-left:3px solid #002A8D;padding:12px 14px;border-radius:0 8px 8px 0;margin-top:10px;font-size:12.5px;line-height:1.65}
+  .analisis b{color:#002A8D;font-weight:700}
+  .diagnostico{background:#1a0a00;border-radius:10px;padding:18px;margin-top:12px;color:#FFD4A8}
+  .diag-ey{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C42;margin-bottom:6px}
+  .diag-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px}
+  .diag-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF8C42;margin:10px 0 5px}
+  .diag-body{font-size:12.5px;color:#FFD4A8;line-height:1.75}
+  .diag-body b{color:#fff;font-weight:700}
+  .footer{text-align:center;font-size:10px;color:#9AACBE;margin-top:20px;padding-top:12px;border-top:1px solid #eee}
+  @media print{body{padding:10px}@page{margin:1cm;size:A4 portrait}.diagnostico{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="header">
+  <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES</div>
+  <h1>La Limpieza <span>(Optimización)</span></h1>
+  <p>${nombre}</p>
+</div>
+
+${cuelloTxt ? `<div class="cuello-box"><div class="cb-label">🔴 Tu cuello de botella</div><strong>${esc(cuelloTxt)}</strong></div>` : ''}
+
+${accion||planTxt ? `<div class="section">
+  <div class="section-label">Paso 1 · Plan de mejora</div>
+  ${accion ? `<div class="action-pill">Acción: ${esc(accion)}</div>` : ''}
+  ${planTxt ? `<p style="font-size:12.5px;color:#333;margin-top:6px">${esc(planTxt)}</p>` : ''}
+  ${analisis1 ? `<div class="analisis">${analisis1}</div>` : ''}
+</div>` : ''}
+
+${validP.length>=2 ? `<div class="section">
+  <div class="section-label">Paso 2 · Mezcla de productos</div>
+  <p style="font-size:12px;color:#666;margin-bottom:6px">Recurso limitante: <strong>${esc(recurso)}</strong>${recursoTotal?' ('+esc(recursoTotal)+' disponibles)':''}</p>
+  <table><thead><tr><th>Producto</th><th style="text-align:right">Precio</th><th style="text-align:right">Costo</th><th style="text-align:right">Margen</th></tr></thead>
+  <tbody>${prodRows}</tbody></table>
+</div>` : ''}
+
+${hasDiag ? `<div class="diagnostico">
+  <div class="diag-ey">◆ Diagnóstico de consultor</div>
+  <div class="diag-title">🔥 Tu hoja de ruta esta semana</div>
+  <div class="diag-body">${diagBody}</div>
+</div>` : ''}
+
+<div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4</div>
+</body></html>`;
+
+  const win = window.open('','_blank','width=800,height=900');
+  win.document.write(html);
+  win.document.close();
+  win.onload = function(){ win.focus(); win.print(); };
 });
+
 
 let clearArmed=false;
 $('clearBtn').addEventListener('click', ()=>{

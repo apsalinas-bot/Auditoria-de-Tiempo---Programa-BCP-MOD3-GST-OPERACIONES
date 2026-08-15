@@ -230,6 +230,17 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 .ficha-box{background:#F7F9FC;border:1.5px dashed var(--navy);border-radius:12px;padding:14px}
 .ficha-field{margin-bottom:12px}
 .ficha-field:last-child{margin-bottom:0}
+/* KPI sugerido por IA */
+.kpi-card-s6{background:linear-gradient(135deg,#FFF4E8,#FDECE4);border:1.5px solid var(--coral);border-radius:12px;padding:16px;margin-bottom:10px;display:none}
+.kpi-card-s6.visible{display:block}
+.kpi-card-s6-eyebrow{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--coral-d);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.kpi-card-s6-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.kpi-card-s6-row:last-child{margin-bottom:0}
+.kpi-card-s6-icon{width:26px;height:26px;border-radius:7px;background:var(--coral);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.kpi-card-s6-text{flex:1;font-size:13px;color:var(--ink);line-height:1.4}
+.kpi-card-s6-text b{color:var(--coral-d)}
+.kpi-use-btn{background:none;border:1.5px solid var(--coral);color:var(--coral-d);font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer;padding:6px 12px;border-radius:8px;margin-top:6px}
+.kpi-use-btn:hover{background:var(--coral);color:#fff}
 </style>
 </head>
 <body>
@@ -404,6 +415,22 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
       <div class="d6-title">&#128221; C&oacute;mo mejorar y qu&eacute; sigue</div>
       <div class="d6-body" id="diagnosticoS6Body"></div>
     </div>
+    <div class="kpi-card-s6" id="kpiCardS6">
+      <div class="kpi-card-s6-eyebrow">&#128202; KPI sugerido para tu manual</div>
+      <div class="kpi-card-s6-row">
+        <div class="kpi-card-s6-icon">&#128201;</div>
+        <div class="kpi-card-s6-text"><b>Indicador:</b> <span id="kpiIndicadorTxt"></span></div>
+      </div>
+      <div class="kpi-card-s6-row">
+        <div class="kpi-card-s6-icon">&#127919;</div>
+        <div class="kpi-card-s6-text"><b>Meta:</b> <span id="kpiMetaTxt"></span></div>
+      </div>
+      <div class="kpi-card-s6-row">
+        <div class="kpi-card-s6-icon">&#128197;</div>
+        <div class="kpi-card-s6-text"><b>Frecuencia:</b> <span id="kpiFrecTxt"></span></div>
+      </div>
+      <button class="kpi-use-btn no-print" id="kpiUseBtn" type="button">&#10003; Usar este indicador en mi ficha</button>
+    </div>
     <button class="claude-btn-s6 no-print" id="saveCloudBtn">
       <div class="cb6-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FFB088" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FFB088"/></svg></div>
       <div class="cb6-text"><div class="cb6-main">Guardar y generar an&aacute;lisis</div><div class="cb6-sub">Diagn&oacute;stico personalizado con IA</div></div>
@@ -478,6 +505,8 @@ let currentDNI=null, currentName=null;
 let steps=[];        // {text, light:'green'/'amber'/'red'}
 let chosenIdx=-1;
 let secciones={ materiales:'', pasos:'', calidad:'', errores:'' };
+let kpiSugerido={ indicador:'', meta:'', frecuencia:'' };
+let caracterizacion={ proveedor:'', entrada:'', salida:'', cliente:'' };
 let docEntries=[];
 
 async function binRead(url){ try{ const r=await fetch(url||BIN_URL,{headers:HEADERS_R}); if(!r.ok) return null; const j=await r.json(); return j.record||null; }catch(e){ return null; } }
@@ -570,6 +599,11 @@ async function cargarDatos(){
     if(own.fuegoPassed) $('chkPassed').checked=true;
     if(own.responsable && $('responsableInput')) $('responsableInput').value=own.responsable;
     if(own.indicador && $('indicadorInput')) $('indicadorInput').value=own.indicador;
+    if(own.kpiSugerido && own.kpiSugerido.indicador){
+      kpiSugerido=own.kpiSugerido;
+      renderKpiCard();
+    }
+    if(own.caracterizacion) caracterizacion=Object.assign({proveedor:'',entrada:'',salida:'',cliente:''}, own.caracterizacion);
   }
   const ej=getTareaEj();
   if(ej){ $('tareaEx').innerHTML='Ej para tu negocio: <b>'+esc(ej.tarea)+'</b> \u2014 documenta el paso m\u00e1s delicado de esa tarea.'; }
@@ -697,6 +731,25 @@ function bindInputs(){
 
 function filledSections(){ return SECTIONS.filter(s=>secciones[s.key] && secciones[s.key].trim()).length; }
 
+function renderKpiCard(){
+  if(!kpiSugerido.indicador) return;
+  $('kpiIndicadorTxt').textContent=kpiSugerido.indicador;
+  $('kpiMetaTxt').textContent=kpiSugerido.meta||'Por definir junto con la emprendedora.';
+  $('kpiFrecTxt').textContent=kpiSugerido.frecuencia||'Mensual';
+  $('kpiCardS6').classList.add('visible');
+}
+if($('kpiUseBtn')){
+  $('kpiUseBtn').addEventListener('click', ()=>{
+    if(!kpiSugerido.indicador) return;
+    const texto=kpiSugerido.indicador+(kpiSugerido.meta?(' — Meta: '+kpiSugerido.meta):'');
+    $('indicadorInput').value=texto;
+    updatePreview(); save();
+    $('kpiUseBtn').textContent='\u2713 Copiado a tu ficha';
+    setTimeout(()=>{ $('kpiUseBtn').textContent='\u2713 Usar este indicador en mi ficha'; },2500);
+  });
+}
+
+
 function updatePreview(){
   const tarea=$('tareaInput').value.trim();
   const filled=filledSections();
@@ -727,7 +780,8 @@ function save(){
     steps, chosenIdx, tarea:$('tareaInput').value, secciones,
     validador:$('validadorInput').value, feedback:$('feedbackInput').value,
     fuegoPassed:$('chkPassed').checked,
-    responsable:$('responsableInput').value, indicador:$('indicadorInput').value
+    responsable:$('responsableInput').value, indicador:$('indicadorInput').value,
+    kpiSugerido:kpiSugerido, caracterizacion:caracterizacion
   })); }catch(e){}
 }
 
@@ -775,76 +829,174 @@ $('wordBtn').addEventListener('click', ()=>{
     return '<ul style="margin:0;padding:0 0 0 14pt">'+items.map(i=>'<li style="font-size:10.5pt;line-height:1.5;margin-bottom:3pt">'+esc(i)+'</li>').join('')+'</ul>';
   }
 
-  // Fila estándar de la ficha técnica: etiqueta a la izquierda, contenido a la derecha
+  // Fila estándar: etiqueta a la izquierda, contenido a la derecha
   function fila(label, contentHtml){
     return '<tr>'+
-      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10pt;font-weight:bold;color:#002A8D;width:28%;vertical-align:top">'+label+'</td>'+
+      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10pt;font-weight:bold;color:#002A8D;width:26%;vertical-align:top">'+label+'</td>'+
       '<td style="border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-size:10.5pt;vertical-align:top">'+contentHtml+'</td>'+
       '</tr>';
   }
   function pFila(txt){ return '<p style="font-size:10.5pt;line-height:1.5;text-align:justify;margin:0">'+txt+'</p>'; }
-
-  const objetivo='Establecer un estándar claro y replicable para la ejecución de esta tarea, de modo que cualquier persona debidamente capacitada pueda llevarla a cabo de forma correcta y consistente, sin requerir la supervisión permanente de la propietaria del negocio. El presente documento complementa el mapa de proceso (flujograma) elaborado en la Sesión 2 —el cual identifica QUÉ pasos conforman el proceso— y detalla CÓMO debe ejecutarse correctamente el paso considerado crítico, incluyendo los parámetros técnicos, criterios de calidad y precauciones que garantizan un resultado uniforme.';
+  // Banner de sección: barra de color a ancho completo
+  function banner(text, color, span){
+    return '<tr><td colspan="'+(span||2)+'" style="background:'+(color||'#002A8D')+';color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;letter-spacing:.4pt">'+text+'</td></tr>';
+  }
+  // Etiqueta de fase PHVA con color propio
+  function phvaLabel(letra, texto, color){
+    return '<span style="display:inline-block;width:20pt;height:16pt;background:'+color+';color:#fff;text-align:center;line-height:16pt;border-radius:3pt;font-size:9pt;font-weight:bold;margin-right:7pt">'+letra+'</span>'+texto;
+  }
 
   const respTxt=$('responsableInput').value.trim();
   const indicTxt=$('indicadorInput').value.trim();
   const valNombre=$('validadorInput').value.trim();
   const valFeedback=$('feedbackInput').value.trim();
   const valPassed=$('chkPassed').checked;
+  const kpiInd=kpiSugerido.indicador?kpiSugerido.indicador.trim():(indicTxt||'Por definir');
+  const kpiMet=kpiSugerido.meta?kpiSugerido.meta.trim():'Por definir';
+  const kpiFrec=kpiSugerido.frecuencia?kpiSugerido.frecuencia.trim():'Mensual';
 
-  // Construir todas las filas de la ficha técnica en una sola tabla continua
-  let filas='';
-  filas+=fila('Código', 'POE-01');
-  filas+=fila('Versión', '1.0');
-  filas+=fila('Proceso / tarea documentada', esc(tarea));
-  filas+=fila('Elaborado por', esc(currentName));
-  filas+=fila('Negocio', esc(rubro||'—'));
-  filas+=fila('Fecha de elaboración', fecha);
-  filas+=fila('1. Objetivo del procedimiento', pFila(objetivo));
+  // Alcance: se deriva del primer paso documentado y el primer criterio de calidad
+  const primerPaso=(secciones.pasos||'').split(/\n+/).map(l=>l.trim()).filter(l=>l)[0];
+  const primerCriterio=(secciones.calidad||'').split(/\n+/).map(l=>l.trim()).filter(l=>l)[0];
+  const alcanceInicio=primerPaso?formalLine(primerPaso):'el inicio de la tarea documentada';
+  const alcanceFin=primerCriterio?formalLine(primerCriterio):'la verificación de que el resultado es correcto';
 
+  // Mini-SIPOC: usa lo sugerido por la IA, con respaldo genérico si aún no se generó
+  const sipocProv=caracterizacion.proveedor||'Proveedores internos y externos del negocio';
+  const sipocEnt=caracterizacion.entrada||(secciones.materiales?formalLine((secciones.materiales.split(/\n+/)[0]||'')):'Insumos y materiales necesarios');
+  const sipocSal=caracterizacion.salida||'Tarea completada según estándar';
+  const sipocCli=caracterizacion.cliente||'Cliente interno o externo del negocio';
+
+  // ═══ BLOQUE I · IDENTIFICACIÓN DEL PROCESO ════════════════════════════════
+  let filas=banner('I.  IDENTIFICACIÓN DEL PROCESO');
+  filas+=fila('Nombre del proceso', esc(tarea));
+  filas+=fila('Objetivo', pFila('Ejecutar de forma correcta y consistente la tarea de <b>'+esc(tarea)+'</b>, de modo que cualquier persona capacitada pueda realizarla sin depender de la supervisión permanente de la propietaria.'));
+  filas+=fila('Alcance', pFila('<b>Inicia:</b> '+esc(alcanceInicio)+'<br><b>Finaliza:</b> '+esc(alcanceFin)));
+  filas+=fila('Negocio / emprendimiento', esc(rubro||'—'));
+  filas+=fila('Dueño / responsable del proceso', respTxt?esc(respTxt):esc(currentName));
+
+  // ═══ BLOQUE II · CARACTERIZACIÓN SIPOC ════════════════════════════════════
+  filas+=banner('II.  CARACTERIZACIÓN DEL PROCESO (SIPOC)');
+  filas+='<tr>'+
+    '<td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0">'+
+    '<table style="border-collapse:collapse;width:100%">'+
+    '<tr>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">PROVEEDORES</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">ENTRADAS</td>'+
+      '<td style="background:#E85D2F;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #E85D2F;width:20%">PROCESO</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">SALIDAS</td>'+
+      '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D;width:20%">CLIENTES</td>'+
+    '</tr>'+
+    '<tr>'+
+      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocProv)+'</td>'+
+      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocEnt)+'</td>'+
+      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle;font-weight:bold;color:#C2431A">'+esc(tarea)+'</td>'+
+      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocSal)+'</td>'+
+      '<td style="font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocCli)+'</td>'+
+    '</tr>'+
+    '</table>'+
+    '</td></tr>';
+
+  // ═══ BLOQUE III · DESARROLLO — CICLO PHVA ═════════════════════════════════
+  filas+=banner('III.  DESARROLLO DEL PROCESO — CICLO PHVA');
   if(secciones.materiales && secciones.materiales.trim()){
-    filas+=fila('2. Recursos y preparación previa', bullets(secciones.materiales));
+    filas+=fila(phvaLabel('P','Planificar',"#002A8D"), pFila('Recursos y preparación previa:')+bullets(secciones.materiales));
   }
   if(secciones.pasos && secciones.pasos.trim()){
-    filas+=fila('3. Descripción del procedimiento', bullets(secciones.pasos));
+    filas+=fila(phvaLabel('H','Hacer',"#E85D2F"), pFila('Descripción del procedimiento:')+bullets(secciones.pasos));
   }
   if(secciones.calidad && secciones.calidad.trim()){
-    filas+=fila('4. Criterios de conformidad',
-      pFila('El procedimiento se considera correctamente ejecutado cuando se cumplen los siguientes criterios:')+bullets(secciones.calidad));
+    filas+=fila(phvaLabel('V','Verificar',"#2F9E5F"), pFila('Criterios de conformidad — el proceso está bien ejecutado cuando:')+bullets(secciones.calidad));
   }
   if(secciones.errores && secciones.errores.trim()){
-    filas+=fila('5. Riesgos y errores frecuentes', bullets(secciones.errores));
-  }
-  if(respTxt){
-    filas+=fila('6. Responsable del proceso', esc(respTxt));
-  }
-  if(indicTxt){
-    filas+=fila('7. Indicador de seguimiento', esc(indicTxt));
-  }
-  if(valNombre||valFeedback){
-    let valContent=pFila('Este procedimiento fue puesto a prueba por <b>'+(valNombre?esc(valNombre):'una colaboradora')+'</b>, quien intentó seguirlo sin asistencia directa. '+
-      (valPassed ? 'La prueba fue <b>superada exitosamente</b>: pudo ejecutar el proceso siguiendo únicamente lo documentado.' : 'La prueba <b>identificó puntos a mejorar</b> antes de considerar el procedimiento como definitivo.'));
-    if(valFeedback){
-      valContent+='<p style="font-size:10.5pt;line-height:1.5;margin-top:5pt"><b>Observaciones registradas:</b> '+esc(valFeedback)+'</p>';
-    }
-    filas+=fila('8. Validación del procedimiento', valContent);
+    filas+=fila(phvaLabel('A','Actuar',"#E8A800"), pFila('Riesgos y errores a corregir o prevenir:')+bullets(secciones.errores));
   }
 
+  // ═══ BLOQUE IV · FICHA DE INDICADOR ═══════════════════════════════════════
+  filas+=banner('IV.  INDICADOR DE GESTIÓN');
+  filas+='<tr><td colspan="2" style="border:0.5pt solid #C8D4E8;padding:0">'+
+    '<table style="border-collapse:collapse;width:100%">'+
+    '<tr>'+
+      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:34%">Indicador</td>'+
+      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:33%">Meta</td>'+
+      '<td style="background:#FDECE4;font-size:8.5pt;font-weight:bold;color:#C2431A;padding:6pt;border:0.5pt solid #C8D4E8;width:33%">Frecuencia de medición</td>'+
+    '</tr>'+
+    '<tr>'+
+      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiInd)+'</td>'+
+      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiMet)+'</td>'+
+      '<td style="font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiFrec)+'</td>'+
+    '</tr>'+
+    '</table></td></tr>';
+
+  // ═══ BLOQUE V · VALIDACIÓN Y CONTROL ══════════════════════════════════════
+  if(valNombre||valFeedback){
+    filas+=banner('V.  VALIDACIÓN Y CONTROL');
+    filas+=fila('Validado por', valNombre?esc(valNombre):'—');
+    filas+=fila('Resultado de la prueba', valPassed
+      ? '<span style="color:#2F9E5F;font-weight:bold">✓ Superada</span> — la persona validadora ejecutó el procedimiento siguiendo únicamente lo documentado.'
+      : '<span style="color:#E85D2F;font-weight:bold">Con observaciones</span> — se identificaron puntos a mejorar antes de considerar el procedimiento como definitivo.');
+    if(valFeedback){
+      filas+=fila('Observaciones registradas', esc(valFeedback));
+    }
+  }
+
+  // ═══ Bloque de control documentario (sello superior derecho) ═════════════
+  function stampRow(l,v){
+    return '<tr><td style="background:#002A8D;color:#fff;font-size:8pt;font-weight:bold;padding:4pt 7pt;width:42%">'+l+'</td>'+
+      '<td style="font-size:8pt;padding:4pt 7pt;border-left:0.5pt solid #C8D4E8">'+v+'</td></tr>';
+  }
+  const stampBox='<table style="border-collapse:collapse;width:100%;border:1pt solid #002A8D">'+
+    stampRow('Código','CP-01')+stampRow('Versión','1.0')+stampRow('Fecha',fecha)+'</table>';
+
+  const headerBlock='<table style="width:100%;border-collapse:collapse;margin-bottom:0"><tr>'+
+    '<td style="vertical-align:bottom;padding:0">'+
+      '<p style="font-size:8.5pt;color:#6B7688;letter-spacing:1.5pt;margin:0;text-transform:uppercase">Programa de Impulso Pyme &middot; Mujeres Emprendedoras de Arequipa</p>'+
+      '<p style="color:#002A8D;font-size:19pt;font-weight:bold;margin:5pt 0 0;line-height:1.15">Caracterizaci&oacute;n de Proceso</p>'+
+      '<p style="font-size:9.5pt;color:#E85D2F;margin:4pt 0 0;font-weight:bold">M&oacute;dulo 3 &middot; Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 6</p>'+
+    '</td>'+
+    '<td style="vertical-align:top;padding:0 0 0 14pt;width:150pt">'+stampBox+'</td>'+
+    '</tr></table>'+
+    '<table style="width:100%;border-collapse:collapse;margin:10pt 0 16pt"><tr>'+
+    '<td style="background:#002A8D;height:4pt;width:72%;font-size:1pt;line-height:4pt">&nbsp;</td>'+
+    '<td style="background:#E85D2F;height:4pt;width:28%;font-size:1pt;line-height:4pt">&nbsp;</td>'+
+    '</tr></table>';
+
+  // ═══ BLOQUE VI · HISTORIAL DE REVISIONES ══════════════════════════════════
+  function histCellH(t){ return '<td style="background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:5pt 7pt;border:0.5pt solid #002A8D">'+t+'</td>'; }
+  function histCellD(t){ return '<td style="font-size:9pt;padding:5pt 7pt;border:0.5pt solid #C8D4E8">'+t+'</td>'; }
+  const historial='<p style="background:#002A8D;color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;margin:16pt 0 0;letter-spacing:.4pt">VI.  HISTORIAL DE REVISIONES</p>'+
+    '<table style="border-collapse:collapse;width:100%;border:0.75pt solid #002A8D">'+
+    '<tr>'+histCellH('Versión')+histCellH('Fecha')+histCellH('Descripción del cambio')+histCellH('Elaborado por')+'</tr>'+
+    '<tr>'+histCellD('1.0')+histCellD(fecha)+histCellD('Versión inicial del documento')+histCellD(esc(currentName))+'</tr>'+
+    '</table>';
+
+  // ═══ Bloque de firmas: Elaborado / Revisado (en blanco) / Aprobado (dueña) ═
+  function firmaCol(rol, nombre, cargo){
+    return '<td style="width:33.33%;padding:0 8pt;vertical-align:top">'+
+      '<div style="border-top:1pt solid #1C2536;padding-top:5pt;margin-top:34pt;font-size:8.5pt;color:#1C2536">'+
+      '<b>'+rol+':</b><br>'+(nombre?esc(nombre):'&nbsp;')+
+      '<br><span style="color:#6B7688">Cargo:</span> '+(cargo?esc(cargo):'&nbsp;')+
+      '</div></td>';
+  }
+  const firmas='<table style="width:100%;border-collapse:collapse;margin-top:26pt"><tr>'+
+    firmaCol('Elaborado por','','')+
+    firmaCol('Revisado por','','')+
+    firmaCol('Aprobado por', currentName, 'Propietaria del negocio')+
+    '</tr></table>';
+
   const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
-    '<head><meta charset="utf-8"><title>Procedimiento Operativo Estándar</title>'+
+    '<head><meta charset="utf-8"><title>Caracterización de Proceso</title>'+
     '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->'+
     '</head>'+
     '<body style="'+S+'">'+
-    // encabezado
-    '<p style="font-size:9pt;color:#6B7688;letter-spacing:1pt;margin:0">PROGRAMA DE IMPULSO PYME  ·  Mujeres Emprendedoras de Arequipa</p>'+
-    '<p style="color:#002A8D;font-size:16pt;font-weight:bold;margin:4pt 0 0">FICHA TÉCNICA DE PROCEDIMIENTO</p>'+
-    '<p style="font-size:10pt;color:#6B7688;margin:2pt 0 0">Módulo 3 · Gestión de Operaciones · Sesión 6 · Procedimiento Operativo Estándar</p>'+
-    '<div style="border-bottom:2.5pt solid #002A8D;margin:8pt 0 14pt"></div>'+
-    // ficha técnica: una sola tabla continua con todo
-    '<table style="border-collapse:collapse;width:100%">'+filas+'</table>'+
+    headerBlock+
+    // caracterización: tabla principal con banners de sección
+    '<table style="border-collapse:collapse;width:100%;border:0.75pt solid #002A8D">'+filas+'</table>'+
+    historial+
+    firmas+
     // footer
-    '<div style="border-top:1pt solid #C8D4E8;margin-top:22pt;padding-top:6pt">'+
-    '<p style="font-size:8.5pt;color:#6B7688;text-align:center">Documento elaborado en el marco del Programa de Impulso Pyme · BCP × UCSP–CENDES · Módulo 3: Gestión de Operaciones · Sesión 6.</p></div>'+
+    '<p style="font-size:8pt;color:#9AACBE;text-align:center;margin-top:18pt">Documento controlado &middot; P&aacute;gina 1 de 1</p>'+
+    '<p style="font-size:8pt;color:#9AACBE;text-align:center;margin-top:2pt">Programa de Impulso Pyme &middot; BCP &times; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones &middot; Sesi&oacute;n 6</p>'+
     '</body></html>';
 
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
@@ -940,27 +1092,101 @@ $('saveCloudBtn').addEventListener('click', async function(){
   );
   elA.innerHTML=renderNegS6(ia1||firstName+', tu procedimiento tiene buena base. Revisa que cada secci\u00f3n tenga detalles espec\u00edficos como tiempos o cantidades.');
 
-  // ── Análisis 2: próximos pasos después de documentar ──
+  // ── Análisis 2: próximos pasos + KPI sugerido ──
   var dEl=$('diagnosticoS6'); var dBody=$('diagnosticoS6Body');
   dEl.classList.add('visible'); dotsS6El(dBody);
+  $('kpiCardS6').classList.remove('visible');
   var ia2=await callClaudeS6(
-    'Emprendedora: '+firstName+' \u2014 Negocio: '+(rubro||'no especificado')+'\\n'
-    +'Ya document\u00f3 su procedimiento de: '+tarea+'\\n'
-    +(responsable?('Responsable del proceso: '+responsable):'(No defini\u00f3 responsable a\u00fan)')+'\\n'
-    +(indicador?('C\u00f3mo medir\u00e1 si funciona: '+indicador):'(No defini\u00f3 indicador a\u00fan)')+'\\n'
-    +'\u00bfPas\u00f3 la prueba de fuego? '+($('chkPassed').checked?'S\u00ed, alguien lo sigui\u00f3 sin ayuda':'A\u00fan no lo prob\u00f3 nadie')+'\\n'
-    +'\\n\\nEscribe 3 pasos concretos y coloquiales (max 100 palabras) de QU\u00c9 HACER AHORA que ya tiene su manual documentado.\\n'
-    +'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\\n'
-    +'Si no defini\u00f3 responsable o indicador, sugi\u00e9rele hacerlo como parte de los pasos.\\n'
-    +'Si no pas\u00f3 la prueba de fuego, sugi\u00e9rele probarlo con alguien esta semana.\\n'
-    +'Si ya complet\u00f3 todo, sugiere c\u00f3mo mantenerlo vivo: d\u00f3nde guardarlo, cu\u00e1ndo revisarlo, a qui\u00e9n m\u00e1s ense\u00f1arlo.\\n'
-    +'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso m\u00e1s urgente.'
+    'Emprendedora: '+firstName+' \u2014 Negocio: '+(rubro||'no especificado')+'\n'
+    +'Ya document\u00f3 su procedimiento de: '+tarea+'\n'
+    +'Contenido documentado:'+secTxt+'\n'
+    +(responsable?('Responsable del proceso: '+responsable):'(No defini\u00f3 responsable a\u00fan)')+'\n'
+    +(indicador?('Su idea de indicador: '+indicador):'(No escribi\u00f3 un indicador a\u00fan)')+'\n'
+    +'\u00bfPas\u00f3 la prueba de fuego? '+($('chkPassed').checked?'S\u00ed, alguien lo sigui\u00f3 sin ayuda':'A\u00fan no lo prob\u00f3 nadie')+'\n'
+    +'\n\nEscribe 3 pasos concretos y coloquiales (max 100 palabras) de QU\u00c9 HACER AHORA que ya tiene su manual documentado.\n'
+    +'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'
+    +'Si no defini\u00f3 responsable, sugi\u00e9rele hacerlo como parte de los pasos.\n'
+    +'Si no pas\u00f3 la prueba de fuego, sugi\u00e9rele probarlo con alguien esta semana.\n'
+    +'Si ya complet\u00f3 todo, sugiere c\u00f3mo mantenerlo vivo: d\u00f3nde guardarlo, cu\u00e1ndo revisarlo, a qui\u00e9n m\u00e1s ense\u00f1arlo.\n'
+    +'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso m\u00e1s urgente.\n'
+    +'Responde SOLO con esos 3 pasos narrativos, nada m\u00e1s.'
   );
   dBody.innerHTML=renderNegS6(ia2||firstName+', ahora comparte tu manual con alguien de confianza y ponlo a prueba esta semana.');
 
+  // ── Análisis 3: insumos estructurados (KPI + SIPOC) en JSON puro, llamada dedicada ──
+  // Separada de la narrativa para que el parseo sea confiable y nunca dependa de que
+  // el modelo respete un formato de texto libre dentro de otra respuesta.
+  var ia3raw=await callClaudeS6(
+    'Con base EXCLUSIVAMENTE en lo que esta emprendedora document\u00f3 en su app (no inventes datos gen\u00e9ricos):\n'
+    +'Tarea documentada: '+tarea+'\n'
+    +'Negocio: '+(rubro||'no especificado')+'\n'
+    +'Contenido de sus 4 secciones:'+secTxt+'\n'
+    +(responsable?('Responsable que ella indic\u00f3: '+responsable):'(no indic\u00f3 responsable)')+'\n'
+    +(indicador?('Su propia idea de indicador: '+indicador):'(no escribi\u00f3 un indicador)')+'\n\n'
+    +'Genera EXCLUSIVAMENTE un objeto JSON v\u00e1lido (sin texto antes ni despu\u00e9s, sin ```json, sin comentarios) con estas 7 claves EXACTAS:\n'
+    +'{\n'
+    +'"indicador": "indicador claro y medible para este proceso espec\u00edfico, pulido a partir de su idea o creado desde cero (max 12 palabras)",\n'
+    +'"meta": "meta num\u00e9rica o umbral concreto y realista para ese indicador (max 10 palabras)",\n'
+    +'"frecuencia": "semanal, quincenal o mensual, seg\u00fan qu\u00e9 tan cr\u00edtico es el proceso",\n'
+    +'"proveedor": "qui\u00e9n o qu\u00e9 provee los insumos de ESTE proceso espec\u00edfico (3-6 palabras)",\n'
+    +'"entrada": "qu\u00e9 entra al proceso, tomado de sus materiales documentados (4-8 palabras)",\n'
+    +'"salida": "qu\u00e9 sale o se entrega al terminar ESTE proceso espec\u00edfico (4-8 palabras)",\n'
+    +'"cliente": "qui\u00e9n recibe el resultado de ESTE proceso espec\u00edfico (3-6 palabras)"\n'
+    +'}\n'
+    +'Todo debe ser espec\u00edfico a la tarea document\u00e1da, nunca gen\u00e9rico. Primera letra en may\u00fascula, resto normal, sin punto final.'
+  );
+
+  // Parseo robusto: intenta JSON directo, luego limpia posibles fences ```json, y si todo falla, deja los valores por defecto sin romper la app
+  var kpiOk=false, sipocOk=false;
+  if(ia3raw){
+    var jsonTxt=ia3raw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    var parsed=null;
+    try{
+      parsed=JSON.parse(jsonTxt);
+    }catch(e1){
+      // Segundo intento: si el modelo agregó texto antes/después, extraer solo el bloque {...}
+      var firstBrace=jsonTxt.indexOf('{'), lastBrace=jsonTxt.lastIndexOf('}');
+      if(firstBrace>=0 && lastBrace>firstBrace){
+        try{ parsed=JSON.parse(jsonTxt.substring(firstBrace,lastBrace+1)); }
+        catch(e2){ console.error('No se pudo parsear el JSON de insumos (KPI/SIPOC) ni con extracción de substring:', e2, jsonTxt); }
+      } else {
+        console.error('No se pudo parsear el JSON de insumos (KPI/SIPOC):', e1, jsonTxt);
+      }
+    }
+    if(parsed && typeof parsed==='object'){
+        if(parsed.indicador){
+          kpiSugerido={
+            indicador:String(parsed.indicador).trim(),
+            meta:String(parsed.meta||'Por definir').trim(),
+            frecuencia:String(parsed.frecuencia||'Mensual').trim()
+          };
+          kpiOk=true;
+        }
+        if(parsed.proveedor||parsed.entrada||parsed.salida||parsed.cliente){
+          caracterizacion={
+            proveedor:String(parsed.proveedor||'').trim(),
+            entrada:String(parsed.entrada||'').trim(),
+            salida:String(parsed.salida||'').trim(),
+            cliente:String(parsed.cliente||'').trim()
+          };
+          sipocOk=true;
+        }
+    }
+  }
+  if(kpiOk) renderKpiCard();
+  if(!kpiOk && !sipocOk){
+    // Aviso silencioso: no rompe el guardado, pero deja constancia para poder darle seguimiento
+    console.warn('IA no devolvió insumos estructurados válidos; la ficha usará valores por defecto hasta el próximo intento.');
+  }
+  save();
+  payload.kpiSugerido=kpiSugerido;
+  payload.caracterizacion=caracterizacion;
+
   const ok=await binWrite({entries});
-  showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
-  if(ok) setTimeout(()=>showStatus('',''),5000);
+  var msgOk='\u2705 Guardado y an\u00e1lisis generado.';
+  if(ok && !kpiOk){ msgOk+=' (El KPI sugerido no se pudo generar esta vez \u2014 vuelve a presionar el bot\u00f3n para reintentarlo.)'; }
+  showStatus(ok?msgOk:'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  if(ok) setTimeout(()=>showStatus('',''), kpiOk?5000:8000);
   btnS6Original();
 });
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }

@@ -146,6 +146,10 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);font-family:inherit}
 .modal-name{font-size:17px;font-weight:700;color:var(--navy)}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
+.pw-eye-btn{position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#9AACBE;padding:0}
+.pw-eye-btn:hover{color:var(--navy)}
+.pw-eye-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 @media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
 @keyframes shimmer-s5{0%{background-position:200% center}100%{background-position:-200% center}}
@@ -193,8 +197,8 @@ const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm
 const DOCENTE_PW = '70003700';
 </script>
 <script>
-const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca"};
-const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "insumo": "procesadores / tarjetas de video", "desc": "los componentes caros que casi no rotan pero valen mucho"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "encaje importado", "desc": "la tela fina que usas en las batas premium"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "insumo": "carnes y mariscos", "desc": "los insumos frescos caros de tus eventos"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "insumo": "mobiliario y decoración", "desc": "lo que más invertiste para tus eventos"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "insumo": "fierro de construcción", "desc": "el material de mayor valor de tu ferretería"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "insumo": "cobertores importados premium", "desc": "los modelos caros que tardan en venderse"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "insumo": "madera fina para instrumentos", "desc": "la materia prima costosa de tus instrumentos"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "insumo": "ataúdes de gama alta", "desc": "los productos de mayor valor de tu inventario"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "insumo": "flores importadas", "desc": "las flores caras que se marchitan rápido"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "insumo": "material de construcción de alto valor", "desc": "los insumos caros de tu tienda"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "insumo": "máquinas de manualidades", "desc": "los equipos de mayor valor que vendes"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "insumo": "insumos gourmet para snacks", "desc": "los ingredientes premium de tus productos"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "prendas de temporada", "desc": "la ropa de moda que más invertiste"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "insumo": "repuestos originales caros", "desc": "las piezas de alto valor de tu stock"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "insumo": "material de construcción premium", "desc": "los insumos caros de tu negocio"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "insumo": "pescado fresco de calidad", "desc": "la materia prima cara de tus conservas"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "insumo": "productos de marca", "desc": "los ítems caros de tu minimarket"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "insumo": "insumos gourmet para clases", "desc": "los ingredientes premium de tu escuela"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "insumo": "insumos médicos especializados", "desc": "el material clínico de mayor valor"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "insumo": "ladrillos y cemento premium", "desc": "los materiales de mayor valor"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "insumo": "equipos / software especializado", "desc": "las herramientas caras de tu servicio"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "insumo": "amoblado de habitaciones", "desc": "lo que más invertiste en tu hospedaje"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "insumo": "material de asesoría especializada", "desc": "los recursos de mayor valor"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "insumo": "equipos profesionales", "desc": "las herramientas caras de tu servicio"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "insumo": "amoblado y ropa de cama premium", "desc": "lo que más invertiste en tu hospedaje"}};
+const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca", "46884965": "Silvia Uscca Condori"};
+const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "insumo": "procesadores / tarjetas de video", "desc": "los componentes caros que casi no rotan pero valen mucho"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "encaje importado", "desc": "la tela fina que usas en las batas premium"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "insumo": "carnes y mariscos", "desc": "los insumos frescos caros de tus eventos"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "insumo": "mobiliario y decoración", "desc": "lo que más invertiste para tus eventos"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "insumo": "fierro de construcción", "desc": "el material de mayor valor de tu ferretería"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "insumo": "cobertores importados premium", "desc": "los modelos caros que tardan en venderse"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "insumo": "madera fina para instrumentos", "desc": "la materia prima costosa de tus instrumentos"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "insumo": "ataúdes de gama alta", "desc": "los productos de mayor valor de tu inventario"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "insumo": "flores importadas", "desc": "las flores caras que se marchitan rápido"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "insumo": "material de construcción de alto valor", "desc": "los insumos caros de tu tienda"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "insumo": "máquinas de manualidades", "desc": "los equipos de mayor valor que vendes"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "insumo": "insumos gourmet para snacks", "desc": "los ingredientes premium de tus productos"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "insumo": "prendas de temporada", "desc": "la ropa de moda que más invertiste"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "insumo": "repuestos originales caros", "desc": "las piezas de alto valor de tu stock"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "insumo": "material de construcción premium", "desc": "los insumos caros de tu negocio"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "insumo": "pescado fresco de calidad", "desc": "la materia prima cara de tus conservas"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "insumo": "productos de marca", "desc": "los ítems caros de tu minimarket"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "insumo": "insumos gourmet para clases", "desc": "los ingredientes premium de tu escuela"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "insumo": "insumos médicos especializados", "desc": "el material clínico de mayor valor"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "insumo": "ladrillos y cemento premium", "desc": "los materiales de mayor valor"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "insumo": "equipos / software especializado", "desc": "las herramientas caras de tu servicio"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "insumo": "amoblado de habitaciones", "desc": "lo que más invertiste en tu hospedaje"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "insumo": "material de asesoría especializada", "desc": "los recursos de mayor valor"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "insumo": "equipos profesionales", "desc": "las herramientas caras de tu servicio"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "insumo": "amoblado y ropa de cama premium", "desc": "lo que más invertiste en tu hospedaje"}, "46884965": {"nombre": "Silvia", "rubro": "Ingeniería y servicios", "insumo": "equipos y herramientas técnicas", "desc": "los equipos de mayor valor de tu negocio"}};
 </script>
 
 <!-- GATE -->
@@ -220,13 +224,19 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
-        <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric">
+        <div style="position:relative;width:100%">
+          <input class="gate-dni-input" type="tel" id="inputEmp" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric" style="padding-right:44px">
+          <button type="button" class="pw-eye-btn" id="eyeEmp" onclick="toggleEye('inputEmp','eyeEmp')" title="Mostrar/ocultar"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errEmp"></div>
         <button class="gate-btn emp" onclick="doLoginEmp()">Entrar</button>
       </div>
       <div class="gate-panel" id="panelDoc">
         <span class="gate-panel-label">Contrase&ntilde;a del docente</span>
-        <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        <div style="position:relative;width:100%">
+          <input class="gate-pw-input" type="password" id="inputDoc" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" style="padding-right:44px">
+          <button type="button" class="pw-eye-btn" id="eyeDoc" onclick="toggleEye('inputDoc','eyeDoc')" title="Mostrar/ocultar"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
       </div>
@@ -302,41 +312,94 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
 
 <!-- VISTA DOCENTE -->
 <div id="docView" style="display:none">
-  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#0a5b5b 100%)">
-    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 5</div>
-    <h1>Panel de <span style="color:#5FD4D4">Inventario</span></h1>
-    <p id="docWelcome">Matrices ABC registradas.</p>
+  <div class="top" style="background:linear-gradient(135deg,#001C5E 0%,#084c4c 100%)">
+    <div class="eyebrow">Docente &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 5 &middot; BCP</div>
+    <h1>Tablero de <span style="color:#5FD4D4">Control</span></h1>
+    <p id="docWelcome">Insumos e Inventario &mdash; Clasificaci&oacute;n ABC</p>
   </div>
-  <div class="logout-row no-print">
-    <button class="refresh-btn" onclick="loadDocData()">&#8635; Actualizar</button>
-    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  <div class="logout-row no-print" style="display:flex;gap:8px;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #e2e7f0">
+    <button class="refresh-btn" onclick="loadDocData()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px">&#8635; Actualizar datos</button>
+    <button class="logout-btn" onclick="doLogout()">Salir</button>
   </div>
   <div class="wrap">
-    <div class="kpi-grid">
-      <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Matrices guardadas</div></div>
-      <div class="kpi-box teal"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
-      <div class="kpi-box"><div class="kpi-val" id="kInsumos">-</div><div class="kpi-lbl">Insumos analizados (total)</div></div>
-      <div class="kpi-box green"><div class="kpi-val" id="kPlan">-</div><div class="kpi-lbl">Definieron plan</div></div>
-    </div>
-    <div class="card" style="padding:14px 18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participaci&oacute;n del grupo</span>
-        <span style="font-size:13px;font-weight:700;color:var(--teal)" id="kPctLbl">0 / 25</span>
+
+    <!-- KPIs -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px">
+      <div class="kpi-box" style="border-top:3px solid var(--navy)">
+        <div class="kpi-val" id="kTotal" style="color:var(--navy)">-</div>
+        <div class="kpi-lbl">Guardaron matriz</div>
       </div>
-      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div class="kpi-box" style="border-top:3px solid #0E8C8C">
+        <div class="kpi-val" id="kPct" style="color:#0E8C8C">-</div>
+        <div class="kpi-lbl">del grupo completado</div>
+      </div>
+      <div class="kpi-box" style="border-top:3px solid #E8A800">
+        <div class="kpi-val" id="kInsumos" style="color:#8A6D00">-</div>
+        <div class="kpi-lbl">Insumos analizados</div>
+      </div>
+      <div class="kpi-box" style="border-top:3px solid #3B6D11">
+        <div class="kpi-val" id="kPlan" style="color:#3B6D11">-</div>
+        <div class="kpi-lbl">Definieron plan A y C</div>
+      </div>
     </div>
-    <div id="docAlerts"></div>
-    <div class="section-title">Matrices registradas</div>
+
+    <!-- Barra de progreso -->
+    <div class="card" style="padding:14px 16px;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700;color:var(--navy)">Avance del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:#0E8C8C" id="kPctLbl">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap" style="height:14px;border-radius:7px">
+        <div class="progress-bar" id="progressBar" style="width:0%;border-radius:7px;transition:width .6s ease"></div>
+      </div>
+      <div id="docAlerts" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Distribución ABC barras estilo S3 -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 6px">Distribuci&oacute;n ABC del aula</div>
+    <div class="card" style="padding:14px 16px;margin-bottom:4px">
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px">Insumos clasificados por categor&iacute;a &mdash; total acumulado del aula</div>
+      <div id="abcDistGrid" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.45" id="abcDistNote"></div>
+    </div>
+    <!-- KPI reorden y plan -->
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+      <div class="kpi-box" style="border-top:3px solid #0E8C8C">
+        <div class="kpi-val" id="kConReorden" style="color:#0A6A6A">-</div>
+        <div class="kpi-lbl">Calcularon punto<br>de reorden</div>
+      </div>
+      <div class="kpi-box" style="border-top:3px solid #3B6D11">
+        <div class="kpi-val" id="kPlan" style="color:#3B6D11">-</div>
+        <div class="kpi-lbl">Definieron plan<br>A y C</div>
+      </div>
+    </div>
+
+    <!-- Tabla de emprendedoras -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 6px">Matrices registradas</div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="emp-table">
-        <thead><tr><th>#</th><th>Emprendedora</th><th>Insumos</th><th>Plan</th></tr></thead>
-        <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th style="width:28px">#</th>
+            <th>Emprendedora</th>
+            <th style="text-align:center">Insumos</th>
+            <th style="text-align:center">A / B / C</th>
+            <th style="text-align:center">Plan</th>
+            <th style="text-align:center">Reorden</th>
+          </tr>
+        </thead>
+        <tbody id="docTableBody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>
+        </tbody>
       </table>
     </div>
-    <div class="section-title">Pendientes</div>
-    <div id="docPending" class="card" style="padding:14px 18px"></div>
-    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
-    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+
+    <!-- Pendientes -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 6px">Pendientes de guardar</div>
+    <div id="docPending" class="card" style="padding:14px 16px"></div>
+
+    <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:12px">&#128438; Imprimir tablero</button>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3 &middot; S5</div>
   </div>
 </div>
 
@@ -1171,45 +1234,101 @@ function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').classNa
 
 // DOCENTE
 async function loadDocData(){
-  $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
+  $('docTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr>';
   $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
   const rec=await binRead();
-  if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
+  if(rec===null){
+    $('docTableBody').innerHTML='<tr><td colspan="6" style="padding:16px"><div class="alert-box amber"><b>Error de conexión.</b> Verifica internet.</div></td></tr>'; return;
+  }
   docEntries=Array.isArray(rec.entries)?rec.entries:[];
   const total=docEntries.length, pct=Math.round(total/25*100);
   const totalIns=docEntries.reduce((s,e)=>s+(e.insumoCount||0),0);
   const conPlan=docEntries.filter(e=>e.hasPlan).length;
-  $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
-  $('kInsumos').textContent=totalIns; $('kPlan').textContent=conPlan;
-  $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
-  $('docWelcome').textContent=total+' emprendedoras guardaron su matriz.';
-  let al='';
-  if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay matrices guardadas.</b></div>';
-  else if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
-  $('docAlerts').innerHTML=al;
-  if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
-  else {
+  const conReorden=docEntries.filter(e=>(e.reordenCount||0)>0).length;
+  // Promedios ABC
+  const allIns=docEntries.flatMap(e=>e.insumos||[]);
+  const avgA=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0)/total).toFixed(1):0;
+  const avgB=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='B').length,0)/total).toFixed(1):0;
+  const avgC=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='C').length,0)/total).toFixed(1):0;
+
+  $('kTotal').textContent=total;
+  $('kPct').textContent=pct+'%';
+  $('kInsumos').textContent=totalIns;
+  $('kPlan').textContent=conPlan;
+  $('kAvgA').textContent=avgA;
+  $('kAvgB').textContent=avgB;
+  $('kAvgC').textContent=avgC;
+  $('kConReorden').textContent=conReorden;
+  $('kPctLbl').textContent=total+' / 25';
+  $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras guardaron su matriz ABC.';
+
+  // Alertas múltiples contextuales
+  var alerts2='';
+  if(total===0){
+    alerts2='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Pide a las emprendedoras que abran la app y guarden.</div>';
+  } else {
+    if(pct<50) alerts2+='<div class="alert-box amber"><b>Participación baja ('+pct+'%).</b> Da unos minutos más.</div>';
+    else if(pct>=80) alerts2+='<div class="alert-box green"><b>✅ '+pct+'% del grupo completó ('+total+'/25).</b></div>';
+    else alerts2+='<div class="alert-box navy"><b>'+total+' de 25 guardaron</b> — '+pct+'% completado.</div>';
+    if(conPlan<total&&total>0) alerts2+='<div class="alert-box amber"><b>'+(total-conPlan)+' aún no definieron plan A y C.</b> Anima a completar el Paso 3.</div>';
+    if(conReorden>0) alerts2+='<div class="alert-box green"><b>'+conReorden+' calcularon su punto de reorden.</b> ¡Excelente nivel!</div>';
+    else if(total>=5) alerts2+='<div class="alert-box navy"><b>Nadie ha ingresado lead time aún.</b> Recuerda los campos de reorden en Paso 1.</div>';
+  }
+  $('docAlerts').innerHTML=alerts2;
+
+  // Tabla
+  if(total===0){
+    $('docTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Aún no hay registros.</td></tr>';
+  } else {
     let rows='';
     docEntries.forEach((e,idx)=>{
-      const first=(e.name||e.dni).split(' ')[0];
-      const nA=e.countA||0;
-      rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
-        '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
-        '<td><span class="tag teal">'+(e.insumoCount||0)+' insumos</span>'+(nA?' <span class="tag gray">'+nA+' cr\u00edticos</span>':'')+'</td>'+
-        '<td>'+(e.hasPlan?'<span class="tag green">s\u00ed</span>':'<span class="tag gray">no</span>')+'</td></tr>';
+      const nombre=e.name||e.dni;
+      const first=nombre.split(' ')[0];
+      const ins=e.insumos||[];
+      const nA=ins.filter(i=>i.cat==='A').length;
+      const nB=ins.filter(i=>i.cat==='B').length;
+      const nC=ins.filter(i=>i.cat==='C').length;
+      const tieneReorden=(e.reordenCount||0)>0;
+      const fechaStr=e.savedAt?new Date(e.savedAt).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):'';
+      rows+='<tr onclick="openModal('+idx+')" style="cursor:pointer">'+
+        '<td style="color:var(--muted);font-size:11px">'+(idx+1)+'</td>'+
+        '<td>'+
+          '<div style="font-weight:600;color:var(--navy);font-size:13px">'+esc(first)+'</div>'+
+          '<div style="font-size:10px;color:var(--muted)">'+esc(nombre)+(fechaStr?' · '+fechaStr:'')+'</div>'+
+        '</td>'+
+        '<td style="text-align:center"><span class="tag teal">'+(e.insumoCount||0)+'</span></td>'+
+        '<td style="text-align:center">'+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#0E8C8C;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nA+'</span> '+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#E8A800;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nB+'</span> '+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#8AACBD;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nC+'</span>'+
+        '</td>'+
+        '<td style="text-align:center">'+(e.hasPlan?'<span class="tag green">✓ sí</span>':'<span class="tag gray">no</span>')+'</td>'+
+        '<td style="text-align:center">'+(tieneReorden?'<span class="tag teal">✓</span>':'<span class="tag gray">–</span>')+'</td>'+
+      '</tr>';
     });
     $('docTableBody').innerHTML=rows;
   }
+
+  // Pendientes
   const reg=new Set(docEntries.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
-  if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas guardaron su matriz!</b></div>';
-  else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
-    pend.forEach(([,nm])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(nm.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }
+  const pend=Object.entries(ROSTER).filter(([d,n])=>!reg.has(d)&&n!=='Franchesca Quezada Cabrera'&&n!=='Beatriz Palacios Espinoza');
+  if(pend.length===0){
+    $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas guardaron su matriz!</b> 25/25 completado.</div>';
+  } else {
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px"><b>'+pend.length+'</b> sin guardar aún:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,nm])=>{
+      const fn=nm.split(' ')[0];
+      ph+='<span style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;border-radius:20px;padding:4px 11px;font-size:12px">'+esc(fn)+'</span>';
+    });
+    ph+='</div>';
+    $('docPending').innerHTML=ph;
+  }
 }
 function openModal(idx){
   const e=docEntries[idx]; if(!e) return;
   $('modalName').textContent=e.name||e.dni;
-  $('modalMeta').textContent=(e.insumoCount||0)+' insumos \u00b7 S/'+Math.round(e.totalValue||0)+' en inventario \u00b7 '+(e.savedAt?e.savedAt.slice(0,16).replace('T',' '):'-');
+  $('modalMeta').textContent=(e.insumoCount||0)+' insumos · S/'+Math.round(e.totalValue||0).toLocaleString()+' en inventario · '+(e.savedAt?new Date(e.savedAt).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-');
   let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Insumos por categor\u00eda</b>';
   ['A','B','C'].forEach(cat=>{
     const list=(e.insumos||[]).filter(i=>i.cat===cat);
@@ -1230,6 +1349,333 @@ $('detailModal').addEventListener('click',e=>{ if(e.target===$('detailModal')) c
 $('docPrintBtn').addEventListener('click',()=>window.print());
 $('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
 $('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
+var EYE_OPEN='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+var EYE_OFF='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function toggleEye(inputId, btnId){
+  var inp=$(inputId), btn=$(btnId);
+  var isHidden=(inp.type==='password'||inp.type==='tel');
+  inp.type=isHidden?'text':(inputId==='inputDoc'?'password':'tel');
+  btn.innerHTML=isHidden?EYE_OFF:EYE_OPEN;
+}
+
+
+// ── GENERAR EXCEL MATRIZ ABC ──
+$('excelBtn').addEventListener('click', async ()=>{
+  if(abcData.length<2){ showStatus('Agrega al menos 2 insumos para el Excel.','err'); return; }
+  if(typeof ExcelJS==='undefined'){ showStatus('No se pudo cargar el generador de Excel.','err'); return; }
+  showStatus('Generando tu Excel...','loading');
+  try{
+    const wb=await generarExcelABC();
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Matriz_ABC_'+currentName.split(' ')[0]+'_S5.xlsx'; a.click();
+    showStatus('\u2705 Excel descargado con tu Matriz ABC.','ok');
+    setTimeout(()=>showStatus('',''),5000);
+  }catch(e){ showStatus('\u26a0\ufe0f Error: '+e.message,'err'); }
+});
+
+async function generarExcelABC(){
+  computeABC();  // recalcular SIEMPRE antes de generar, para que la piramide coincida con la tabla
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Matriz ABC',{views:[{showGridLines:false}]});
+  const TEAL='FF0E8C8C', NAVY='FF002A8D', AMBER='FFE8A800', GRAY='FF8AACBD';
+  const fillTeal={type:'pattern',pattern:'solid',fgColor:{argb:TEAL}};
+  const fillNavy={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const fillHdr={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+  const fillA={type:'pattern',pattern:'solid',fgColor:{argb:'FFE3F5F5'}};
+  const fillB={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF8E1'}};
+  const fillC={type:'pattern',pattern:'solid',fgColor:{argb:'FFF1F5F9'}};
+  const thin={style:'thin',color:{argb:'FFC8D4E8'}};
+  const bAll={top:thin,left:thin,bottom:thin,right:thin};
+  const white={argb:'FFFFFFFF'}, ink={argb:'FF1C2536'}, gray={argb:'FF6B7688'};
+
+  ws.columns=[{width:5},{width:28},{width:13},{width:13},{width:15},{width:13},{width:2.5},{width:6},{width:6},{width:6},{width:6},{width:6},{width:6},{width:6}];
+
+  // Título
+  ws.mergeCells('A1:F1');
+  let c=ws.getCell('A1'); c.value='MATRIZ ABC DE INVENTARIO';
+  c.fill=fillTeal; c.font={bold:true,size:18,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(1).height=36;
+  ws.mergeCells('A2:F2');
+  c=ws.getCell('A2'); c.value='M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 '+currentName;
+  c.fill=fillNavy; c.font={size:10.5,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(2).height=20;
+
+  // Encabezado tabla
+  const r0=4;
+  const heads=['Cat','Insumo','Costo unit.\n(S/)','Cantidad\n/mes','Valor total\n(S/)','% del dinero'];
+  heads.forEach((h,j)=>{ const cc=ws.getCell(r0,j+1); cc.value=h; cc.fill=fillHdr; cc.font={bold:true,size:10.5,color:white}; cc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cc.border=bAll; });
+  ws.getRow(r0).height=32;
+
+  // Filas de insumos (ya ordenados desc por abcData)
+  const total=abcData.reduce((s,it)=>s+it.value,0);
+  abcData.forEach((it,i)=>{
+    const r=r0+1+i;
+    const fill=it.cat==='A'?fillA:it.cat==='B'?fillB:fillC;
+    ws.getCell(r,1).value=it.cat; ws.getCell(r,1).font={bold:true,color:(it.cat==='A'?{argb:TEAL}:it.cat==='B'?{argb:'FF8A6D00'}:gray)}; ws.getCell(r,1).alignment={horizontal:'center'};
+    ws.getCell(r,2).value=it.name;
+    ws.getCell(r,3).value=it.cost;
+    ws.getCell(r,4).value=it.qty;
+    ws.getCell(r,5).value={formula:'C'+r+'*D'+r};
+    ws.getCell(r,5).font={bold:true};
+    ws.getCell(r,6).value=(it.value/total);
+    ws.getCell(r,6).numFmt='0%';
+    for(let col=1;col<=6;col++){ ws.getCell(r,col).fill=fill; ws.getCell(r,col).border=bAll; if(col>=3) ws.getCell(r,col).alignment={horizontal:'center'}; }
+    ws.getRow(r).height=20;
+  });
+  // Total
+  const tr=r0+1+abcData.length;
+  ws.getCell(tr,2).value='TOTAL'; ws.getCell(tr,2).font={bold:true,color:{argb:NAVY}}; ws.getCell(tr,2).alignment={horizontal:'right'};
+  ws.getCell(tr,5).value={formula:'SUM(E'+(r0+1)+':E'+(tr-1)+')'}; ws.getCell(tr,5).font={bold:true,size:12,color:{argb:TEAL}}; ws.getCell(tr,5).alignment={horizontal:'center'}; ws.getCell(tr,5).border=bAll;
+  ws.getRow(tr).height=24;
+
+  // ── PIRÁMIDE ABC (columnas H-N, al lado de la tabla) ──
+  {
+    // Reagrupar SIEMPRE desde abcData (misma fuente que la tabla) para evitar desajustes.
+    const grp={A:[],B:[],C:[]};
+    abcData.forEach(it=>{ if(grp[it.cat]) grp[it.cat].push(it); });
+    const totAll=abcData.reduce((s,it)=>s+it.value,0) || 1;
+    // Construir la lista de categorías EN ORDEN A->B->C, incluyendo SOLO las que tienen insumos.
+    const catDefs=[
+      {cat:'A',color:'FF0E8C8C',name:'Cr\u00edticos'},
+      {cat:'B',color:'FFE8A800',name:'Valor medio'},
+      {cat:'C',color:'FF8AACBD',name:'Liberar dinero'}
+    ];
+    const catInfo=catDefs
+      .map(d=>{ const arr=grp[d.cat]; const val=arr.reduce((s,i)=>s+i.value,0); return {cat:d.cat,color:d.color,name:d.name,val:val,cnt:arr.length,pct:Math.round(val/totAll*100)}; })
+      .filter(c=>c.cnt>0);   // <-- clave: SOLO categorías con al menos 1 insumo
+
+    // Título
+    ws.mergeCells('H4:N4');
+    let pt=ws.getCell('H4'); pt.value='TU PIR\u00c1MIDE ABC';
+    pt.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0E8C8C'}};
+    pt.font={bold:true,size:11,color:white}; pt.alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(4).height=20;
+
+    // Anchos de nivel segun CUANTAS categorias hay (para que siempre parezca piramide)
+    // 1 cat -> [4]; 2 cats -> [2,4]; 3 cats -> [2,4,6]
+    const widthMap={1:[4],2:[2,4],3:[2,4,6]};
+    const levelW=widthMap[catInfo.length] || [2,4,6];
+    const center=11; // col K
+    const wbord={style:'medium',color:{argb:'FFFFFFFF'}};
+    let pr=6;
+    catInfo.forEach((c,idx)=>{
+      const w=levelW[idx];
+      const c1=center-Math.floor(w/2), c2=center+Math.ceil(w/2)-1;
+      ws.mergeCells(pr,c1,pr+1,c2);
+      const cell=ws.getCell(pr,c1);
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:c.color}};
+      cell.value=c.cat;
+      cell.font={bold:true,size:18,color:white};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:wbord,bottom:wbord,left:wbord,right:wbord};
+      ws.getRow(pr).height=16; ws.getRow(pr+1).height=16;
+      pr+=2;
+    });
+
+    // Detalle: nombre, %, monto por grupo (solo los que existen)
+    pr+=1;
+    ws.mergeCells('H'+pr+':N'+pr);
+    ws.getCell('H'+pr).value='Nombre \u00b7 % del dinero \u00b7 monto';
+    ws.getCell('H'+pr).font={bold:true,size:9.5,color:{argb:'FF002A8D'}};
+    ws.getCell('H'+pr).alignment={horizontal:'center'};
+    ws.getRow(pr).height=16;
+    pr++;
+    catInfo.forEach(c=>{
+      ws.getCell(pr,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:c.color}};
+      ws.getCell(pr,8).value=c.cat;
+      ws.getCell(pr,8).font={bold:true,color:white,size:11};
+      ws.getCell(pr,8).alignment={horizontal:'center',vertical:'middle'};
+      ws.mergeCells(pr,9,pr,14);
+      ws.getCell(pr,9).value=c.name+'  \u2014  '+c.pct+'%  \u2014  S/'+Math.round(c.val).toLocaleString('es-PE');
+      ws.getCell(pr,9).font={size:10.5,color:ink};
+      ws.getCell(pr,9).alignment={horizontal:'left',vertical:'middle'};
+      ws.getRow(pr).height=19;
+      pr++;
+    });
+  }
+
+  // Resumen por categoría
+  const groups={A:[],B:[],C:[]}; abcData.forEach(it=>groups[it.cat].push(it));
+  const sr=tr+2;
+  ws.mergeCells('A'+sr+':F'+sr);
+  c=ws.getCell(sr,1); c.value='QU\u00c9 HACER CON CADA GRUPO'; c.fill=fillTeal; c.font={bold:true,size:12,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+  ws.getRow(sr).height=22;
+  const cats=[
+    ['A','Cr\u00edticos \u2014 nunca deben faltar. Ten stock de seguridad y un segundo proveedor.',groups.A],
+    ['B','Valor medio \u2014 cont\u00f3lalos con moderaci\u00f3n.',groups.B],
+    ['C','Poco valor \u2014 compra menos, libera ese dinero.',groups.C]
+  ];
+  let rr=sr+1;
+  cats.forEach(([cat,txt,list])=>{
+    if(!list.length) return;
+    const valG=list.reduce((s,i)=>s+i.value,0);
+    const pctG=Math.round(valG/total*100);
+    ws.getCell(rr,1).value=cat; ws.getCell(rr,1).font={bold:true,color:white};
+    ws.getCell(rr,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:(cat==='A'?TEAL:cat==='B'?AMBER:GRAY)}};
+    ws.getCell(rr,1).alignment={horizontal:'center',vertical:'middle'};
+    ws.mergeCells('B'+rr+':F'+rr);
+    ws.getCell(rr,2).value=list.length+' insumo(s) \u00b7 '+pctG+'% del dinero \u2014 '+txt;
+    ws.getCell(rr,2).font={size:10.5,color:ink}; ws.getCell(rr,2).alignment={horizontal:'left',vertical:'middle',wrapText:true};
+    ws.getRow(rr).height=30;
+    rr++;
+  });
+
+  // Plan
+  const planA=$('planA').value.trim(), planC=$('planC').value.trim();
+  if(planA||planC){
+    rr++;
+    ws.mergeCells('A'+rr+':F'+rr);
+    c=ws.getCell(rr,1); c.value='MI PLAN DE ACCI\u00d3N'; c.fill=fillNavy; c.font={bold:true,size:11,color:white}; c.alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(rr).height=20; rr++;
+    if(planA){ ws.mergeCells('A'+rr+':F'+rr); ws.getCell(rr,1).value='Insumos A (cr\u00edticos): '+planA; ws.getCell(rr,1).font={size:10.5}; ws.getCell(rr,1).alignment={horizontal:'left',wrapText:true}; ws.getRow(rr).height=28; rr++; }
+    if(planC){ ws.mergeCells('A'+rr+':F'+rr); ws.getCell(rr,1).value='Insumos C (liberar): '+planC; ws.getCell(rr,1).font={size:10.5}; ws.getCell(rr,1).alignment={horizontal:'left',wrapText:true}; ws.getRow(rr).height=28; rr++; }
+  }
+
+  ws.views=[{showGridLines:false,state:'frozen',ySplit:r0}];
+  return wb;
+}
+
+pickRole('emp');
+tryResume();
+</script>
+</body>
+</html>  // Promedios y distribución ABC
+  const avgA=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0)/total).toFixed(1):0;
+  const avgB=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='B').length,0)/total).toFixed(1):0;
+  const avgC=total?+(docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='C').length,0)/total).toFixed(1):0;
+  const totA=docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='A').length,0);
+  const totB=docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='B').length,0);
+  const totC=docEntries.reduce((s,e)=>s+(e.insumos||[]).filter(i=>i.cat==='C').length,0);
+  const totABC=totA+totB+totC||1;
+  const avgValor=total?Math.round(docEntries.reduce((s,e)=>s+(e.totalValue||0),0)/total):0;
+
+  $('kTotal').textContent=total;
+  $('kPct').textContent=pct+'%';
+  $('kInsumos').textContent=totalIns;
+  $('kPlan').textContent=conPlan;
+  $('kConReorden').textContent=conReorden;
+  $('kPctLbl').textContent=total+' / 25';
+  $('progressBar').style.width=pct+'%';
+  $('docWelcome').textContent=total+' emprendedoras guardaron su matriz ABC.';
+
+  // Barras distribución ABC estilo S3
+  var abcGrid=$('abcDistGrid');
+  if(abcGrid){
+    if(total>0){
+      var abcCats=[
+        {cat:'A',label:'Insumos cr\u00edticos (A)',color:'#0E8C8C',tot:totA,avg:avgA,pct:Math.round(totA/totABC*100)},
+        {cat:'B',label:'Intermedios (B)',color:'#E8A800',tot:totB,avg:avgB,pct:Math.round(totB/totABC*100)},
+        {cat:'C',label:'Bajo valor (C)',color:'#8AACBD',tot:totC,avg:avgC,pct:Math.round(totC/totABC*100)}
+      ];
+      abcGrid.innerHTML=abcCats.map(function(d){
+        return '<div style="display:flex;align-items:center;gap:8px">'+
+          '<div style="width:26px;height:26px;border-radius:6px;background:'+d.color+';color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+d.cat+'</div>'+
+          '<div style="font-size:12px;font-weight:600;color:var(--ink);width:140px;flex-shrink:0">'+d.label+'</div>'+
+          '<div class="meter-bar"><div class="meter-fill" style="width:'+d.pct+'%;background:'+d.color+'"></div></div>'+
+          '<div style="font-size:12px;font-weight:700;color:'+d.color+';width:30px;text-align:right">'+d.tot+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);width:50px;text-align:right">'+d.avg+'/emp</div>'+'</div>';
+      }).join('');
+      if($('abcDistNote')) $('abcDistNote').textContent='Total: '+totABC+' insumos clasificados. Valor prom. en inventario: S/'+avgValor.toLocaleString()+'/emprendedora.';
+    } else {
+      abcGrid.innerHTML='<p style="font-size:12px;color:var(--muted)">Sin datos aún.</p>';
+    }
+  }
+
+  // Alerta
+  let al='';
+  if(total===0) al='<div class="alert-box amber"><b>Aún no hay matrices guardadas.</b> Espera que las emprendedoras guarden.</div>';
+  else if(pct<50) al='<div class="alert-box amber"><b>Menos del 50% del grupo guardó ('+total+'/25).</b> Recuerda hacer el llamado.</div>';
+  else if(pct>=80) al='<div class="alert-box green"><b>✅ Excelente — '+pct+'% del grupo completó ('+total+'/25).</b></div>';
+  else al='<div class="alert-box" style="background:#EEF2FB;border-left:3px solid var(--navy);padding:10px 12px;border-radius:0 8px 8px 0"><b>'+total+' de 25 guardaron</b> — '+pct+'% completado.</div>';
+  $('docAlerts').innerHTML=al;
+
+  // Tabla
+  if(total===0){
+    $('docTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Aún no hay registros.</td></tr>';
+  } else {
+    let rows='';
+    docEntries.forEach((e,idx)=>{
+      const nombre=e.name||e.dni;
+      const first=nombre.split(' ')[0];
+      const ins=e.insumos||[];
+      const nA=ins.filter(i=>i.cat==='A').length;
+      const nB=ins.filter(i=>i.cat==='B').length;
+      const nC=ins.filter(i=>i.cat==='C').length;
+      const tieneReorden=(e.reordenCount||0)>0;
+      const fechaStr=e.savedAt?new Date(e.savedAt).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):'';
+      rows+='<tr onclick="openModal('+idx+')" style="cursor:pointer">'+
+        '<td style="color:var(--muted);font-size:11px">'+(idx+1)+'</td>'+
+        '<td>'+
+          '<div style="font-weight:600;color:var(--navy);font-size:13px">'+esc(first)+'</div>'+
+          '<div style="font-size:10px;color:var(--muted)">'+esc(nombre)+(fechaStr?' · '+fechaStr:'')+'</div>'+
+        '</td>'+
+        '<td style="text-align:center"><span class="tag teal">'+(e.insumoCount||0)+'</span></td>'+
+        '<td style="text-align:center">'+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#0E8C8C;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nA+'</span> '+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#E8A800;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nB+'</span> '+
+          '<span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#8AACBD;color:#fff;font-size:11px;font-weight:700;line-height:22px;text-align:center">'+nC+'</span>'+
+        '</td>'+
+        '<td style="text-align:center">'+(e.hasPlan?'<span class="tag green">✓ sí</span>':'<span class="tag gray">no</span>')+'</td>'+
+        '<td style="text-align:center">'+(tieneReorden?'<span class="tag teal">✓</span>':'<span class="tag gray">–</span>')+'</td>'+
+      '</tr>';
+    });
+    $('docTableBody').innerHTML=rows;
+  }
+
+  // Pendientes
+  const reg=new Set(docEntries.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d,n])=>!reg.has(d)&&n!=='Franchesca Quezada Cabrera'&&n!=='Beatriz Palacios Espinoza');
+  if(pend.length===0){
+    $('docPending').innerHTML='<div class="alert-box green"><b>¡Todas guardaron su matriz!</b> 25/25 completado.</div>';
+  } else {
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px"><b>'+pend.length+'</b> sin guardar aún:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+    pend.forEach(([,nm])=>{
+      const fn=nm.split(' ')[0];
+      ph+='<span style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;border-radius:20px;padding:4px 11px;font-size:12px">'+esc(fn)+'</span>';
+    });
+    ph+='</div>';
+    $('docPending').innerHTML=ph;
+  }
+}
+function openModal(idx){
+  const e=docEntries[idx]; if(!e) return;
+  $('modalName').textContent=e.name||e.dni;
+  $('modalMeta').textContent=(e.insumoCount||0)+' insumos · S/'+Math.round(e.totalValue||0).toLocaleString()+' en inventario · '+(e.savedAt?new Date(e.savedAt).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-');
+  let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Insumos por categor\u00eda</b>';
+  ['A','B','C'].forEach(cat=>{
+    const list=(e.insumos||[]).filter(i=>i.cat===cat);
+    if(list.length){
+      const col=cat==='A'?'var(--teal)':cat==='B'?'var(--amber)':'var(--muted)';
+      b+='<div style="margin-top:8px"><span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:'+col+';color:#fff;text-align:center;font-size:12px;font-weight:700;line-height:20px">'+cat+'</span> ';
+      b+=list.map(i=>esc(i.name)+' (S/'+Math.round(i.value)+')').join(', ')+'</div>';
+    }
+  });
+  b+='</div>';
+  if(e.planA) b+='<div style="margin-bottom:8px"><b style="font-size:12px;color:var(--teal-d)">Plan A (cr\u00edticos):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planA)+'</div></div>';
+  if(e.planC) b+='<div><b style="font-size:12px;color:var(--muted)">Plan C (liberar):</b><div style="font-size:12.5px;margin-top:3px">'+esc(e.planC)+'</div></div>';
+  $('modalBody').innerHTML=b;
+  $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('detailModal').classList.remove('on'); document.body.style.overflow=''; }
+$('detailModal').addEventListener('click',e=>{ if(e.target===$('detailModal')) closeModal(); });
+$('docPrintBtn').addEventListener('click',()=>window.print());
+$('inputEmp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginEmp(); });
+$('inputDoc').addEventListener('keydown',e=>{ if(e.key==='Enter') doLoginDoc(); });
+function toggleEye(inputId, btnId){
+  const inp=$(inputId), btn=$(btnId);
+  if(inp.type==='password'||inp.type==='tel'||inp.type==='text'){
+    const isHidden=(inp.type==='password'||inp.getAttribute('data-hidden')==='1');
+    if(isHidden){
+      inp.type='text'; inp.removeAttribute('data-hidden');
+      btn.innerHTML='&#128064;'; btn.title='Ocultar';
+    } else {
+      inp.type=(inputId==='inputDoc'?'password':'tel'); inp.setAttribute('data-hidden','1');
+      btn.innerHTML='&#128065;'; btn.title='Mostrar';
+    }
+  }
+}
 
 
 // ── GENERAR EXCEL MATRIZ ABC ──

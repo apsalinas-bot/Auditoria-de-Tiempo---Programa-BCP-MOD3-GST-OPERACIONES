@@ -899,7 +899,7 @@ $('printBtn').addEventListener('click', function(){
     +'.diag-body b{color:#fff}'
     +'.nota{font-size:9px;color:#6B7688;margin-top:4px;line-height:1.4}'
     +'.footer{text-align:center;font-size:9px;color:#9AACBE;padding-top:7px;border-top:1px solid #E2E7F0;margin-top:10px}'
-    +'@page{margin:1cm;size:A4 portrait}'
+    +'@page{margin:1cm;size:A4 portrait}'+'.header,.diag,.analisis,[style*="background:#0E8C8C"],[style*="background:#E8A800"],[style*="background:#8AACBD"],[style*="background:#002A8D"],[style*="background:#001a1a"],[style*="background:#E3F5F5"],[style*="background:#FFF8E1"],[style*="background:#F1F5F9"],th,td {-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'</style></head><body>'
 
     // ══ PÁG 1: Paso 1 (insumos) + Paso 2 (Matriz ABC) ══════════════════════
@@ -983,27 +983,33 @@ $('printBtn').addEventListener('click', function(){
 
     +'</body></html>';
 
-  // Generar PDF con html2pdf.js (descarga directa, sin ventana)
+  // Abrir ventana, imprimir directamente como PDF
   var pdfBtn=$("printBtn");
-  pdfBtn.disabled=true; pdfBtn.textContent="Generando PDF...";
-  var container=document.createElement("div");
-  container.style.cssText="position:fixed;left:-9999px;top:0;width:210mm;background:#fff";
-  container.innerHTML=html;
-  document.body.appendChild(container);
-  var fname="S5_Inventario_"+nombre.replace(/\s+/g,"_")+".pdf";
-  html2pdf().set({
-    margin:[10,10,10,10],
-    filename:fname,
-    image:{type:"jpeg",quality:0.97},
-    html2canvas:{scale:2,useCORS:true,logging:false,letterRendering:true},
-    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-    pagebreak:{mode:["css","legacy"]}
-  }).from(container).save().then(function(){
-    document.body.removeChild(container);
+  pdfBtn.disabled=true; pdfBtn.textContent="Preparando PDF...";
+  var win=window.open("","_blank","width=900,height=700");
+  if(!win){
+    // Si popups bloqueados: fallback a descarga de HTML
+    var blob=new Blob([html],{type:"text/html;charset=utf-8"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url;
+    a.download="S5_Inventario_"+nombre.replace(/\s+/g,"_")+".html";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
     pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
-  }).catch(function(){
-    document.body.removeChild(container);
-    pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  // Esperar a que cargue todo (fuentes, SVG) antes de imprimir
+  win.addEventListener("load", function(){
+    setTimeout(function(){
+      win.focus();
+      win.print();
+      // Cerrar la ventana después de que el usuario guarde el PDF
+      win.addEventListener("afterprint", function(){ win.close(); });
+      pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
+    }, 800);
   });
 });
 

@@ -147,33 +147,30 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .modal-meta{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:14px}
 @media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
 @media(prefers-reduced-motion:reduce){*{transition:none !important}}
-/* Claude IA S5 */
 @keyframes shimmer-s5{0%{background-position:200% center}100%{background-position:-200% center}}
 @keyframes spin-s5{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes pulse-s5{0%,100%{opacity:.25}50%{opacity:1}}
-.claude-btn-s5{background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);background-size:300% auto;animation:shimmer-s5 4s linear infinite;border:none;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.35);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
-.claude-btn-s5:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
+.claude-btn-s5{background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);background-size:300% auto;animation:shimmer-s5 4s linear infinite;border:none;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.35);transition:transform .15s;position:relative;overflow:hidden}
+.claude-btn-s5:hover{transform:translateY(-1px)}
 .claude-btn-s5:disabled{opacity:.7;cursor:not-allowed;transform:none}
 .cb5-icon{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.3)}
 .cb5-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px;flex:1}
-.cb5-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
-.cb5-sub{font-size:10px;color:rgba(255,255,255,0.65);letter-spacing:.5px;font-weight:500}
-.cb5-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;flex-shrink:0}
-.cb5-badge span{font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.4px}
+.cb5-main{font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.cb5-sub{font-size:10px;color:rgba(255,255,255,0.65);font-weight:500}
+.cb5-badge{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;flex-shrink:0}
+.cb5-badge span{font-size:10px;font-weight:700;color:rgba(255,255,255,0.85)}
 .dots-s5{display:inline-flex;align-items:center;gap:4px;padding:4px 0}
 .dots-s5 span{width:6px;height:6px;border-radius:50%;background:#0E8C8C;display:inline-block;animation:pulse-s5 1.2s ease-in-out infinite}
-.dots-s5 span:nth-child(2){animation-delay:.2s}
-.dots-s5 span:nth-child(3){animation-delay:.4s}
-.analisis-abc-s5{padding:14px 16px;background:linear-gradient(135deg,#F0FAFA,#E3F5F5);border-left:3px solid #0E8C8C;border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px}
+.dots-s5 span:nth-child(2){animation-delay:.2s}.dots-s5 span:nth-child(3){animation-delay:.4s}
+.analisis-abc-s5{padding:14px 16px;background:#E3F5F5;border-left:3px solid #0E8C8C;border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px}
 .analisis-abc-s5.visible{display:block}
 .analisis-abc-s5 b{color:#0A6A6A;font-weight:700}
-.diagnostico-s5{background:linear-gradient(135deg,#001a1a,#003a3a);border-radius:14px;padding:22px;margin-bottom:10px;display:none;position:relative;overflow:hidden}
+.diagnostico-s5{background:linear-gradient(135deg,#001a1a,#003a3a);border-radius:14px;padding:22px;margin-bottom:10px;display:none}
 .diagnostico-s5.visible{display:block}
 .d5-eyebrow{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#5FD4D4;margin-bottom:6px}
 .d5-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:12px}
 .d5-body{font-size:13.5px;color:#A8E6E6;line-height:1.8}
 .d5-body b{color:#fff;font-weight:700}
-/* tabla reorden */
 .reorden-wrap{margin:14px 0 6px}
 .reorden-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px}
 .reorden-table{width:100%;border-collapse:collapse;font-size:11px}
@@ -183,7 +180,7 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .reorden-table .cat-a{color:#0A6A6A;font-weight:700}
 .reorden-table .cat-b{color:#8A6D00;font-weight:700}
 .reorden-table .cat-c{color:#6B7688;font-weight:700}
-.reorden-table .val-ss{color:#002A8D;font-weight:700}
+.reorden-table .val-ss{color:#fff;font-weight:700}
 .reorden-table .val-pr{color:#0E8C8C;font-weight:700}
 </style>
 </head>
@@ -282,7 +279,6 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
       <textarea class="plan-input" id="planC" placeholder="Ej: comprar menos cantidad, solo cuando se necesite..."></textarea>
     </div>
 
-    <!-- Análisis IA -->
     <div class="analisis-abc-s5" id="analisisAbcS5"></div>
     <div class="diagnostico-s5" id="diagnosticoS5">
       <div class="d5-eyebrow">&#9670; Diagn&#243;stico de consultor</div>
@@ -292,7 +288,7 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
     <button class="claude-btn-s5 no-print" id="saveCloudBtn">
       <div class="cb5-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg></div>
       <div class="cb5-text"><div class="cb5-main">Guardar y generar an&#225;lisis</div><div class="cb5-sub">Diagn&#243;stico personalizado con IA</div></div>
-      <div class="cb5-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#5FD4D4" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#5FD4D4"/></svg><span>Claude</span></div>
+      <div class="cb5-badge"><span>Claude</span></div>
     </button>
     <button class="cta full no-print" id="excelBtn" style="margin-bottom:10px">&#128202; Descargar mi Matriz ABC (.xlsx)</button>
     <button class="cta green full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF resumen</button>
@@ -427,51 +423,36 @@ function cargarDatos(){
 // ── INSUMOS ──
 function emptyIns(){ return { name:'', cost:'', qty:'', leadTime:'', maxQty:'', orderCost:'' }; }
 function calcReorden(it){
-  var qty=parseFloat(it.qty)||0, cost=parseFloat(it.cost)||0;
-  var lt=parseFloat(it.leadTime)||0, mq=parseFloat(it.maxQty)||0;
-  var oc=parseFloat(it.orderCost)||0;
+  var qty=parseFloat(it.qty)||0,cost=parseFloat(it.cost)||0,lt=parseFloat(it.leadTime)||0,mq=parseFloat(it.maxQty)||0,oc=parseFloat(it.orderCost)||0;
   if(!qty||!cost||!lt||!mq||mq<qty) return null;
-  var cdD=qty/30, ss=Math.ceil((mq-qty)/30*lt), pr=Math.ceil(cdD*lt+ss);
-  var ssCosto=parseFloat((ss*cost).toFixed(0));
-  var eoq=null, eoqCosto=null, pedidosMes=null;
-  if(oc>0){
-    var dAnual=qty*12, hAnual=cost*0.20;
-    eoq=Math.ceil(Math.sqrt(2*dAnual*oc/hAnual));
-    eoqCosto=parseFloat((eoq*cost).toFixed(0));
-    pedidosMes=parseFloat((qty/eoq).toFixed(1));
-  }
+  var cdD=qty/30,ss=Math.ceil((mq-qty)/30*lt),pr=Math.ceil(cdD*lt+ss),ssCosto=parseFloat((ss*cost).toFixed(0));
+  var eoq=null,eoqCosto=null,pedidosMes=null;
+  if(oc>0){var dA=qty*12,hA=cost*0.20;eoq=Math.ceil(Math.sqrt(2*dA*oc/hA));eoqCosto=parseFloat((eoq*cost).toFixed(0));pedidosMes=parseFloat((qty/eoq).toFixed(1));}
   return {cdD:parseFloat(cdD.toFixed(2)),ss,pr,ssCosto,eoq,eoqCosto,pedidosMes,lt,mq};
 }
 function renderReordenBadge(it){
   var r=calcReorden(it); if(!r) return '';
   var h='<div class="reorden-live" style="background:#E3F5F5;border-left:3px solid #0E8C8C;border-radius:0 10px 10px 0;padding:10px 12px;margin-top:8px;font-size:12px;color:#0A6A6A">';
   h+='<div style="font-weight:700;margin-bottom:5px">&#128204; Pedir cuando queden <b>'+r.pr+' unidades</b></div>';
-  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px">';
-  h+='<span>Stock seguridad: <b>'+r.ss+' und</b></span><span>SS en S/: <b>'+r.ssCosto+'</b></span>';
-  h+='</div>';
+  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px"><span>Stock seguridad: <b>'+r.ss+' und</b></span><span>SS en S/: <b>'+r.ssCosto+'</b></span></div>';
   if(r.eoq!==null){
     h+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(14,140,140,0.25);display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px">';
-    h+='&#128722; Cantidad a pedir: <b>'+r.eoq+' unidades</b> &nbsp;'
-      +'<span>Valor pedido: <b>S/ '+r.eoqCosto+'</b></span>'
-      +'<span>Frecuencia: <b>'+r.pedidosMes+'x al mes</b></span>';
-    h+='</div>';
+    h+='&#128730; Cantidad a pedir: <b>'+r.eoq+' unidades</b> &nbsp;<span>Valor: <b>S/ '+r.eoqCosto+'</b></span><span>Frec.: <b>'+r.pedidosMes+'x/mes</b></span></div>';
   }
-  h+='</div>';
-  return h;
+  return h+'</div>';
 }
 function renderInsumos(){
   var list=$('insList'); list.innerHTML='';
   var ej=getEjemplo();
   insumos.forEach(function(it,i){
-    var c=document.createElement('div'); c.className='ins-card';
-    var first=(i===0 && ej);
+    var c2=document.createElement('div'); c2.className='ins-card';
+    var first=(i===0&&ej);
     var exN=first?'<div class="ex-hint">Ej: '+esc(ej.insumo)+'</div>':'';
     var exC=first?'<div class="ex-hint">Ej: cuánto te cuesta UNA unidad</div>':'';
     var exQ=first?'<div class="ex-hint">Ej: cuántas usas o vendes al mes</div>':'';
     var val=(it.cost!==''&&it.qty!=='')?(parseFloat(it.cost)*parseFloat(it.qty)):null;
     var valTxt=(val!==null&&!isNaN(val))?'<div class="val-calc">\u2713 Este insumo mueve <b>S/ '+val.toFixed(0)+'</b> al mes</div>':'';
-    var reordenTxt=renderReordenBadge(it);
-    c.innerHTML=
+    c2.innerHTML=
       '<h3>Insumo '+(i+1)+'</h3>'+
       (insumos.length>1?'<button class="ins-del" data-del="'+i+'">&#10005; quitar</button>':'')+
       '<div class="mini-field"><label>&iquest;Qu&eacute; insumo o producto es?</label>'+
@@ -481,11 +462,9 @@ function renderInsumos(){
         '<input type="number" data-i="'+i+'" data-f="cost" value="'+esc(it.cost)+'" placeholder="costo" inputmode="decimal">'+exC+'</div>'+
         '<div class="mini-field"><label>Cantidad al mes <span class="unit">(uso/venta)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="qty" value="'+esc(it.qty)+'" placeholder="cantidad" inputmode="decimal">'+exQ+'</div>'+
-      '</div>'+
-      valTxt+
+      '</div>'+valTxt+
       '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">'+
-      '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px">'+
-      '&#128203; Reorden y cantidad a pedir</div>'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0A6A6A;margin-bottom:8px">&#128203; Reorden y cantidad a pedir</div>'+
       '<div class="mini-2col">'+
         '<div class="mini-field"><label>Días que tarda tu proveedor <span class="unit">(lead time)</span></label>'+
         '<input type="number" data-i="'+i+'" data-f="leadTime" value="'+esc(it.leadTime||'')+'" placeholder="Ej: 7" inputmode="decimal">'+
@@ -496,10 +475,9 @@ function renderInsumos(){
       '</div>'+
       '<div class="mini-field" style="margin-top:4px"><label>¿Cuánto te cuesta hacer UN pedido? <span class="unit">(S/)</span></label>'+
       '<input type="number" data-i="'+i+'" data-f="orderCost" value="'+esc(it.orderCost||'')+'" placeholder="Ej: 25" inputmode="decimal">'+
-      '<div class="ex-hint">Transporte + tu tiempo. Ej: vas en moto a recogerlo (1h de tu tiempo=S/20 + S/5 combustible) = <b>S/25 por pedido</b></div></div>'+
-      reordenTxt+
-      '</div>';
-    list.appendChild(c);
+      '<div class="ex-hint">Transporte + tu tiempo. Ej: moto a recogerlo (1h=S/20 + S/5 combustible) = <b>S/25 por pedido</b></div></div>'+
+      renderReordenBadge(it)+'</div>';
+    list.appendChild(c2);
   });
   computeABC();
 }
@@ -514,7 +492,7 @@ function bindInsInputs(){
         var vc=card.querySelector('.val-calc:not(.reorden-live)');
         var v=(insumos[i].cost!==''&&insumos[i].qty!=='')?(parseFloat(insumos[i].cost)*parseFloat(insumos[i].qty)):null;
         if(v!==null&&!isNaN(v)){
-          if(!vc){ vc=document.createElement('div'); vc.className='val-calc'; var mc=card.querySelector('.mini-2col'); mc.after(vc); }
+          if(!vc){vc=document.createElement('div');vc.className='val-calc';var mc=card.querySelector('.mini-2col');mc.after(vc);}
           vc.innerHTML='\u2713 Este insumo mueve <b>S/ '+v.toFixed(0)+'</b> al mes';
         } else if(vc){ vc.remove(); }
       }
@@ -707,7 +685,274 @@ function save(){
 }
 
 // PDF
-$('printBtn').addEventListener('click', ()=>window.print());
+$('printBtn').addEventListener('click', function(){
+  var nombre = currentName || '';
+  var planATxt = $('planA') ? $('planA').value.trim() : '';
+  var planCTxt = $('planC') ? $('planC').value.trim() : '';
+  var total = abcData.reduce(function(s,it){return s+it.value;},0);
+  var groupA = abcData.filter(function(i){return i.cat==='A';});
+  var groupB = abcData.filter(function(i){return i.cat==='B';});
+  var groupC = abcData.filter(function(i){return i.cat==='C';});
+  var pctA = total?Math.round(groupA.reduce(function(s,i){return s+i.value;},0)/total*100):0;
+  var pctB = total?Math.round(groupB.reduce(function(s,i){return s+i.value;},0)/total*100):0;
+  var pctC = total?Math.round(groupC.reduce(function(s,i){return s+i.value;},0)/total*100):0;
+
+  // Barra de distribución
+  var barraABC = '<div style="display:flex;height:30px;border-radius:6px;overflow:hidden;margin-bottom:5px">'
+    +(pctA>0?'<div style="width:'+pctA+'%;background:#0E8C8C;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">'+(pctA>=8?pctA+'%':'')+'</div>':'')
+    +(pctB>0?'<div style="width:'+pctB+'%;background:#E8A800;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">'+(pctB>=8?pctB+'%':'')+'</div>':'')
+    +(pctC>0?'<div style="width:'+pctC+'%;background:#8AACBD;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">'+(pctC>=8?pctC+'%':'')+'</div>':'')
+    +'</div><p style="font-size:9px;color:#6B7688;text-align:center;margin-bottom:10px">Cada segmento = % del dinero que concentra ese grupo</p>';
+
+  // Pirámide SVG
+  var pirCats=[
+    {cat:'A',color:'#0E8C8C',cnt:groupA.length,pct:pctA},
+    {cat:'B',color:'#E8A800',cnt:groupB.length,pct:pctB},
+    {cat:'C',color:'#8AACBD',cnt:groupC.length,pct:pctC}
+  ].filter(function(d){return d.cnt>0;});
+  var W=260,cx=130,gap=3,levelH=52,padTop=4;
+  var H=padTop+pirCats.length*levelH+(pirCats.length-1)*gap+6;
+  var maxH=120,minH=32,topH=11;
+  function halfAt(idx){return pirCats.length===1?85:minH+(maxH-minH)*(idx/(pirCats.length-1));}
+  var svgPir='<svg viewBox="0 0 '+W+' '+H+'" width="200" style="display:block;margin:0 auto 6px" xmlns="http://www.w3.org/2000/svg">';
+  var lblPir=''; var yy=padTop;
+  pirCats.forEach(function(d,idx){
+    var wTop=idx===0?topH:halfAt(idx-1), wBot=halfAt(idx);
+    var topY=yy, botY=yy+levelH;
+    svgPir+='<polygon points="'+(cx-wTop)+','+topY+' '+(cx+wTop)+','+topY+' '+(cx+wBot)+','+botY+' '+(cx-wBot)+','+botY+'" fill="'+d.color+'"/>';
+    lblPir+='<text x="'+cx+'" y="'+(topY+levelH/2+7)+'" text-anchor="middle" font-size="'+(19+idx*2)+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+d.cat+'</text>';
+    yy=botY+gap;
+  });
+  svgPir+=lblPir+'</svg>';
+
+  // Leyenda debajo de pirámide
+  var pirLeg='<div style="display:flex;flex-direction:column;gap:4px">';
+  pirCats.forEach(function(d){
+    pirLeg+='<div style="display:flex;align-items:center;gap:7px;font-size:11px">'
+      +'<span style="width:18px;height:18px;border-radius:4px;background:'+d.color+';color:#fff;text-align:center;font-weight:700;line-height:18px;flex-shrink:0;font-size:11px">'+d.cat+'</span>'
+      +'<span style="flex:1"><b>'+d.cnt+'</b> insumo'+(d.cnt>1?'s':'')+'</span>'
+      +'<span style="color:#6B7688">se lleva</span>'
+      +'<span style="font-weight:700;color:'+d.color+'">'+d.pct+'% del dinero</span>'
+      +'</div>';
+  });
+  pirLeg+='</div>';
+
+  // Lista de insumos con badge de categoría
+  var insList='<div style="margin-top:10px;border-top:1px solid #C8D4E8;padding-top:8px">';
+  abcData.forEach(function(it){
+    var col=it.cat==='A'?'#0E8C8C':it.cat==='B'?'#E8A800':'#8AACBD';
+    var tCol=it.cat==='A'?'#0A6A6A':it.cat==='B'?'#8A6D00':'#5B6F80';
+    insList+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #E2E7F0">'
+      +'<div style="width:28px;height:28px;border-radius:7px;background:'+col+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">'+it.cat+'</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:11.5px;font-weight:600;color:#1C2536">'+esc(it.name)+'</div>'
+        +'<div style="font-size:10px;color:#6B7688">S/'+it.cost.toFixed(0)+' \u00d7 '+it.qty+' = '+it.pct.toFixed(0)+'% de tu dinero</div>'
+      +'</div>'
+      +'<div style="font-size:12.5px;font-weight:700;color:#002A8D">S/'+it.value.toFixed(0)+'</div>'
+      +'</div>';
+  });
+  insList+='</div>';
+
+  // Leyendas A/B/C con descripción
+  var leyendas='<div style="display:flex;flex-direction:column;gap:7px;margin-top:10px">';
+  if(groupA.length){
+    var vA=groupA.reduce(function(s,i){return s+i.value;},0);
+    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #0E8C8C;background:#E3F5F5">'
+      +'<div style="font-size:11.5px;font-weight:700;color:#0A6A6A;margin-bottom:2px">Grupo A \u2014 tus insumos cr\u00edticos</div>'
+      +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5">Son <b>'+groupA.length+' insumo(s)</b> que concentran el <b>'+pctA+'% de tu dinero</b> (S/ '+vA.toFixed(0)+'). Nunca deben faltar.</div>'
+      +'<div style="font-size:9.5px;color:#0A6A6A;margin-top:3px;font-style:italic">'+groupA.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
+      +'</div>';
+  }
+  if(groupB.length){
+    var vB=groupB.reduce(function(s,i){return s+i.value;},0);
+    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #E8A800;background:#FFF8E1">'
+      +'<div style="font-size:11.5px;font-weight:700;color:#8A6D00;margin-bottom:2px">Grupo B \u2014 importancia intermedia</div>'
+      +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5"><b>'+groupB.length+' insumo(s)</b> con el <b>'+pctB+'%</b> (S/ '+vB.toFixed(0)+'). Contr\u00f3lalos con menos intensidad que los A.</div>'
+      +'<div style="font-size:9.5px;color:#8A6D00;margin-top:3px;font-style:italic">'+groupB.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
+      +'</div>';
+  }
+  if(groupC.length){
+    var vC=groupC.reduce(function(s,i){return s+i.value;},0);
+    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #8AACBD;background:#F1F5F9">'
+      +'<div style="font-size:11.5px;font-weight:700;color:#5B6F80;margin-bottom:2px">Grupo C \u2014 bajo valor</div>'
+      +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5"><b>'+groupC.length+' insumo(s)</b> con el <b>'+pctC+'%</b> (S/ '+vC.toFixed(0)+'). Compra solo lo necesario.</div>'
+      +'<div style="font-size:9.5px;color:#5B6F80;margin-top:3px;font-style:italic">'+groupC.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
+      +'</div>';
+  }
+  leyendas+='</div>';
+
+  // Tabla ABC
+  var abcRows = abcData.map(function(it){
+    var col=it.cat==='A'?'#0A6A6A':it.cat==='B'?'#8A6D00':'#6B7688';
+    return '<tr><td style="font-weight:700;color:'+col+'">'+it.cat+'</td>'
+      +'<td style="font-weight:600">'+esc(it.name)+'</td>'
+      +'<td style="text-align:right">S/ '+it.cost.toFixed(0)+'</td>'
+      +'<td style="text-align:right">'+it.qty+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0A6A6A">S/ '+it.value.toFixed(0)+'</td>'
+      +'<td style="text-align:right">'+it.pct.toFixed(0)+'%</td>'
+      +'</tr>';
+  }).join('');
+
+  // Reorden
+  var reordenRows = insumos.filter(function(it){
+    return it.name&&it.cost&&it.qty&&it.leadTime&&it.maxQty&&parseFloat(it.maxQty)>=parseFloat(it.qty);
+  }).map(function(it){
+    var r=calcReorden(it)||{};
+    var cat=(abcData.find(function(a){return a.name===it.name;})||{cat:'?'}).cat;
+    var col=cat==='A'?'#0A6A6A':cat==='B'?'#8A6D00':'#6B7688';
+    return '<tr>'
+      +'<td style="font-weight:600">'+esc(it.name)+'</td>'
+      +'<td style="font-weight:700;color:'+col+'">'+cat+'</td>'
+      +'<td style="text-align:right">'+(r.cdD||0)+' und</td>'
+      +'<td style="text-align:right">'+(r.lt||0)+' dias</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0A6A6A">'+(r.ss||0)+' und</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0E8C8C">'+(r.pr||0)+' und</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0E8C8C">'+(r.eoq!==null?r.eoq+' und':'-')+'</td>'
+      +'<td style="text-align:right">'+(r.eoqCosto!==null?'S/ '+r.eoqCosto:'-')+'</td>'
+      +'<td style="text-align:right">'+(r.pedidosMes!==null?r.pedidosMes+'x':'-')+'</td>'
+      +'</tr>';
+  }).join('');
+
+  // IA
+  var analisis1=$('analisisAbcS5')?$('analisisAbcS5').innerHTML:'';
+  var analisis1ok=analisis1&&!analisis1.includes('dots-s5');
+  var diagBody=$('diagnosticoS5Body')?$('diagnosticoS5Body').innerHTML:'';
+  var diagText=diagBody.replace(/<div class="reorden-wrap">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,'');
+  var diagOk=diagText&&!diagText.includes('dots-s5');
+
+  // Tabla de insumos ingresados (Paso 1)
+  var insRows = insumos.filter(function(it){return it.name&&it.cost&&it.qty;}).map(function(it,idx2){
+    return '<tr>'
+      +'<td>'+(idx2+1)+'</td>'
+      +'<td style="font-weight:600">'+esc(it.name)+'</td>'
+      +'<td style="text-align:right">S/ '+parseFloat(it.cost).toFixed(0)+'</td>'
+      +'<td style="text-align:right">'+it.qty+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0A6A6A">S/ '+(parseFloat(it.cost)*parseFloat(it.qty)).toFixed(0)+'</td>'
+      +(it.leadTime?'<td style="text-align:right">'+it.leadTime+' dias</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +(it.maxQty?'<td style="text-align:right">'+it.maxQty+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +(it.orderCost?'<td style="text-align:right">S/ '+parseFloat(it.orderCost).toFixed(0)+'</td>':'<td style="text-align:right;color:#9AACBE">-</td>')
+      +'</tr>';
+  }).join('');
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>S5 Inventario \u2013 '+esc(nombre)+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1C2536;background:#fff}'
+    +'.page{padding:14px 18px 10px}'
+    +'.page-break{page-break-after:always;break-after:page}'
+    +'.avoid{page-break-inside:avoid;break-inside:avoid}'
+    +'.header{background:#002A8D;color:#fff;padding:11px 14px;border-radius:8px;margin-bottom:12px}'
+    +'.header .ey{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#7FA0FF;margin-bottom:2px}'
+    +'.header h1{font-size:16px;font-weight:700;margin-bottom:2px}'
+    +'.header h1 span{color:#5FD4D4}'
+    +'.header p{font-size:10px;color:#C6D2F5}'
+    +'.section{margin-bottom:10px;padding:10px 12px;border:1px solid #C8D4E8;border-radius:8px}'
+    +'.sec-label{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0A6A6A;margin-bottom:6px;display:block}'
+    +'.bridge{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:8px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.55;margin-bottom:10px}'
+    +'.analisis{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:9px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.6}'
+    +'.analisis b{color:#0A6A6A}'
+    +'table{width:100%;border-collapse:collapse;font-size:10.5px}'
+    +'th{background:#0E8C8C;color:#fff;padding:5px 6px;text-align:left;font-size:9.5px;white-space:nowrap}'
+    +'td{padding:5px 6px;border-bottom:1px solid #C8D4E8;vertical-align:middle}'
+    +'tr:last-child td{border-bottom:none}'
+    +'.diag{background:#001a1a;border-radius:10px;padding:14px;margin-top:10px}'
+    +'.diag-ey{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#5FD4D4;margin-bottom:4px}'
+    +'.diag h2{font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}'
+    +'.diag-body{font-size:11px;color:#A8E6E6;line-height:1.75}'
+    +'.diag-body b{color:#fff}'
+    +'.nota{font-size:9px;color:#6B7688;margin-top:4px;line-height:1.4}'
+    +'.footer{text-align:center;font-size:9px;color:#9AACBE;padding-top:7px;border-top:1px solid #E2E7F0;margin-top:10px}'
+    +'@page{margin:1cm;size:A4 portrait}'
+    +'</style></head><body>'
+
+    // ══ PÁG 1: Paso 1 (insumos) + Paso 2 (Matriz ABC) ══════════════════════
+    +'<div class="page">'
+    +'<div class="header">'
+    +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES</div>'
+    +'<h1>Insumos e <span>Inventario</span></h1>'
+    +'<p>'+esc(nombre)+'</p>'
+    +'</div>'
+
+    // Puente S4→S5
+    +'<div class="bridge">\uD83D\uDD04 <b>En la Sesi\u00f3n 4</b> dejaste tu proceso \u00e1gil. Hoy ordenamos tus insumos para que nunca te falte lo cr\u00edtico y liberes el dinero atrapado en lo que no rota.</div>'
+
+    // Paso 1: Lista de insumos
+    +'<div class="section avoid">'
+    +'<span class="sec-label">Paso 1 \u00b7 Lista de insumos y productos de inventario</span>'
+    +'<table>'
+    +'<thead><tr><th>#</th><th>Insumo</th><th style="text-align:right">Costo unit.</th><th style="text-align:right">Cant./mes</th><th style="text-align:right">Valor/mes</th><th style="text-align:right">Lead time</th><th style="text-align:right">M\u00e1x/mes</th><th style="text-align:right">Costo pedido</th></tr></thead>'
+    +'<tbody>'+insRows+'</tbody>'
+    +'</table>'
+    +'</div>'
+
+    // Paso 2: Matriz ABC
+    +'<div class="section">'
+    +'<span class="sec-label">Paso 2 \u00b7 Tu Matriz ABC \u2014 As\u00ed se reparte tu dinero</span>'
+    +'<p style="font-size:10.5px;color:#6B7688;margin-bottom:7px">Total en inventario: <strong style="color:#002A8D">S/ '+total.toFixed(0)+'</strong> al mes</p>'
+    +barraABC
+    +'<div style="background:#F7F9FC;border:1px solid #C8D4E8;border-radius:8px;padding:10px;margin-bottom:8px">'
+    +'<div style="text-align:center;font-size:11px;font-weight:700;color:#002A8D;margin-bottom:2px">Tu pir\u00e1mide de inventario</div>'
+    +'<div style="text-align:center;font-size:9px;color:#6B7688;margin-bottom:5px">Cr\u00edticos (A) \u00b7 Intermedios (B) \u00b7 Bajo valor (C)</div>'
+    +svgPir
+    +pirLeg
+    +'</div>'
+    +insList
+    +leyendas
+    +'</div>'
+
+    +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
+    +'</div>'
+
+    // ══ PÁG 2: Paso 3 (plan) + Análisis IA coloquial ═══════════════════════
+    +'<div class="page-break"></div>'
+    +'<div class="page">'
+    +'<div class="header">'
+    +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES \u2014 continuaci\u00f3n</div>'
+    +'<h1>Insumos e <span>Inventario</span></h1>'
+    +'<p>'+esc(nombre)+' \u2014 Plan de acci\u00f3n y an\u00e1lisis</p>'
+    +'</div>'
+
+    // Paso 3: Plan
+    +(planATxt||planCTxt?'<div class="section avoid">'
+      +'<span class="sec-label">Paso 3 \u00b7 Tu plan de acci\u00f3n</span>'
+      +(planATxt?'<p style="font-size:11.5px;margin-bottom:8px"><strong style="color:#0A6A6A">Insumos A (cr\u00edticos) \u2014 \u00bfc\u00f3mo asegurar que nunca falten?</strong><br><span style="font-size:11px;color:#1C2536">'+esc(planATxt)+'</span></p>':'')
+      +(planCTxt?'<p style="font-size:11.5px"><strong style="color:#6B7688">Insumos C (poco valor) \u2014 \u00bfc\u00f3mo liberar ese dinero?</strong><br><span style="font-size:11px;color:#1C2536">'+esc(planCTxt)+'</span></p>':'')
+      +'</div>':'')
+
+    // Análisis IA coloquial
+    +(analisis1ok?'<div class="section avoid"><span class="sec-label">An\u00e1lisis de tu Matriz ABC</span><div class="analisis">'+analisis1+'</div></div>':'')
+
+    +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
+    +'</div>'
+
+    // ══ PÁG 3: Reorden + EOQ + Diagnóstico ══════════════════════════════════
+    +(reordenRows?'<div class="page-break"></div><div class="page">'
+      +'<div class="header">'
+      +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES \u2014 continuaci\u00f3n</div>'
+      +'<h1>Insumos e <span>Inventario</span></h1>'
+      +'<p>'+esc(nombre)+' \u2014 Puntos de reorden y cantidad a pedir</p>'
+      +'</div>'
+      +'<div class="section avoid">'
+      +'<span class="sec-label">&#128204; Puntos de reorden, stock de seguridad y cantidad a pedir (EOQ)</span>'
+      +'<div style="overflow-x:auto"><table>'
+      +'<thead><tr><th>Insumo</th><th>Cat</th><th style="text-align:right">Uso/dia</th><th style="text-align:right">Lead time</th><th style="text-align:right">Stock seg.</th><th style="text-align:right">Pedir cuando queden</th><th style="text-align:right">Cantidad a pedir (EOQ)</th><th style="text-align:right">Valor pedido</th><th style="text-align:right">Frec./mes</th></tr></thead>'
+      +'<tbody>'+reordenRows+'</tbody>'
+      +'</table></div>'
+      +'<div class="nota">SS=(max-prom)/30\u00d7LT &nbsp;\u00b7&nbsp; Pedir cuando queden=uso/dia\u00d7LT+SS &nbsp;\u00b7&nbsp; EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)</div>'
+      +'</div>'
+      +(diagOk?'<div class="diag avoid"><div class="diag-ey">\u25c6 Diagn\u00f3stico de consultor</div><h2>Tu plan de inventario esta semana</h2><div class="diag-body">'+diagText+'</div></div>':'')
+      +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
+      +'</div>':'')
+
+    +'</body></html>';
+
+  var win=window.open('','_blank','width=820,height=960');
+  if(!win){ alert('Permite popups para este sitio e intenta de nuevo.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload=function(){ win.focus(); win.print(); };
+});
+
 
 // LIMPIAR
 let clearArmed=false;
@@ -733,7 +978,7 @@ async function callClaudeS5(prompt){
     return d.content&&d.content[0]?d.content[0].text:null;
   }catch(e){console.error('callClaudeS5',e);return null;}
 }
-function renderNegS5(txt){return(txt||''). replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function renderNegS5(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 function dotsS5El(el){el.innerHTML='<div class="dots-s5"><span></span><span></span><span></span></div>';}
 function btnS5Original(){
   var btn=$('saveCloudBtn'); btn.disabled=false;
@@ -746,16 +991,15 @@ function btnS5Loading(){
 // GUARDAR NUBE
 $('saveCloudBtn').addEventListener('click', async function(){
   if(abcData.length<2){ showStatus('Agrega al menos 2 insumos.','err'); return; }
-  btnS5Loading(); showStatus('Guardando y generando análisis...','loading');
+  btnS5Loading(); showStatus('Guardando y generando an\u00e1lisis...','loading');
   var rec=await binRead();
-  if(rec===null){ showStatus('Error de conexión.','err'); btnS5Original(); return; }
+  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); btnS5Original(); return; }
   var entries=Array.isArray(rec.entries)?rec.entries:[];
   var total=abcData.reduce(function(s,it){return s+it.value;},0);
   var groupA=abcData.filter(function(i){return i.cat==='A';});
   var groupB=abcData.filter(function(i){return i.cat==='B';});
   var groupC=abcData.filter(function(i){return i.cat==='C';});
   var planATxt=$('planA').value.trim(), planCTxt=$('planC').value.trim();
-  // calcular reorden + EOQ para todos con datos completos
   var reordenData=insumos.filter(function(it){return it.name&&it.cost&&it.qty&&it.leadTime&&it.maxQty&&parseFloat(it.maxQty)>=parseFloat(it.qty);}).map(function(it){
     var r=calcReorden(it)||{};
     var cat=(abcData.find(function(a){return a.name===it.name;})||{cat:'?'}).cat;
@@ -771,50 +1015,47 @@ $('saveCloudBtn').addEventListener('click', async function(){
   var idx=entries.findIndex(function(e){return e.dni===currentDNI;});
   if(idx>=0) entries[idx]=payload; else entries.push(payload);
 
-  // Prompt 1: interpretacion coloquial de la grafica ABC
   var firstName=currentName.trim().split(' ')[0];
   var insTexto=abcData.map(function(it){return '- '+it.name+' (Grupo '+it.cat+'): S/'+it.cost.toFixed(0)+' c/u x '+it.qty+'/mes = S/'+it.value.toFixed(0)+'/mes = '+it.pct.toFixed(0)+'% de tu dinero';}).join('\n');
   var elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
+
   var ia1=await callClaudeS5(
-    'Emprendedora: '+firstName+'\nTotal en inventario: S/'+total.toFixed(0)+' al mes\n\n'+
-    'Clasificacion ABC (de mayor a menor valor):\n'+insTexto+
-    '\n\nEscribe una interpretacion COLOQUIAL de esta grafica ABC (max 90 palabras).\n'+
-    'Como si le explicaras a una amiga lo que ves en los numeros. SIN terminos tecnicos.\n'+
-    'Di: cuanto dinero tiene atrapado en que productos, si hay algo llamativo, que significa tener tanto en los A.\n'+
-    'Usa montos reales en soles. Usa su nombre una vez. Resalta lo mas importante con **asteriscos**.'
+    'Emprendedora: '+firstName+'\nTotal en inventario: S/'+total.toFixed(0)+' al mes\n\n'
+    +'Clasificacion ABC (de mayor a menor valor):\n'+insTexto
+    +'\n\nEscribe una interpretacion COLOQUIAL de esta grafica ABC (max 90 palabras).\n'
+    +'Como si le explicaras a una amiga lo que ves en los numeros. SIN terminos tecnicos.\n'
+    +'Di: cuanto dinero tiene atrapado en que productos, si hay algo llamativo, que significa tener tanto en los A.\n'
+    +'Usa montos reales en soles. Usa su nombre una vez. Resalta lo mas importante con **asteriscos**.'
   );
   elA.innerHTML=renderNegS5(ia1||firstName+', la mayor parte de tu dinero esta en pocos insumos. Esos son los que mas cuidan tu negocio.');
 
-  // Tabla de reorden calculada por la app
   var dEl=$('diagnosticoS5'); var dBody=$('diagnosticoS5Body');
   dEl.classList.add('visible');
   var tablaHTML='';
   if(reordenData.length>0){
-    tablaHTML='<div class="reorden-wrap">'+
-      '<div class="reorden-title">&#128204; Tus puntos de reorden, stock de seguridad y cantidad a pedir</div>'+
-      '<div style="overflow-x:auto"><table class="reorden-table">'+
-      '<thead><tr><th>Insumo</th><th>Cat</th><th>Uso/dia</th><th>Lead time</th><th>Stock seg.</th><th>Pedir cuando queden</th><th>Cantidad a pedir (EOQ)</th><th>Valor pedido</th><th>Frec./mes</th></tr></thead><tbody>';
+    tablaHTML='<div class="reorden-wrap">'
+      +'<div class="reorden-title">&#128204; Tus puntos de reorden, stock de seguridad y cantidad a pedir</div>'
+      +'<div style="overflow-x:auto"><table class="reorden-table">'
+      +'<thead><tr><th>Insumo</th><th>Cat</th><th>Uso/dia</th><th>Lead time</th><th>Stock seg.</th><th>Pedir cuando queden</th><th>Cantidad a pedir (EOQ)</th><th>Valor pedido</th><th>Frec./mes</th></tr></thead><tbody>';
     reordenData.forEach(function(r){
       var cc='cat-'+r.cat.toLowerCase();
-      tablaHTML+='<tr>'+
-        '<td><b>'+esc(r.name)+'</b></td>'+
-        '<td><span class="'+cc+'">'+r.cat+'</span></td>'+
-        '<td>'+r.cdDiario+' und</td>'+
-        '<td>'+r.lt+' dias</td>'+
-        '<td class="val-ss">'+r.ss+' und</td>'+
-        '<td class="val-pr"><b>'+r.pr+' und</b></td>'+
-        '<td class="val-pr">'+(r.eoq!==null?'<b>'+r.eoq+' und</b>':'sin dato')+'</td>'+
-        '<td>'+(r.eoqCosto!==null?'S/ '+r.eoqCosto:'-')+'</td>'+
-        '<td>'+(r.pedidosMes!==null?r.pedidosMes+'x':'-')+'</td>'+
-        '</tr>';
+      tablaHTML+='<tr>'
+        +'<td><b>'+esc(r.name)+'</b></td>'
+        +'<td><span class="'+cc+'">'+r.cat+'</span></td>'
+        +'<td>'+r.cdDiario+' und</td>'
+        +'<td>'+r.lt+' dias</td>'
+        +'<td class="val-ss">'+r.ss+' und</td>'
+        +'<td class="val-pr"><b>'+r.pr+' und</b></td>'
+        +'<td class="val-pr">'+(r.eoq!==null?'<b>'+r.eoq+' und</b>':'sin dato')+'</td>'
+        +'<td>'+(r.eoqCosto!==null?'S/ '+r.eoqCosto:'-')+'</td>'
+        +'<td>'+(r.pedidosMes!==null?r.pedidosMes+'x':'-')+'</td>'
+        +'</tr>';
     });
-    tablaHTML+='</tbody></table></div>'+
-      '<div style="font-size:10px;color:#6B7688;margin-top:6px;line-height:1.5">'+
-      'SS=(max-prom)/30×LT &nbsp;·&nbsp; Pedir cuando queden=uso/dia×LT+SS &nbsp;·&nbsp; EOQ=raiz(2×demanda anual×costo pedido / costo mantener 20%)'+
-      '</div></div>';
+    tablaHTML+='</tbody></table></div>'
+      +'<div style="font-size:10px;color:#6B7688;margin-top:6px;line-height:1.5">'
+      +'SS=(max-prom)/30\u00d7LT \u00b7 Pedir cuando queden=uso/dia\u00d7LT+SS \u00b7 EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)'
+      +'</div></div>';
   }
-
-  // Prompt 2: pasos concretos basados en su plan
   dotsS5El(dBody);
   var topA=groupA.map(function(i){return i.name+' (S/'+i.value.toFixed(0)+'/mes)';}).join(', ')||'ninguno';
   var topC=groupC.length?groupC.map(function(i){return i.name+' (S/'+i.value.toFixed(0)+'/mes)';}).join(', '):'ninguno';
@@ -822,24 +1063,25 @@ $('saveCloudBtn').addEventListener('click', async function(){
     ?reordenData.map(function(r){return '- '+r.name+' ('+r.cat+'): pedir cuando queden '+r.pr+' und'+(r.eoq!==null?', pedir '+r.eoq+' und (S/'+r.eoqCosto+') '+r.pedidosMes+'x al mes':'')+', SS='+r.ss+' und (S/'+r.ssCosto+')';}).join('\n')
     :'(no registro lead time ni maximo aun)';
   var ia2=await callClaudeS5(
-    'Emprendedora: '+firstName+'\nInsumos A (criticos): '+topA+'\nInsumos C (liberar): '+topC+'\n'+
-    (planATxt?'\nLo que ella escribio para A: "'+planATxt+'"':'\n(No escribio plan para A)')+
-    (planCTxt?'\nLo que ella escribio para C: "'+planCTxt+'"':'\n(No escribio plan para C)')+
-    '\n\nPuntos de reorden y EOQ calculados:\n'+reordenRes+
-    '\n\nEscribe 3 pasos concretos y coloquiales (max 100 palabras) basados en su plan.\n'+
-    'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'+
-    'Si el plan es vago, especificalo con los numeros calculados.\n'+
-    'Si menciono stock o reorden, usa los numeros exactos de arriba.\n'+
-    'Si no escribio plan, da 3 pasos practicos con sus datos.\n'+
-    'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso mas urgente.'
+    'Emprendedora: '+firstName+'\nInsumos A (criticos): '+topA+'\nInsumos C (liberar): '+topC+'\n'
+    +(planATxt?'\nLo que ella escribio para A: "'+planATxt+'"':'\n(No escribio plan para A)')
+    +(planCTxt?'\nLo que ella escribio para C: "'+planCTxt+'"':'\n(No escribio plan para C)')
+    +'\n\nPuntos de reorden y EOQ calculados:\n'+reordenRes
+    +'\n\nEscribe 3 pasos concretos y coloquiales (max 100 palabras) basados en su plan.\n'
+    +'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma).\n'
+    +'Si el plan es vago, especificalo con los numeros calculados.\n'
+    +'Si menciono stock o reorden, usa los numeros exactos de arriba.\n'
+    +'Si no escribio plan, da 3 pasos practicos con sus datos.\n'
+    +'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso mas urgente.'
   );
   dBody.innerHTML=tablaHTML+renderNegS5(ia2||firstName+', esta semana define tu stock minimo para los A y deja de comprar de mas los C.');
-
   var ok=await binWrite({entries});
   showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
   if(ok) setTimeout(function(){showStatus('','');},5000);
   btnS5Original();
 });
+
+
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
 
 // DOCENTE

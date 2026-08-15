@@ -1604,7 +1604,7 @@ async function loadDocData(){
       '<div class="mbar-row">'+
         '<span class="mbar-label">'+esc(r.label)+'</span>'+
         '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxN*100))+'%;background:'+r.color+'"></div></div>'+
-        '<div><span class="mbar-count" style="color:'+r.color+'">'+r.n+'</span><span class="mbar-ratio">'+(r.n/total).toFixed(1)+'/emp</span></div>'+
+        '<div><span class="mbar-count" style="color:'+r.color+'">'+r.n+'</span><span class="mbar-ratio">'+Math.round(r.n/total*100)+'%</span></div>'+
       '</div>'
     ).join('');
     if(rows.length){
@@ -1626,7 +1626,7 @@ async function loadDocData(){
       '<div class="mbar-row">'+
         '<span class="mbar-label" title="'+esc(r.label)+'">'+esc(r.label)+'</span>'+
         '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxR*100))+'%;background:'+recPalette[i%recPalette.length]+'"></div></div>'+
-        '<div><span class="mbar-count" style="color:'+recPalette[i%recPalette.length]+'">'+r.n+'</span><span class="mbar-ratio">'+(r.n/total).toFixed(1)+'/emp</span></div>'+
+        '<div><span class="mbar-count" style="color:'+recPalette[i%recPalette.length]+'">'+r.n+'</span><span class="mbar-ratio">'+Math.round(r.n/total*100)+'%</span></div>'+
       '</div>'
     ).join('');
     const distintos=Object.keys(recCounts).length;

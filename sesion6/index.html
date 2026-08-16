@@ -461,6 +461,8 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
       <div class="kpi-box coral"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
       <div class="kpi-box"><div class="kpi-val" id="kCompletas">-</div><div class="kpi-lbl">Documentos completos</div></div>
       <div class="kpi-box green"><div class="kpi-val" id="kFuego">-</div><div class="kpi-lbl">Pasaron prueba de fuego</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kIndicador">-</div><div class="kpi-lbl">Con indicador (KPI) definido</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kAvgSec">-</div><div class="kpi-lbl">Secciones completadas (prom. de 4)</div></div>
     </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -489,7 +491,10 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
   <div class="modal-name" id="modalName">-</div>
   <div class="modal-meta" id="modalMeta">-</div>
   <div id="modalBody"></div>
-  <div style="margin-top:16px;text-align:center"><button class="cta" onclick="closeModal()">Cerrar</button></div>
+  <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+    <button class="cta green full no-print" id="modalDownloadBtn">&#128190; Descargar procedimiento estandarizado (Word)</button>
+    <button class="cta" onclick="closeModal()">Cerrar</button>
+  </div>
 </div></div>
 
 <script>
@@ -786,12 +791,18 @@ function save(){
 }
 
 // DESCARGAR WORD (formato ejecutivo POE)
-$('wordBtn').addEventListener('click', ()=>{
-  const tarea=$('tareaInput').value.trim();
-  if(!tarea || filledSections()<2){ showStatus('Completa la tarea y al menos 2 secciones.','err'); return; }
-
-  const val=$('validadorInput').value.trim(), fb=$('feedbackInput').value.trim();
-  const passed=$('chkPassed').checked;
+// Genera y descarga el documento Word "Caracterización de Proceso" a partir de
+// un objeto tipo `entry` (mismo shape que se guarda en la nube). Se usa tanto
+// desde el botón de la emprendedora (con su sesión actual) como desde el panel
+// docente (con cualquier registro ya guardado), para que ambos produzcan
+// exactamente el mismo documento estandarizado.
+function buildProcedureDoc(entry){
+  const tarea = (entry.tarea||'').trim();
+  const secciones = entry.secciones || {};
+  const kpiSugerido = entry.kpiSugerido || { indicador:'', meta:'', frecuencia:'' };
+  const caracterizacion = entry.caracterizacion || { proveedor:'', entrada:'', salida:'', cliente:'' };
+  const currentName = entry.name || entry.dni || '';
+  const currentDNI = entry.dni || '';
   const rubro = (currentDNI && TAREAS[currentDNI]) ? (TAREAS[currentDNI].rubro||'') : '';
   const hoy=new Date();
   const fecha=hoy.getDate()+' / '+(hoy.getMonth()+1)+' / '+hoy.getFullYear();
@@ -865,11 +876,11 @@ $('wordBtn').addEventListener('click', ()=>{
     return '<span style="background:'+color+';color:#fff;font-family:Calibri,Arial,sans-serif;font-weight:bold;padding:2pt 5pt;font-size:9.5pt">'+letra+'</span> '+texto;
   }
 
-  const respTxt=$('responsableInput').value.trim();
-  const indicTxt=$('indicadorInput').value.trim();
-  const valNombre=$('validadorInput').value.trim();
-  const valFeedback=$('feedbackInput').value.trim();
-  const valPassed=$('chkPassed').checked;
+  const respTxt=(entry.responsable||'').trim();
+  const indicTxt=(entry.indicador||'').trim();
+  const valNombre=(entry.validador||'').trim();
+  const valFeedback=(entry.feedback||'').trim();
+  const valPassed=!!entry.fuegoPassed;
   const kpiInd=kpiSugerido.indicador?kpiSugerido.indicador.trim():(indicTxt||'Por definir');
   const kpiMet=kpiSugerido.meta?kpiSugerido.meta.trim():'Por definir';
   const kpiFrec=kpiSugerido.frecuencia?kpiSugerido.frecuencia.trim():'Mensual';
@@ -1032,7 +1043,19 @@ $('wordBtn').addEventListener('click', ()=>{
 
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='POE_'+currentName.split(' ')[0]+'_S6.doc'; a.click();
+  a.download='POE_'+(currentName.split(' ')[0]||'procedimiento')+'_S6.doc'; a.click();
+}
+
+$('wordBtn').addEventListener('click', ()=>{
+  const tarea=$('tareaInput').value.trim();
+  if(!tarea || filledSections()<2){ showStatus('Completa la tarea y al menos 2 secciones.','err'); return; }
+  buildProcedureDoc({
+    dni: currentDNI, name: currentName, tarea: tarea, secciones: secciones,
+    kpiSugerido: kpiSugerido, caracterizacion: caracterizacion,
+    responsable: $('responsableInput').value.trim(), indicador: $('indicadorInput').value.trim(),
+    validador: $('validadorInput').value.trim(), feedback: $('feedbackInput').value.trim(),
+    fuegoPassed: $('chkPassed').checked
+  });
   showStatus('\u2705 Procedimiento (formato ejecutivo) descargado.','ok');
   setTimeout(()=>showStatus('',''),4000);
 });
@@ -1122,6 +1145,7 @@ $('saveCloudBtn').addEventListener('click', async function(){
     +'Usa su nombre una vez. Resalta lo m\u00e1s importante con **asteriscos**.'
   );
   elA.innerHTML=renderNegS6(ia1||firstName+', tu procedimiento tiene buena base. Revisa que cada secci\u00f3n tenga detalles espec\u00edficos como tiempos o cantidades.');
+  payload.analisisIA = ia1 || '';
 
   // ── Análisis 2: próximos pasos + KPI sugerido ──
   var dEl=$('diagnosticoS6'); var dBody=$('diagnosticoS6Body');
@@ -1143,6 +1167,7 @@ $('saveCloudBtn').addEventListener('click', async function(){
     +'Responde SOLO con esos 3 pasos narrativos, nada m\u00e1s.'
   );
   dBody.innerHTML=renderNegS6(ia2||firstName+', ahora comparte tu manual con alguien de confianza y ponlo a prueba esta semana.');
+  payload.proximosPasos = ia2 || '';
 
   // ── Análisis 3: insumos estructurados (KPI + SIPOC) en JSON puro, llamada dedicada ──
   // Separada de la narrativa para que el parseo sea confiable y nunca dependa de que
@@ -1231,8 +1256,12 @@ async function loadDocData(){
   const total=docEntries.length, pct=Math.round(total/25*100);
   const completas=docEntries.filter(e=>e.complete).length;
   const fuego=docEntries.filter(e=>e.fuegoPassed).length;
+  const conIndicador=docEntries.filter(e=>(e.kpiSugerido&&e.kpiSugerido.indicador&&e.kpiSugerido.indicador.trim())||(e.indicador&&e.indicador.trim())).length;
+  const avgSec=total>0 ? (docEntries.reduce((s,e)=>s+(e.sectionCount||0),0)/total) : 0;
   $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
   $('kCompletas').textContent=completas; $('kFuego').textContent=fuego;
+  $('kIndicador').textContent=total>0?(conIndicador+'/'+total):'-';
+  $('kAvgSec').textContent=total>0?avgSec.toFixed(1):'-';
   $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras escribieron su procedimiento.';
   let al='';
@@ -1280,7 +1309,20 @@ function openModal(idx){
     if(e.feedback) b+='<div style="font-size:12.5px;color:var(--muted);margin-top:3px">Mejoras: '+esc(e.feedback)+'</div>';
     b+='</div>';
   }
+  if(e.kpiSugerido && e.kpiSugerido.indicador){
+    b+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px">\ud83d\udcca Indicador de gesti\u00f3n sugerido por la IA</div>'+
+       '<div style="font-size:12.5px;line-height:1.5;color:var(--ink)"><b>'+esc(e.kpiSugerido.indicador)+'</b>'+
+       (e.kpiSugerido.meta?' &middot; meta: '+esc(e.kpiSugerido.meta):'')+
+       (e.kpiSugerido.frecuencia?' &middot; frecuencia: '+esc(e.kpiSugerido.frecuencia):'')+'</div></div>';
+  }
+  if(e.analisisIA || e.proximosPasos){
+    b+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:700;color:var(--coral-d);margin-bottom:6px">\ud83e\udd16 Sugerencia de la IA a la emprendedora</div>';
+    if(e.analisisIA) b+='<div class="analisis-poe-s6 visible" style="margin-bottom:8px">'+renderNegS6(esc(e.analisisIA))+'</div>';
+    if(e.proximosPasos) b+='<div class="analisis-poe-s6 visible" style="background:#EEF3FF;border-left-color:var(--navy)">'+renderNegS6(esc(e.proximosPasos))+'</div>';
+    b+='</div>';
+  }
   $('modalBody').innerHTML=b;
+  $('modalDownloadBtn').onclick=()=>buildProcedureDoc(e);
   $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
 }
 function closeModal(){ $('detailModal').classList.remove('on'); document.body.style.overflow=''; }

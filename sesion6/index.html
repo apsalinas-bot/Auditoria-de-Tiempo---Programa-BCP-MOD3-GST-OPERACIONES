@@ -829,7 +829,7 @@ $('wordBtn').addEventListener('click', ()=>{
     // Viñetas manuales con sangría francesa: más confiable en Word que <ul><li>,
     // cuyo list-style a veces no se conserva en la conversión a .doc.
     return items.map(i=>
-      '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0 0 4pt;padding-left:14pt;text-indent:-14pt">'+
+      '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0 0 6pt;padding-left:14pt;text-indent:-14pt">'+
       '&#8226;&nbsp;&nbsp;'+esc(i)+
       '</p>'
     ).join('');
@@ -842,8 +842,8 @@ $('wordBtn').addEventListener('click', ()=>{
 
   function fila(label, contentHtml){
     return '<tr>'+
-      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:bold;color:#002A8D;width:'+Math.round(W*0.26)+'pt;vertical-align:top" width="'+Math.round(W*0.26)+'" valign="top">'+label+'</td>'+
-      '<td style="background:#ffffff;border:0.5pt solid #C8D4E8;padding:7pt 9pt;font-family:Calibri,Arial,sans-serif;font-size:10.5pt;vertical-align:top" width="'+Math.round(W*0.74)+'" valign="top">'+contentHtml+'</td>'+
+      '<td style="background:#EEF3FF;border:0.5pt solid #C8D4E8;padding:9pt 11pt;font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:bold;color:#002A8D;width:'+Math.round(W*0.26)+'pt;vertical-align:top" width="'+Math.round(W*0.26)+'" valign="top">'+label+'</td>'+
+      '<td style="background:#ffffff;border:0.5pt solid #C8D4E8;padding:9pt 11pt;font-family:Calibri,Arial,sans-serif;font-size:10.5pt;vertical-align:top" width="'+Math.round(W*0.74)+'" valign="top">'+contentHtml+'</td>'+
       '</tr>';
   }
   function pFila(txt){ return '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;text-align:left;margin:0">'+txt+'</p>'; }
@@ -891,21 +891,21 @@ $('wordBtn').addEventListener('click', ()=>{
   filas+=banner('II.  CARACTERIZACIÓN DEL PROCESO (SIPOC)');
   const sipocColW=Math.round(W/5);
   filas+='<tr>'+
-    '<td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:0.5pt solid #C8D4E8;padding:0;background:#ffffff" width="'+W+'">'+
+    '<td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:none;padding:0;background:#ffffff" width="'+W+'">'+
     '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">PROVEEDORES</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">ENTRADAS</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#E85D2F;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #E85D2F" width="'+sipocColW+'">PROCESO</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">SALIDAS</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">CLIENTES</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">PROVEEDORES</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">ENTRADAS</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#E85D2F;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #E85D2F" width="'+sipocColW+'">PROCESO</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">SALIDAS</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">CLIENTES</td>'+
     '</tr>'+
     '<tr>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocProv)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocEnt)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#FDECE4;color:#C2431A;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle;font-weight:bold">'+esc(tarea)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocSal)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocCli)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;line-height:1.4;padding:10pt 7pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocProv)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;line-height:1.4;padding:10pt 7pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocEnt)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#FDECE4;color:#C2431A;font-size:9.5pt;line-height:1.4;padding:10pt 7pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle;font-weight:bold">'+esc(tarea)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;line-height:1.4;padding:10pt 7pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocSal)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9.5pt;line-height:1.4;padding:10pt 7pt;border:0.5pt solid #C8D4E8;text-align:center;vertical-align:middle">'+esc(sipocCli)+'</td>'+
     '</tr>'+
     '</table>'+
     '</td></tr>';
@@ -928,17 +928,17 @@ $('wordBtn').addEventListener('click', ()=>{
   // ═══ BLOQUE IV · FICHA DE INDICADOR ═══════════════════════════════════════
   filas+=banner('IV.  INDICADOR DE GESTIÓN');
   const kpiColW=Math.round(W/3);
-  filas+='<tr><td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:0.5pt solid #C8D4E8;padding:0;background:#ffffff" width="'+W+'">'+
+  filas+='<tr><td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:none;padding:0;background:#ffffff" width="'+W+'">'+
     '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Indicador</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Meta</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:6pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Frecuencia de medición</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 10pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Indicador</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 10pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Meta</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 10pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Frecuencia de medición</td>'+
     '</tr>'+
     '<tr>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiInd)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiMet)+'</td>'+
-      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;padding:8pt 6pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiFrec)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;line-height:1.5;padding:10pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiInd)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;line-height:1.5;padding:10pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiMet)+'</td>'+
+      '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:10pt;line-height:1.5;padding:10pt;border:0.5pt solid #C8D4E8;vertical-align:top">'+esc(kpiFrec)+'</td>'+
     '</tr>'+
     '</table></td></tr>';
 
@@ -979,8 +979,8 @@ $('wordBtn').addEventListener('click', ()=>{
     '</tr></table>';
 
   // ═══ BLOQUE VI · HISTORIAL DE REVISIONES ══════════════════════════════════
-  function histCellH(t,w){ return '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:5pt 7pt;border:0.5pt solid #002A8D" width="'+w+'">'+t+'</td>'; }
-  function histCellD(t,w){ return '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9pt;padding:5pt 7pt;border:0.5pt solid #C8D4E8" width="'+w+'">'+t+'</td>'; }
+  function histCellH(t,w){ return '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 9pt;border:0.5pt solid #002A8D" width="'+w+'">'+t+'</td>'; }
+  function histCellD(t,w){ return '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9pt;line-height:1.4;padding:8pt 9pt;border:0.5pt solid #C8D4E8" width="'+w+'">'+t+'</td>'; }
   const hV=55, hF=65, hE=140, hD=W-hV-hF-hE;
   const historial='<p style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;margin:16pt 0 0;letter-spacing:.4pt">VI.  HISTORIAL DE REVISIONES</p>'+
     '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt;border:0.75pt solid #002A8D" width="'+W+'" cellpadding="0" cellspacing="0">'+

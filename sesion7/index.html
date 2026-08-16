@@ -621,7 +621,7 @@ async function callClaudeS7(prompt){
     var r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,
-        system:'Eres una consultora de gestión de operaciones experta, cálida y directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Usas datos EXACTOS de lo que ella clasificó en su matriz — nombres reales de actividades y de personas a quien delegar, si los dio. Lenguaje simple, sin términos técnicos, como una amiga que sabe de negocios. Nunca genérico. Resalta con **asteriscos** máx. 2 frases clave.',
+        system:'Eres una consultora de gestión de operaciones experta, cálida y muy directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú, cercana, como una amiga que sabe de negocios — nunca como un informe corporativo. Usas SIEMPRE datos EXACTOS de lo que ella clasificó en su matriz: nombres reales de actividades y de personas a quien delegar, si los dio. Nunca genérico, nunca frases motivacionales vacías tipo "tú puedes lograrlo". Das instrucciones puntuales en modo imperativo — le dices exactamente qué hacer, con qué actividad, con quién y cuándo. Lenguaje simple, sin términos técnicos. Resalta con **asteriscos** máx. 2 frases clave.',
         messages:[{role:'user',content:prompt}]})
     });
     if(!r.ok){console.error('API S7',r.status);return null;}
@@ -670,12 +670,12 @@ $('saveCloudBtn').onclick=async()=>{
     +'- Delegar CON GUÍA/checklist (fácil de explicar, alto riesgo, '+counts[2]+'): '+listaDe('2')+'\n'
     +'- Hazlo TÚ / enseñar poco a poco (difícil de explicar, bajo riesgo, '+counts[3]+'): '+listaDe('3')+'\n'
     +'- Eliminar/Automatizar/dejar para el final (difícil de explicar, alto riesgo, '+counts[4]+'): '+listaDe('4')+'\n\n'
-    +'Escribe en lenguaje CERCANO pero claro y directo (máx. 90 palabras) cuáles son los SIGUIENTES PASOS concretos que debe dar esta semana, ahora que ya tiene su matriz lista.\n'
-    +'Sé súper específica y personalizada: menciona por su nombre real al menos una de las actividades que clasificó y, si dio un nombre de persona para delegar, menciónalo también.\n'
-    +'Si tiene actividades en "Delegar YA", sugiere empezar por esa esta misma semana. Si tiene muchas en "Hazlo tú" sin plan de entrenamiento, dile que arme un checklist simple antes de soltarlas.\n'
-    +'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma). Resalta con **asteriscos** el paso más urgente. Responde SOLO con esos próximos pasos, nada más.'
+    +'Escribe un mensaje CERCANO, ultra-personalizado y muy aterrizado (máx. 100 palabras, en prosa, sin listas ni títulos) con dos partes que fluyan naturalmente:\n'
+    +'1) Un diagnóstico breve (1-2 frases) de lo que su matriz dice HOY sobre cómo usa su tiempo — usa los números reales de cada cuadrante y nombra al menos UNA actividad real que ella clasificó, para que sienta que le hablas de SU negocio y no de una plantilla.\n'
+    +'2) La instrucción de qué debe hacer AHORA MISMO, en modo imperativo y puntual (ej.: "Esta semana, suelta [actividad real] y pásasela a [persona real si la dio]"). Prioriza así: si tiene actividades en "Delegar YA", esa es su acción #1 de esta semana. Si no tiene ninguna ahí pero sí en "Delegar CON GUÍA", dile que arme el checklist de esa actividad esta semana. Si la mayoría está en "Hazlo tú", dile que elija UNA sola actividad para empezar a enseñarla, no todas a la vez.\n'
+    +'Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma). Resalta con **asteriscos** la instrucción más urgente (máx. 2 frases). Responde SOLO con ese mensaje, nada más.'
   );
-  elA.innerHTML=renderNegS7(ia1||firstName+', tu matriz ya está lista. Elige una actividad del grupo "Delegar ya" y suéltala esta misma semana — ese es tu primer paso concreto.');
+  elA.innerHTML=renderNegS7(ia1||firstName+', tu matriz ya está lista. **Elige una actividad del grupo "Delegar ya" y suéltala esta misma semana** — ese es tu paso #1, no lo dejes para después.');
   payload.analisisIA=ia1||'';
 
   const dEl=$('diagnosticoS7');const dBody=$('diagnosticoS7Body');
@@ -687,13 +687,14 @@ $('saveCloudBtn').onclick=async()=>{
     +'- Delegar CON GUÍA/checklist ('+counts[2]+'): '+listaDe('2')+'\n'
     +'- Hazlo TÚ / enseñar poco a poco ('+counts[3]+'): '+listaDe('3')+'\n'
     +'- Eliminar/Automatizar/dejar para el final ('+counts[4]+'): '+listaDe('4')+'\n\n'
-    +'Ya le diste una recomendación breve de próximos pasos. Ahora arma un PLAN DE ACCIÓN más completo, en formato de lista numerada de 4 a 6 acciones concretas para las próximas 2 a 4 semanas, que COMPLEMENTEN (no repitan) lo ya dicho.\n'
-    +'Cada acción debe: mencionar una actividad o persona REAL de su matriz cuando aplique, indicar CUÁNDO hacerla (esta semana / próxima semana / este mes), y empezar con un verbo de acción concreto (nunca genérico como "organiza" o "mejora" sin contexto).\n'
+    +'Ya le diste una recomendación breve de próximos pasos. Ahora arma un PLAN DE ACCIÓN más completo, en formato de lista numerada de 4 a 6 acciones puntuales para las próximas 2 a 4 semanas, que COMPLEMENTEN (no repitan) lo ya dicho.\n'
+    +'Cada acción es una instrucción directa a ella, como si le dijeras "ahora debes hacer esto". Debe: mencionar una actividad o persona REAL de su matriz cuando aplique, indicar CUÁNDO hacerla con precisión (ej. "esta semana", "el lunes", "en los próximos 3 días", "antes de fin de mes" — nunca vago), y empezar con un verbo en imperativo bien concreto (ej. "Escribe", "Llama a", "Agenda 15 minutos con", "Suelta", "Revisa con" — nunca genérico como "organiza" o "mejora" sin contexto).\n'
+    +'Ordena las acciones en secuencia lógica: primero lo urgente/fácil, luego lo que requiere más preparación (checklists, entrenamiento), y cierra con una acción de seguimiento o revisión.\n'
     +'Formato exacto: cada acción en su propia línea, empezando con "1.", "2.", "3.", etc. (usa saltos de línea reales entre cada una).\n'
-    +'Lenguaje cercano pero claro y directo, como una consultora que conoce su negocio. Resalta con **asteriscos** la acción más urgente (solo una).\n'
+    +'Lenguaje cercano pero claro y directo, como una consultora que conoce su negocio al detalle. Resalta con **asteriscos** la acción más urgente (solo una).\n'
     +'Responde SOLO con la lista numerada, sin introducción ni cierre ni texto adicional.'
   );
-  dBody.innerHTML=renderNegS7(ia2||'1. Arma un **checklist simple** para la primera actividad que vas a delegar con guía — hazlo esta semana.\n2. Agenda 15 minutos con la persona a quien le vas a delegar y explícale el checklist.\n3. La próxima semana, suelta la primera actividad de "Delegar ya" sin supervisión.\n4. Revisa en 2 semanas cómo le fue y ajusta lo que no quedó claro.').replace(/\n/g,'<br>');
+  dBody.innerHTML=renderNegS7(ia2||'1. **Escribe un checklist simple** para la primera actividad que vas a delegar con guía — hazlo esta semana.\n2. Agenda 15 minutos con la persona a quien le vas a delegar y explícale el checklist paso a paso.\n3. La próxima semana, suelta la primera actividad de "Delegar ya" sin supervisión.\n4. En 2 semanas, revisa con esa persona cómo le fue y ajusta lo que no quedó claro.').replace(/\n/g,'<br>');
   payload.planAccion=ia2||'';
 
   const ok=await binWrite(BIN_URL,{entries});

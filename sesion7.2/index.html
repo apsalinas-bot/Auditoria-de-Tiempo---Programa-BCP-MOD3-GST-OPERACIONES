@@ -75,6 +75,9 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
 .save-status{font-size:12.5px;text-align:center;margin-top:7px;min-height:18px;font-weight:500}
 .save-status.ok{color:var(--green)}.save-status.err{color:var(--red)}.save-status.loading{color:var(--muted)}
 .clearbtn{width:100%;background:none;border:1.5px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;padding:11px;border-radius:11px;cursor:pointer;font-family:inherit;margin-top:8px;transition:.15s}
+.part-bridge .clearbtn{border-color:rgba(255,255,255,.35);color:#C6D2F5;background:rgba(255,255,255,.06)}
+.part-bridge .clearbtn:hover{border-color:var(--gold-l);color:var(--gold-l)}
+.part-bridge .clearbtn.warn{border-color:#FF8A8A;color:#FF8A8A;background:rgba(255,80,80,.12)}
 .clearbtn.warn{border-color:var(--red);color:var(--red);background:#FDF0F0}
 
 /* PROGRESS */
@@ -306,7 +309,6 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
         <input class="gate-input" type="password" id="dni" inputmode="numeric" placeholder="8 dígitos" autocomplete="off">
         <div class="gate-err" id="dniErr"></div>
         <button class="btn gold full" id="dniBtn" style="margin-top:12px">Entrar ✦</button>
-        <button class="btn ghost full" id="dniResumeBtn" style="margin-top:8px">↺ Traer mi última respuesta guardada</button>
         <button class="btn ghost full" style="margin-top:8px" onclick="closeGates()">Volver</button>
       </div>
       <div class="gate-panel" id="docPw">
@@ -341,6 +343,9 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
         <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
       </div>
     </div>
+
+    <!-- RESUME LAST SAVED ANSWER (solo visible en la 1ª pregunta de la Parte 1) -->
+    <button class="btn ghost full no-print" id="resumeInlineBtn" style="display:none;margin-bottom:14px">↺ Traer mi última respuesta guardada</button>
 
     <!-- QUESTION -->
     <div class="card" id="qCard">
@@ -689,21 +694,18 @@ $('dniBtn').onclick=()=>{
   show('scEmp');startCommTest();
 };
 $('dni').addEventListener('keydown',e=>{if(e.key==='Enter')$('dniBtn').click();});
-$('dniResumeBtn').onclick=async()=>{
-  const d=$('dni').value.trim();
-  if(!ROSTER[d]){$('dniErr').textContent='DNI no encontrado en la lista del programa.';return;}
-  currentUser={dni:d,...ROSTER[d]};
-  $('empHi').textContent='Hola, '+currentUser.n.split(' ')[0]+' ✦';
-  $('empBiz').textContent=currentUser.b||'';
-  show('scEmp');
-  $('phaseCard').style.display='none';$('qCard').style.display='none';
+$('pwBtn').onclick=()=>{if($('pw').value===DOC_PW){show('scDoc');startDoc();}else $('pwErr').textContent='Contraseña incorrecta.';};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('pwBtn').click();});
+function doLogout(){currentUser=null;phase=1;qi=0;commAns={};kilAns={};commScores={DI:0,VI:0,CO:0,SI:0};kilScores={COM:0,COL:0,NEG:0,EV:0,CED:0};results=null;stopDoc();closeGates();$('commResultSection').style.display='none';$('kilResultSection').style.display='none';$('qCard').style.display='block';$('phaseCard').style.display='block';show('scRole');}
+
+$('resumeInlineBtn').onclick=async()=>{
+  if(!currentUser)return;
   toast('Buscando tu última respuesta guardada…');
   const all=await readAll();
-  const mine=all.filter(en=>en.dni===d).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const mine=all.filter(en=>en.dni===currentUser.dni).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const entry=mine[0];
   if(!entry||!entry.commScores||!entry.kilScores){
-    toast('No encontramos una respuesta guardada. Vamos a iniciar el test.');
-    startCommTest();
+    toast('No encontramos una respuesta guardada para tu DNI.');
     return;
   }
   commScores={DI:0,VI:0,CO:0,SI:0,...entry.commScores};
@@ -714,9 +716,6 @@ $('dniResumeBtn').onclick=async()=>{
   renderKilResult(entry.kilDom,entry.commDom);
   toast('✅ Trajimos tu última respuesta guardada, '+currentUser.n.split(' ')[0]+'.');
 };
-$('pwBtn').onclick=()=>{if($('pw').value===DOC_PW){show('scDoc');startDoc();}else $('pwErr').textContent='Contraseña incorrecta.';};
-$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('pwBtn').click();});
-function doLogout(){currentUser=null;phase=1;qi=0;commAns={};kilAns={};commScores={DI:0,VI:0,CO:0,SI:0};kilScores={COM:0,COL:0,NEG:0,EV:0,CED:0};results=null;stopDoc();closeGates();$('commResultSection').style.display='none';$('kilResultSection').style.display='none';$('qCard').style.display='block';$('phaseCard').style.display='block';show('scRole');}
 
 // ═══ TEST FLOW ═══
 function startCommTest(){
@@ -740,6 +739,7 @@ function currentAns(){return phase===1?commAns:kilAns;}
 
 function renderQ(){
   const q=currentQ(),total=totalQ(),pct=Math.round(((qi+1)/total)*100);
+  $('resumeInlineBtn').style.display=(phase===1&&qi===0)?'flex':'none';
   $('phaseLbl').textContent=phase===1?'Parte 1 de 2 · Tu comunicación':'Parte 2 de 2 · Tus conflictos';
   $('phaseTitle').textContent=phase===1?'¿Cuál es tu estilo de comunicación?':'¿Cómo manejas los conflictos?';
   $('phaseHint').textContent=phase===1?'24 preguntas · Elige la opción que más te describe en tu vida real.':'30 pares de afirmaciones · Elige la que más se parece a cómo actúas normalmente.';

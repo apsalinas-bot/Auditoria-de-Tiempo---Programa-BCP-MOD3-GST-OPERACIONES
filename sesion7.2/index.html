@@ -279,6 +279,10 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
   .top,.result-hero,.synth,.coach-block,.kil-grid-wrap{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
   .style-avatar .anim-char{animation:none}
   @page{margin:1cm;size:A4}
+  /* Descarga individual desde el tablero docente: imprime solo la ficha del modal */
+  body.printing-modal .screen{display:none!important}
+  body.printing-modal .modal-bg{position:static!important;inset:auto!important;background:none!important;display:block!important;z-index:auto!important}
+  body.printing-modal .modal-sheet{max-height:none!important;overflow:visible!important;box-shadow:none!important;max-width:none!important;border-radius:0!important;padding:0!important;margin:0 auto}
 }
 </style>
 </head>
@@ -514,7 +518,8 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
   <div class="modal-sheet">
     <h3 id="modalName"></h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="modalBiz"></div>
     <div id="modalContent"></div>
-    <button class="btn gold full" style="margin-top:14px" onclick="closeModal()">Cerrar</button>
+    <button class="btn navy full no-print" style="margin-top:14px" onclick="downloadParticipant()">⬇ Descargar este resultado (PDF)</button>
+    <button class="btn gold full no-print" style="margin-top:10px" onclick="closeModal()">Cerrar</button>
   </div>
 </div>
 
@@ -528,7 +533,9 @@ const DOC_PW   = '70003700';
 const API      = `https://api.jsonbin.io/v3/b/${BIN_S7P2}`;
 const s7ok     = BIN_S7P2 && !BIN_S7P2.startsWith('REEMPLAZA');
 
-const ROSTER = {'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia',b:'Ingeniería y Servicios ALBA S.A.C.'}};
+const ROSTER = {'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia',b:'Ingeniería y Servicios ALBA S.A.C.'},'71509678':{n:'Franchesca',b:'Aprenda'},'74250220':{n:'Beatriz',b:'BCP'}};
+// DNIs de prueba: pueden ingresar y ver su propio resultado, pero se excluyen de todo el tablero docente (conteos, %, gráficas, lista, pendientes)
+const TEST_DNIS = new Set(['71509678','74250220']);
 
 // ═══ STYLE DATA ═══
 const COMM_AVATARS = {
@@ -650,15 +657,14 @@ function buildKilGrid(kilScores){
   const labels={COM:'Competitivo',COL:'Colaborativo',NEG:'Negociador',EV:'Evitativo',CED:'Adaptativo'};
   // Zones: +9 excess, 8-9 high, 5-7 normal/flex, 3-4 low, <3 lack
   const zones=[
-    {key:'excess',label:'+ de 9 · exceso',cls:'zona-excess',min:10,max:30,area:'Área Rígida'},
-    {key:'high',  label:'8 – 9 · alto',   cls:'zona-high',  min:8, max:9, area:''},
-    {key:'flex',  label:'5 – 7 · normal',  cls:'zona-flex',  min:5, max:7, area:'Área Flexible'},
-    {key:'low',   label:'3 – 4 · bajo',    cls:'zona-low',   min:3, max:4, area:''},
-    {key:'lack',  label:'- de 3 · carencia',cls:'zona-lack',min:0, max:2, area:'Área Rígida'},
+    {key:'excess',label:'+ de 9 · exceso',cls:'zona-excess',min:10,max:30},
+    {key:'high',  label:'8 – 9 · alto',   cls:'zona-high',  min:8, max:9},
+    {key:'flex',  label:'5 – 7 · normal',  cls:'zona-flex',  min:5, max:7},
+    {key:'low',   label:'3 – 4 · bajo',    cls:'zona-low',   min:3, max:4},
+    {key:'lack',  label:'- de 3 · carencia',cls:'zona-lack',min:0, max:2},
   ];
-  let html=`<div class="kil-grid-title">📊 Perfil del Estilo Personal — Kilmann</div><table class="kil-grid-table"><thead><tr><th>Nivel</th>${styles.map(s=>`<th>${labels[s]}</th>`).join('')}<th>Zona</th></tr></thead><tbody>`;
+  let html=`<div class="kil-grid-title">📊 Perfil del Estilo Personal — Kilmann</div><table class="kil-grid-table"><thead><tr><th>Nivel</th>${styles.map(s=>`<th>${labels[s]}</th>`).join('')}</tr></thead><tbody>`;
   zones.forEach(z=>{
-    const areaCell=z.area?`<td style="font-size:10px;font-weight:700;color:${z.area.includes('Rígida')?'#C2431A':'var(--green)'};white-space:nowrap">${z.area}</td>`:'<td></td>';
     html+=`<tr class="${z.cls}"><td>${z.label}</td>`;
     styles.forEach(s=>{
       const v=kilScores[s]||0;
@@ -666,7 +672,7 @@ function buildKilGrid(kilScores){
       if(inZone){html+=`<td class="mark-my">${v}</td>`;}
       else{html+=`<td></td>`;}
     });
-    html+=areaCell+'</tr>';
+    html+='</tr>';
   });
   html+='</tbody></table>';
   return html;
@@ -1054,8 +1060,9 @@ let docCommChart=null,docKilChart=null;
 
 async function pollDoc(){
   const btn=document.querySelector('.refresh-btn');if(btn){btn.textContent='↻ Actualizando…';btn.disabled=true;}
-  const all=await readAll();
-  const rosterSize=Object.keys(ROSTER).length;
+  const rawAll=await readAll();
+  const all=rawAll.filter(e=>!TEST_DNIS.has(e.dni)); // excluir DNIs de prueba de todo el tablero
+  const rosterSize=Object.keys(ROSTER).length-TEST_DNIS.size;
   const total=all.length;
   const pct=rosterSize>0?Math.round(total/rosterSize*100):0;
 
@@ -1135,7 +1142,7 @@ async function pollDoc(){
 
   // pendientes
   const reg=new Set(all.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d)&&!TEST_DNIS.has(d));
   if(pend.length===0)$('docPending').innerHTML='<div class="alert-box green"><b>¡Todas completaron su perfil!</b></div>';
   else{
     let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">'+pend.length+' sin guardar:</p><div>';
@@ -1256,6 +1263,11 @@ function openModal(e){
   }catch(err){}
 }
 function closeModal(){$('modal').classList.remove('on');}
+function downloadParticipant(){
+  document.body.classList.add('printing-modal');
+  window.print();
+}
+window.addEventListener('afterprint',()=>{document.body.classList.remove('printing-modal');});
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
 </script>
 </body>

@@ -204,7 +204,21 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 .analisis-poe-s6{padding:14px 16px;background:#FDECE4;border-left:3px solid var(--coral);border-radius:0 12px 12px 0;font-size:13px;color:#1C2536;line-height:1.65;display:none;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .analisis-poe-s6.visible{display:block}
 .analisis-poe-s6 b{color:var(--coral-d);font-weight:700}
-@media print{body{max-width:none}.no-print{display:none !important}#detailModal{display:none !important}}
+.diagnostico-s6{background:linear-gradient(135deg,#1a0e00,#3a1c00);background-color:#2a1400;border-radius:14px;padding:22px;margin-bottom:10px;display:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.diagnostico-s6.visible{display:block}
+.d6-eyebrow{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FFB088;margin-bottom:6px}
+.d6-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:12px}
+.d6-body{font-size:13.5px;color:#FFD9C2;line-height:1.8}
+.d6-body b{color:#fff;font-weight:700}
+@media print{
+  body{max-width:none}
+  .no-print{display:none !important}
+  #detailModal{display:none !important}
+  .diagnostico-s6{background:#2a1400 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  .diagnostico-s6 *{color:inherit}
+  .d6-body,.d6-title{color:#fff !important}
+  .d6-eyebrow{color:#FFB088 !important}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
 </style>
 </head>
@@ -312,9 +326,14 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
     </div>
 
     <div class="analisis-poe-s6" id="analisisPoeS7"></div>
+    <div class="diagnostico-s6" id="diagnosticoS7">
+      <div class="d6-eyebrow">◆ Plan de acción de tu consultor</div>
+      <div class="d6-title">📝 Tu plan de acción concreto</div>
+      <div class="d6-body" id="diagnosticoS7Body"></div>
+    </div>
     <button class="claude-btn-s6 no-print" id="saveCloudBtn">
       <div class="cb6-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FFB088" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FFB088"/></svg></div>
-      <div class="cb6-text"><div class="cb6-main">Guardar y generar análisis</div><div class="cb6-sub">Próximos pasos personalizados con IA</div></div>
+      <div class="cb6-text"><div class="cb6-main">Guardar y generar análisis</div><div class="cb6-sub">Próximos pasos + plan de acción con IA</div></div>
       <div class="cb6-badge"><span>Claude</span></div>
     </button>
     <button class="cta full no-print" id="wordBtn">📄 Descargar mi matriz (Word)</button>
@@ -614,7 +633,7 @@ function renderNegS7(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 function dotsS7El(el){el.innerHTML='<div class="dots-s6"><span></span><span></span><span></span></div>';}
 function btnS7Original(){
   var btn=$('saveCloudBtn');btn.disabled=false;
-  btn.innerHTML='<div class="cb6-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FFB088" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FFB088"/></svg></div><div class="cb6-text"><div class="cb6-main">Guardar y generar análisis</div><div class="cb6-sub">Próximos pasos personalizados con IA</div></div><div class="cb6-badge"><span>Claude</span></div>';
+  btn.innerHTML='<div class="cb6-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FFB088" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FFB088"/></svg></div><div class="cb6-text"><div class="cb6-main">Guardar y generar análisis</div><div class="cb6-sub">Próximos pasos + plan de acción con IA</div></div><div class="cb6-badge"><span>Claude</span></div>';
 }
 function btnS7Loading(){
   var btn=$('saveCloudBtn');btn.disabled=true;
@@ -658,6 +677,24 @@ $('saveCloudBtn').onclick=async()=>{
   );
   elA.innerHTML=renderNegS7(ia1||firstName+', tu matriz ya está lista. Elige una actividad del grupo "Delegar ya" y suéltala esta misma semana — ese es tu primer paso concreto.');
   payload.analisisIA=ia1||'';
+
+  const dEl=$('diagnosticoS7');const dBody=$('diagnosticoS7Body');
+  dEl.classList.add('visible');dotsS7El(dBody);
+  const ia2=await callClaudeS7(
+    'Emprendedora: '+firstName+' — Negocio: '+(biz||'no especificado')+'\n'
+    +'Su matriz de delegación clasificada:\n'
+    +'- Delegar YA ('+counts[1]+'): '+listaDe('1')+'\n'
+    +'- Delegar CON GUÍA/checklist ('+counts[2]+'): '+listaDe('2')+'\n'
+    +'- Hazlo TÚ / enseñar poco a poco ('+counts[3]+'): '+listaDe('3')+'\n'
+    +'- Eliminar/Automatizar/dejar para el final ('+counts[4]+'): '+listaDe('4')+'\n\n'
+    +'Ya le diste una recomendación breve de próximos pasos. Ahora arma un PLAN DE ACCIÓN más completo, en formato de lista numerada de 4 a 6 acciones concretas para las próximas 2 a 4 semanas, que COMPLEMENTEN (no repitan) lo ya dicho.\n'
+    +'Cada acción debe: mencionar una actividad o persona REAL de su matriz cuando aplique, indicar CUÁNDO hacerla (esta semana / próxima semana / este mes), y empezar con un verbo de acción concreto (nunca genérico como "organiza" o "mejora" sin contexto).\n'
+    +'Formato exacto: cada acción en su propia línea, empezando con "1.", "2.", "3.", etc. (usa saltos de línea reales entre cada una).\n'
+    +'Lenguaje cercano pero claro y directo, como una consultora que conoce su negocio. Resalta con **asteriscos** la acción más urgente (solo una).\n'
+    +'Responde SOLO con la lista numerada, sin introducción ni cierre ni texto adicional.'
+  );
+  dBody.innerHTML=renderNegS7(ia2||'1. Arma un **checklist simple** para la primera actividad que vas a delegar con guía — hazlo esta semana.\n2. Agenda 15 minutos con la persona a quien le vas a delegar y explícale el checklist.\n3. La próxima semana, suelta la primera actividad de "Delegar ya" sin supervisión.\n4. Revisa en 2 semanas cómo le fue y ajusta lo que no quedó claro.').replace(/\n/g,'<br>');
+  payload.planAccion=ia2||'';
 
   const ok=await binWrite(BIN_URL,{entries});
   showStatus(ok?'✅ Guardado y análisis generado.':'⚠️ Error al guardar. Revisa tu conexión o el BIN_ID.',ok?'ok':'err');
@@ -787,6 +824,10 @@ function openModal(idx){
   if(e.analisisIA){
     b+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:700;color:var(--coral-d);margin-bottom:6px">🤖 Próximos pasos sugeridos por la IA</div>'+
        '<div class="analisis-poe-s6 visible">'+renderNegS7(esc(e.analisisIA))+'</div></div>';
+  }
+  if(e.planAccion){
+    b+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">📝 Plan de acción del consultor IA</div>'+
+       '<div style="background:#2a1400;border-radius:10px;padding:14px;font-size:12.5px;color:#FFD9C2;line-height:1.7">'+renderNegS7(esc(e.planAccion)).replace(/\n/g,'<br>')+'</div></div>';
   }
   $('modalBody').innerHTML=b;
   $('modalDownloadBtn').onclick=()=>buildMatrizDoc(e);

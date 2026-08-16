@@ -1147,6 +1147,7 @@ async function pollDoc(){
 }
 function startDoc(){pollDoc();docTimer=setInterval(pollDoc,6000);}
 function stopDoc(){clearInterval(docTimer);}
+let modalCommRadarChart=null,modalKilRadarChart=null;
 function fmtFechaHora(ts){
   if(!ts)return'';
   const d=new Date(ts);if(isNaN(d.getTime()))return'';
@@ -1154,14 +1155,105 @@ function fmtFechaHora(ts){
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+', '+pad(d.getHours())+':'+pad(d.getMinutes());
 }
 function openModal(e){
+  const fn=(e.name||'').split(' ')[0]||e.dni;
   $('modalName').textContent=e.name||e.dni;
   $('modalBiz').textContent=(e.biz||'')+(e.ts?' · guardado: '+fmtFechaHora(e.ts):'');
-  const cp=e.commDom?COMM_PROFILES[e.commDom]:null;const kp=e.kilDom?KIL_PROFILES[e.kilDom]:null;
-  const synth=cp&&kp?getSynthesis(e.commDom,e.kilDom,e.name||e.dni):null;
-  $('modalContent').innerHTML=`${cp?`<div style="margin-bottom:12px"><div class="step-label"><span class="sl-dot"></span>Comunicación</div><div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:2px">${COMM_AVATARS[e.commDom]?.char||''} ${cp.name}</div><div style="font-size:12px;color:var(--muted)">${cp.sub}</div></div>`:''}
-  ${kp?`<div style="margin-bottom:12px"><div class="step-label"><span class="sl-dot"></span>Conflictos</div><div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:2px">${KIL_AVATARS[e.kilDom]?.char||''} ${kp.name}</div><div style="font-size:12px;color:var(--muted)">${kp.sub}</div></div>`:''}
-  ${synth?`<div class="synth" style="margin-top:8px"><div class="s-tag">Síntesis · el mismo análisis que vio ${(e.name||'').split(' ')[0]||'ella'}</div><div class="synth-body">${synth.body}</div></div>`:''}`;
+  const cp=e.commDom?COMM_PROFILES[e.commDom]:null;
+  const kp=e.kilDom?KIL_PROFILES[e.kilDom]:null;
+  const cav=e.commDom?COMM_AVATARS[e.commDom]:null;
+  const kav=e.kilDom?KIL_AVATARS[e.kilDom]:null;
+  const cs=e.commScores||{DI:0,VI:0,CO:0,SI:0};
+  const ks=e.kilScores||{COM:0,COL:0,NEG:0,EV:0,CED:0};
+  const synth=(cp&&kp)?getSynthesis(e.commDom,e.kilDom,e.name||fn):null;
+
+  let html='';
+
+  if(!cp&&!kp){
+    $('modalContent').innerHTML='<p style="color:var(--muted);font-size:13px">Aún no completó ningún test.</p>';
+    $('modal').classList.add('on');return;
+  }
+
+  // Mini-cards de resumen
+  html+=`<div style="display:flex;gap:8px;margin-bottom:14px">
+    ${cav?`<div style="flex:1;background:linear-gradient(135deg,#F7F2E4,var(--gold-bg));border:1px solid var(--gold-border);border-radius:12px;padding:10px;text-align:center"><div style="font-size:22px;line-height:1">${cav.char}</div><div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-top:3px">${cp.name}</div></div>`:''}
+    ${kav?`<div style="flex:1;background:#EEF3FB;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:22px;line-height:1">${kav.char}</div><div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-top:3px">${kp.name}</div></div>`:''}
+  </div>`;
+
+  // ANÁLISIS COMPLETO — COMUNICACIÓN
+  if(cp){
+    html+=`<div class="step-label" style="margin-bottom:8px"><span class="sl-dot"></span>Comunicación · análisis completo</div>
+    <div class="coach-block" style="padding:12px;margin-bottom:10px">
+      <div class="coach-text" style="font-size:13px">${cp.desc(fn)}</div>
+      <div class="coach-text" style="margin-top:8px;font-size:12px;line-height:1.55"><strong style="color:var(--gold);font-size:10px;text-transform:uppercase;letter-spacing:1px">¿Con quién comunicarse primero?</strong><br>${buildPartnerText(fn,e.commDom,cs)}</div>
+      <div class="sw-grid" style="margin-top:8px">
+        <div class="sw-item str"><div class="sw-icon">✦</div><div class="sw-title">Lo que suma</div><div class="sw-body">${cp.str(fn).join('<br>')}</div></div>
+        <div class="sw-item wat"><div class="sw-icon">⚡</div><div class="sw-title">A tener en cuenta</div><div class="sw-body">${cp.watch(fn).join('<br>')}</div></div>
+      </div>
+      <div class="coach-tip" style="margin-top:8px;font-size:12px">💡 ${cp.tip(fn)}</div>
+    </div>
+    <div class="card chart-card" style="padding:14px 10px 8px;margin-bottom:14px">
+      <div class="cc-title">Radar de comunicación</div>
+      <div class="cc-sub">Puntaje por estilo</div>
+      <canvas id="modalCommRadar" height="200"></canvas>
+    </div>`;
+  }
+
+  // ANÁLISIS COMPLETO — CONFLICTOS
+  if(kp){
+    html+=`<div class="step-label" style="margin-bottom:8px"><span class="sl-dot"></span>Manejo de conflictos · análisis completo</div>
+    <div class="coach-block" style="padding:12px;margin-bottom:10px">
+      <div class="coach-text" style="font-size:13px">${kp.desc(fn)}</div>
+      <div class="coach-text" style="margin-top:8px;font-size:12px;line-height:1.55"><strong style="color:var(--gold);font-size:10px;text-transform:uppercase;letter-spacing:1px">¿Cuándo usarlo?</strong><br>${kp.when(fn)}</div>
+      <div class="sw-grid" style="margin-top:8px">
+        <div class="sw-item str"><div class="sw-icon">✦</div><div class="sw-title">Lo que suma</div><div class="sw-body">${kp.str(fn).join('<br>')}</div></div>
+        <div class="sw-item wat"><div class="sw-icon">⚡</div><div class="sw-title">A tener en cuenta</div><div class="sw-body">${kp.watch(fn).join('<br>')}</div></div>
+      </div>
+      <div class="coach-tip" style="margin-top:8px;font-size:12px">💡 ${kp.tip(fn)}</div>
+    </div>
+    <div class="card chart-card" style="padding:14px 10px 8px;margin-bottom:10px">
+      <div class="cc-title">Radar de manejo de conflictos</div>
+      <div class="cc-sub">Puntaje por estilo</div>
+      <canvas id="modalKilRadar" height="220"></canvas>
+    </div>
+    <div class="kil-grid-wrap" style="margin-bottom:14px">${buildKilGrid(ks)}</div>`;
+  }
+
+  // SÍNTESIS COMPLETA (idéntica a la que vio la emprendedora)
+  if(synth){
+    html+=`<div class="synth" style="margin-top:4px">
+      <div class="s-tag">Perfil completo de liderazgo</div>
+      <div class="synth-duo">
+        <div class="synth-card comm-card"><div class="sc-label">Cómo comunica</div><span class="sc-char">${cav.char}</span><div class="sc-name">${cp.name}</div></div>
+        <div class="synth-card kil-card"><div class="sc-label">Cómo resuelve</div><span class="sc-char">${kav.char}</span><div class="sc-name">${kp.name}</div></div>
+      </div>
+      <div class="synth-divider">✦ juntas definen cómo lidera ✦</div>
+      <div class="synth-body">${synth.body}</div>
+      <div class="synth-super"><div class="ss-label">★ Su superpoder esta semana</div><div class="ss-text">${synth.superpower}</div></div>
+      <div class="synth-actions">${synth.tips.map(t=>`<div class="synth-action"><span class="sa-arrow">→</span><span>${t}</span></div>`).join('')}</div>
+    </div>`;
+  }
+
+  $('modalContent').innerHTML=html;
   $('modal').classList.add('on');
+
+  try{
+    if(modalCommRadarChart){modalCommRadarChart.destroy();modalCommRadarChart=null;}
+    if(modalKilRadarChart){modalKilRadarChart.destroy();modalKilRadarChart=null;}
+    if(cp&&document.getElementById('modalCommRadar')){
+      const order=['DI','VI','CO','SI'],labels=['Directo','Vigoroso','Considerado','Sistemático'];
+      const vals=order.map(k=>cs[k]||0);
+      modalCommRadarChart=new Chart(document.getElementById('modalCommRadar').getContext('2d'),{type:'radar',
+        data:{labels,datasets:[{data:vals,fill:true,backgroundColor:'rgba(201,151,43,0.18)',borderColor:'rgba(201,151,43,0.9)',pointBackgroundColor:'#C9972B',pointBorderColor:'#fff',pointRadius:4,pointHoverRadius:6,borderWidth:2}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:Math.max(...vals,2)+2,ticks:{stepSize:2,font:{size:9},color:'#6B7688'},pointLabels:{font:{size:11,weight:'600'},color:'#1C2536'},grid:{color:'rgba(0,0,0,0.07)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+    }
+    if(kp&&document.getElementById('modalKilRadar')){
+      const order=['COM','COL','NEG','EV','CED'],labels=['Competitivo','Colaborativo','Negociador','Evitativo','Adaptativo'];
+      const vals=order.map(k=>ks[k]||0);
+      modalKilRadarChart=new Chart(document.getElementById('modalKilRadar').getContext('2d'),{type:'radar',
+        data:{labels,datasets:[{data:vals,fill:true,backgroundColor:'rgba(47,158,95,0.15)',borderColor:'rgba(47,158,95,0.85)',pointBackgroundColor:'#2F9E5F',pointBorderColor:'#fff',pointRadius:4,pointHoverRadius:6,borderWidth:2}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:Math.max(...vals,2)+2,ticks:{stepSize:2,font:{size:9},color:'#6B7688'},pointLabels:{font:{size:10,weight:'600'},color:'#1C2536'},grid:{color:'rgba(0,0,0,0.07)'},angleLines:{color:'rgba(0,0,0,0.1)'}}}}});
+    }
+  }catch(err){}
 }
 function closeModal(){$('modal').classList.remove('on');}
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});

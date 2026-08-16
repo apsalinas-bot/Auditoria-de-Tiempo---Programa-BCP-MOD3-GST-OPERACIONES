@@ -826,11 +826,13 @@ $('wordBtn').addEventListener('click', ()=>{
       if(alt.length>1) items=alt;
     }
     items=items.map(formalLine).filter(l=>l);
-    // Viñetas manuales con sangría francesa: más confiable en Word que <ul><li>,
-    // cuyo list-style a veces no se conserva en la conversión a .doc.
+    // Viñetas manuales con sangría francesa. Se marca mso-list:none en el párrafo y
+    // mso-list:Ignore en el span de la viñeta para que el importador de Word NO
+    // reconozca este patrón como una lista automática y sustituya el carácter •
+    // por un glifo equivocado (bug clásico de Word al abrir HTML con "• texto").
     return items.map(i=>
-      '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0 0 6pt;padding-left:14pt;text-indent:-14pt">'+
-      '&#8226;&nbsp;&nbsp;'+esc(i)+
+      '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0 0 6pt;padding-left:14pt;text-indent:-14pt;mso-list:none">'+
+      '<span style="mso-list:Ignore">&#8226;&nbsp;&nbsp;</span>'+esc(i)+
       '</p>'
     ).join('');
   }
@@ -892,7 +894,7 @@ $('wordBtn').addEventListener('click', ()=>{
   const sipocColW=Math.round(W/5);
   filas+='<tr>'+
     '<td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:none;padding:0;background:#ffffff" width="'+W+'">'+
-    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
+    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:0;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
       '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">PROVEEDORES</td>'+
       '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 7pt;text-align:center;border:0.5pt solid #002A8D" width="'+sipocColW+'">ENTRADAS</td>'+
@@ -929,7 +931,7 @@ $('wordBtn').addEventListener('click', ()=>{
   filas+=banner('IV.  INDICADOR DE GESTIÓN');
   const kpiColW=Math.round(W/3);
   filas+='<tr><td colspan="2" style="font-family:Calibri,Arial,sans-serif;border:none;padding:0;background:#ffffff" width="'+W+'">'+
-    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
+    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:0;width:'+W+'pt" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+
       '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 10pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Indicador</td>'+
       '<td style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:8.5pt;font-weight:bold;padding:8pt 10pt;border:0.5pt solid #002A8D" width="'+kpiColW+'">Meta</td>'+
@@ -960,11 +962,11 @@ $('wordBtn').addEventListener('click', ()=>{
       '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:8pt;padding:4pt 7pt;border-left:0.5pt solid #C8D4E8" width="80">'+v+'</td></tr>';
   }
   const stampW=140;
-  const stampBox='<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+stampW+'pt;border:1pt solid #002A8D" width="'+stampW+'" cellpadding="0" cellspacing="0">'+
+  const stampBox='<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;width:'+stampW+'pt;border:1pt solid #002A8D" width="'+stampW+'" cellpadding="0" cellspacing="0">'+
     stampRow('Código','CP-01')+stampRow('Versión','1.0')+stampRow('Fecha',fecha)+'</table>';
 
   const titleColW=W-stampW-10;
-  const headerBlock='<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;margin-bottom:0" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
+  const headerBlock='<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin-bottom:0" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
     '<td style="font-family:Calibri,Arial,sans-serif;vertical-align:bottom;padding:0;background:#ffffff" width="'+titleColW+'">'+
       '<p style="font-family:Calibri,Arial,sans-serif;font-size:8.5pt;color:#6B7688;letter-spacing:1.5pt;margin:0;text-transform:uppercase">Programa de Impulso Pyme &middot; Mujeres Emprendedoras de Arequipa</p>'+
       '<p style="font-family:Calibri,Arial,sans-serif;color:#002A8D;font-size:19pt;font-weight:bold;margin:5pt 0 0;line-height:1.15">Caracterizaci&oacute;n de Proceso</p>'+
@@ -974,7 +976,7 @@ $('wordBtn').addEventListener('click', ()=>{
     '</tr></table>'+
     // Barra decorativa: línea única (más confiable en Word que un borde de dos colores,
     // que puede fallar a renderizar si el ancho de columna colapsa).
-    '<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;margin:10pt 0 16pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
+    '<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:10pt 0 16pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
     '<td style="font-family:Calibri,Arial,sans-serif;border-bottom:3pt solid #002A8D;font-size:1pt;line-height:1pt;padding:0" width="'+W+'">&nbsp;</td>'+
     '</tr></table>';
 
@@ -983,7 +985,7 @@ $('wordBtn').addEventListener('click', ()=>{
   function histCellD(t,w){ return '<td style="font-family:Calibri,Arial,sans-serif;background:#ffffff;color:#1C2536;font-size:9pt;line-height:1.4;padding:8pt 9pt;border:0.5pt solid #C8D4E8" width="'+w+'">'+t+'</td>'; }
   const hV=55, hF=65, hE=140, hD=W-hV-hF-hE;
   const historial='<p style="font-family:Calibri,Arial,sans-serif;background:#002A8D;color:#fff;font-size:10.5pt;font-weight:bold;padding:8pt 10pt;margin:16pt 0 0;letter-spacing:.4pt">VI.  HISTORIAL DE REVISIONES</p>'+
-    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;width:'+W+'pt;border:0.75pt solid #002A8D" width="'+W+'" cellpadding="0" cellspacing="0">'+
+    '<table style="font-family:Calibri,Arial,sans-serif;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;width:'+W+'pt;border:0.75pt solid #002A8D" width="'+W+'" cellpadding="0" cellspacing="0">'+
     '<tr>'+histCellH('Versi&oacute;n',hV)+histCellH('Fecha',hF)+histCellH('Descripci&oacute;n del cambio',hD)+histCellH('Elaborado por',hE)+'</tr>'+
     '<tr>'+histCellD('1.0',hV)+histCellD(fecha,hF)+histCellD('Versi&oacute;n inicial del documento',hD)+histCellD(esc(currentName),hE)+'</tr>'+
     '</table>';
@@ -997,7 +999,7 @@ $('wordBtn').addEventListener('click', ()=>{
       '<br><span style="font-family:Calibri,Arial,sans-serif;color:#6B7688">Cargo:</span> '+(cargo?esc(cargo):'&nbsp;')+
       '</div></td>';
   }
-  const firmas='<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;margin-top:26pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
+  const firmas='<table style="font-family:Calibri,Arial,sans-serif;width:'+W+'pt;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin-top:26pt" width="'+W+'" cellpadding="0" cellspacing="0"><tr>'+
     firmaCol('Elaborado por','','')+
     firmaCol('Revisado por','','')+
     firmaCol('Aprobado por', currentName, 'Propietaria del negocio')+
@@ -1011,10 +1013,10 @@ $('wordBtn').addEventListener('click', ()=>{
     '<body style="'+S+'">'+
     // Tabla maestra de ancho fijo: todo el documento vive dentro de esta base para que
     // los porcentajes/anchos de las tablas hijas se calculen de forma consistente en Word.
-    '<table style="width:'+W+'pt;border-collapse:collapse;font-family:Calibri,Arial,sans-serif" width="'+W+'" cellpadding="0" cellspacing="0"><tr><td style="padding:0;background:#ffffff">'+
+    '<table style="width:'+W+'pt;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:Calibri,Arial,sans-serif" width="'+W+'" cellpadding="0" cellspacing="0"><tr><td style="padding:0;background:#ffffff">'+
     headerBlock+
     // caracterización: tabla principal con banners de sección
-    '<table style="border-collapse:collapse;width:'+W+'pt;border:0.75pt solid #002A8D;font-family:Calibri,Arial,sans-serif" width="'+W+'" cellpadding="0" cellspacing="0">'+filas+'</table>'+
+    '<table style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;width:'+W+'pt;border:0.75pt solid #002A8D;font-family:Calibri,Arial,sans-serif" width="'+W+'" cellpadding="0" cellspacing="0">'+filas+'</table>'+
     historial+
     firmas+
     // footer

@@ -826,15 +826,20 @@ $('wordBtn').addEventListener('click', ()=>{
       if(alt.length>1) items=alt;
     }
     items=items.map(formalLine).filter(l=>l);
-    // Viñetas manuales con sangría francesa. Se marca mso-list:none en el párrafo y
-    // mso-list:Ignore en el span de la viñeta para que el importador de Word NO
-    // reconozca este patrón como una lista automática y sustituya el carácter •
-    // por un glifo equivocado (bug clásico de Word al abrir HTML con "• texto").
-    return items.map(i=>
-      '<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0 0 6pt;padding-left:14pt;text-indent:-14pt;mso-list:none">'+
-      '<span style="mso-list:Ignore">&#8226;&nbsp;&nbsp;</span>'+esc(i)+
-      '</p>'
+    // Viñetas como tabla de 2 columnas (viñeta | texto) en vez de texto plano
+    // "• texto" al inicio de párrafo: eso es lo que dispara el autoformato de
+    // Word/LibreOffice que detecta un patrón de lista y sustituye el carácter
+    // por el de su propia numeración (a veces con un glifo equivocado, y de forma
+    // inconsistente: normalmente afecta justo al último ítem del bloque). Al ser
+    // una tabla, no hay párrafo que empiece con "•", así que no hay patrón que
+    // detectar: el carácter que se ve es siempre el que se puso, tal cual.
+    const rows=items.map(i=>
+      '<tr>'+
+      '<td style="width:12pt;vertical-align:top;padding:0 3pt 6pt 0;font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5" valign="top">&#8226;</td>'+
+      '<td style="vertical-align:top;padding:0 0 6pt 0;font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5" valign="top">'+esc(i)+'</td>'+
+      '</tr>'
     ).join('');
+    return '<table style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:0" cellpadding="0" cellspacing="0">'+rows+'</table>';
   }
 
   // Fila estándar: etiqueta a la izquierda, contenido a la derecha

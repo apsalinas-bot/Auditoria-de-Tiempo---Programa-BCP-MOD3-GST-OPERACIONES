@@ -306,6 +306,7 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
         <input class="gate-input" type="password" id="dni" inputmode="numeric" placeholder="8 dígitos" autocomplete="off">
         <div class="gate-err" id="dniErr"></div>
         <button class="btn gold full" id="dniBtn" style="margin-top:12px">Entrar ✦</button>
+        <button class="btn ghost full" id="dniResumeBtn" style="margin-top:8px">↺ Traer mi última respuesta guardada</button>
         <button class="btn ghost full" style="margin-top:8px" onclick="closeGates()">Volver</button>
       </div>
       <div class="gate-panel" id="docPw">
@@ -383,6 +384,7 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
         <h3>¿Y cómo manejas los conflictos?</h3>
         <p>Ahora vamos a la segunda parte: 30 afirmaciones para descubrir tu estilo de gestión de conflictos. ¿Lista?</p>
         <button class="btn gold full" onclick="startKilmann()">Iniciar Parte 2 ✦</button>
+        <button class="clearbtn" id="clearCommBtn" style="margin-top:10px">¿Te equivocaste? Borrar y repetir esta parte</button>
       </div>
     </div>
 
@@ -435,7 +437,8 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
         <button class="btn gold full" id="saveBtn">Guardar mi perfil</button>
         <div class="save-status" id="saveStatus"></div>
         <button class="btn navy full" id="pdfBtn" style="margin-top:10px">✦ Descargar mi perfil (PDF)</button>
-        <button class="clearbtn" id="clearBtn">Reiniciar test</button>
+        <button class="clearbtn" id="clearKilBtn">¿Te equivocaste? Borrar y repetir solo esta parte</button>
+        <button class="clearbtn" id="clearBtn">Reiniciar test (borra ambas partes)</button>
       </div>
     </div>
 
@@ -686,6 +689,31 @@ $('dniBtn').onclick=()=>{
   show('scEmp');startCommTest();
 };
 $('dni').addEventListener('keydown',e=>{if(e.key==='Enter')$('dniBtn').click();});
+$('dniResumeBtn').onclick=async()=>{
+  const d=$('dni').value.trim();
+  if(!ROSTER[d]){$('dniErr').textContent='DNI no encontrado en la lista del programa.';return;}
+  currentUser={dni:d,...ROSTER[d]};
+  $('empHi').textContent='Hola, '+currentUser.n.split(' ')[0]+' ✦';
+  $('empBiz').textContent=currentUser.b||'';
+  show('scEmp');
+  $('phaseCard').style.display='none';$('qCard').style.display='none';
+  toast('Buscando tu última respuesta guardada…');
+  const all=await readAll();
+  const mine=all.filter(en=>en.dni===d).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const entry=mine[0];
+  if(!entry||!entry.commScores||!entry.kilScores){
+    toast('No encontramos una respuesta guardada. Vamos a iniciar el test.');
+    startCommTest();
+    return;
+  }
+  commScores={DI:0,VI:0,CO:0,SI:0,...entry.commScores};
+  kilScores={COM:0,COL:0,NEG:0,EV:0,CED:0,...entry.kilScores};
+  results={commDom:entry.commDom,kilDom:entry.kilDom,commScores,kilScores};
+  $('bridgeCard').style.display='none';
+  renderCommResult(entry.commDom);
+  renderKilResult(entry.kilDom,entry.commDom);
+  toast('✅ Trajimos tu última respuesta guardada, '+currentUser.n.split(' ')[0]+'.');
+};
 $('pwBtn').onclick=()=>{if($('pw').value===DOC_PW){show('scDoc');startDoc();}else $('pwErr').textContent='Contraseña incorrecta.';};
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('pwBtn').click();});
 function doLogout(){currentUser=null;phase=1;qi=0;commAns={};kilAns={};commScores={DI:0,VI:0,CO:0,SI:0};kilScores={COM:0,COL:0,NEG:0,EV:0,CED:0};results=null;stopDoc();closeGates();$('commResultSection').style.display='none';$('kilResultSection').style.display='none';$('qCard').style.display='block';$('phaseCard').style.display='block';show('scRole');}
@@ -990,10 +1018,26 @@ $('saveBtn').onclick=async()=>{
 };
 function setSave(m,c){const el=$('saveStatus');el.textContent=m;el.className='save-status '+(c||'');}
 $('pdfBtn').onclick=()=>{if(!results){toast('Completa los tests primero.');return;}window.print();};
+let cArmedComm=false;
+$('clearCommBtn').addEventListener('click',()=>{
+  if(!cArmedComm){cArmedComm=true;$('clearCommBtn').textContent='¿Seguro? Toca de nuevo para repetir';$('clearCommBtn').classList.add('warn');clearTimeout($('clearCommBtn')._t);$('clearCommBtn')._t=setTimeout(()=>{cArmedComm=false;$('clearCommBtn').textContent='¿Te equivocaste? Borrar y repetir esta parte';$('clearCommBtn').classList.remove('warn');},4000);return;}
+  cArmedComm=false;$('clearCommBtn').textContent='¿Te equivocaste? Borrar y repetir esta parte';$('clearCommBtn').classList.remove('warn');
+  startCommTest();
+});
+
+let cArmedKil=false;
+$('clearKilBtn').addEventListener('click',()=>{
+  if(!cArmedKil){cArmedKil=true;$('clearKilBtn').textContent='¿Seguro? Toca de nuevo para repetir';$('clearKilBtn').classList.add('warn');clearTimeout($('clearKilBtn')._t);$('clearKilBtn')._t=setTimeout(()=>{cArmedKil=false;$('clearKilBtn').textContent='¿Te equivocaste? Borrar y repetir solo esta parte';$('clearKilBtn').classList.remove('warn');},4000);return;}
+  cArmedKil=false;$('clearKilBtn').textContent='¿Te equivocaste? Borrar y repetir solo esta parte';$('clearKilBtn').classList.remove('warn');
+  $('kilResultSection').style.display='none';
+  startKilmann();
+});
+
 let cArmed=false;
 $('clearBtn').addEventListener('click',()=>{
-  if(!cArmed){cArmed=true;$('clearBtn').textContent='¿Seguro? Toca de nuevo para reiniciar';$('clearBtn').classList.add('warn');clearTimeout($('clearBtn')._t);$('clearBtn')._t=setTimeout(()=>{cArmed=false;$('clearBtn').textContent='Reiniciar test';$('clearBtn').classList.remove('warn');},4000);return;}
-  cArmed=false;$('clearBtn').textContent='Reiniciar test';$('clearBtn').classList.remove('warn');
+  if(!cArmed){cArmed=true;$('clearBtn').textContent='¿Seguro? Toca de nuevo para reiniciar';$('clearBtn').classList.add('warn');clearTimeout($('clearBtn')._t);$('clearBtn')._t=setTimeout(()=>{cArmed=false;$('clearBtn').textContent='Reiniciar test (borra ambas partes)';$('clearBtn').classList.remove('warn');},4000);return;}
+  cArmed=false;$('clearBtn').textContent='Reiniciar test (borra ambas partes)';$('clearBtn').classList.remove('warn');
+  kilAns={};kilScores={COM:0,COL:0,NEG:0,EV:0,CED:0};
   $('kilResultSection').style.display='none';startCommTest();
 });
 
@@ -1103,13 +1147,20 @@ async function pollDoc(){
 }
 function startDoc(){pollDoc();docTimer=setInterval(pollDoc,6000);}
 function stopDoc(){clearInterval(docTimer);}
+function fmtFechaHora(ts){
+  if(!ts)return'';
+  const d=new Date(ts);if(isNaN(d.getTime()))return'';
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+', '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
 function openModal(e){
-  $('modalName').textContent=e.name||e.dni;$('modalBiz').textContent=e.biz||'';
+  $('modalName').textContent=e.name||e.dni;
+  $('modalBiz').textContent=(e.biz||'')+(e.ts?' · guardado: '+fmtFechaHora(e.ts):'');
   const cp=e.commDom?COMM_PROFILES[e.commDom]:null;const kp=e.kilDom?KIL_PROFILES[e.kilDom]:null;
   const synth=cp&&kp?getSynthesis(e.commDom,e.kilDom,e.name||e.dni):null;
   $('modalContent').innerHTML=`${cp?`<div style="margin-bottom:12px"><div class="step-label"><span class="sl-dot"></span>Comunicación</div><div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:2px">${COMM_AVATARS[e.commDom]?.char||''} ${cp.name}</div><div style="font-size:12px;color:var(--muted)">${cp.sub}</div></div>`:''}
   ${kp?`<div style="margin-bottom:12px"><div class="step-label"><span class="sl-dot"></span>Conflictos</div><div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:2px">${KIL_AVATARS[e.kilDom]?.char||''} ${kp.name}</div><div style="font-size:12px;color:var(--muted)">${kp.sub}</div></div>`:''}
-  ${synth?`<div class="synth" style="margin-top:8px"><div class="s-tag">Síntesis</div><div class="s-body">${synth.body}</div></div>`:''}`;
+  ${synth?`<div class="synth" style="margin-top:8px"><div class="s-tag">Síntesis · el mismo análisis que vio ${(e.name||'').split(' ')[0]||'ella'}</div><div class="synth-body">${synth.body}</div></div>`:''}`;
   $('modal').classList.add('on');
 }
 function closeModal(){$('modal').classList.remove('on');}

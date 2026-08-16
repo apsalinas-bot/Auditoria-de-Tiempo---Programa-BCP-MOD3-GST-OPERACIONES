@@ -70,7 +70,7 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
 .btn.ghost{background:none;border:1.5px solid var(--line);color:var(--muted);box-shadow:none}
 .btn.full{width:100%}
 .btn.sm{padding:9px 14px;font-size:13px;border-radius:9px}
-.logout-row{display:flex;justify-content:flex-end;padding:6px 16px 0}
+.logout-row{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:6px 16px 0}
 .logout-btn{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;font-family:inherit}
 .save-status{font-size:12.5px;text-align:center;margin-top:7px;min-height:18px;font-weight:500}
 .save-status.ok{color:var(--green)}.save-status.err{color:var(--red)}.save-status.loading{color:var(--muted)}
@@ -220,6 +220,29 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
 .doc-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .dkpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow)}
 .dkpi .dn{font-size:28px;font-weight:800;color:var(--navy)}.dkpi .dc{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-top:2px}
+/* DOC KPI GRID (tablero docente ampliado) */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+.kpi-val{font-size:25px;font-weight:800;color:var(--navy);line-height:1.2;min-height:30px;display:flex;align-items:center;justify-content:center}
+.kpi-lbl{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.3;text-transform:uppercase;letter-spacing:.3px;font-weight:700}
+.kpi-box.gold .kpi-val{color:var(--gold)}
+.kpi-box.green .kpi-val{color:var(--green)}
+.kpi-box.red .kpi-val{color:var(--red)}
+.refresh-btn{background:none;border:1.5px solid var(--line);color:var(--navy);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;padding:7px 13px;border-radius:9px;transition:.15s}
+.refresh-btn:hover{border-color:var(--gold);color:var(--gold)}
+.refresh-btn:active{transform:translateY(1px)}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.45}
+.alert-box.green{background:#E6F8EE;border-left:3px solid var(--green);color:#1A5C35}
+.alert-box.amber{background:#FFF8E1;border-left:3px solid var(--amber);color:#7C5A00}
+.alert-box.gold{background:var(--gold-bg);border-left:3px solid var(--gold);color:#7A5A0E}
+.progress-bar-wrap{background:var(--line);border-radius:99px;height:10px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--gold))}
+.section-title{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px}
+.chart-card{padding:16px 14px 10px}
+.chart-card .cc-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.chart-card .cc-sub{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+.chart-card canvas{max-width:100%}
+.pending-chip{background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px;display:inline-block;margin:3px 4px 0 0}
 .emp-row{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:8px;cursor:pointer;transition:.15s}
 .emp-row:hover{border-color:var(--gold-border);background:var(--gold-bg)}
 .emp-row .en{font-size:14px;font-weight:700}.emp-row .eb{font-size:12px;color:var(--muted);margin-top:1px}
@@ -424,21 +447,58 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
   <div class="top">
     <div class="eyebrow">Tablero Docente · En Vivo</div>
     <h1>Perfiles del <em>Aula</em></h1>
-    <p>Liderazgo Personal · Sesión 7</p>
+    <p id="docWelcome">Liderazgo Personal · Sesión 7 · Comunicación y manejo de conflictos</p>
   </div>
   <div class="gold-bar"></div>
-  <div class="logout-row no-print"><button class="logout-btn" onclick="doLogout()">Cerrar sesión</button></div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="pollDoc()">↻ Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+  </div>
   <div class="wrap" id="docSection">
-    <div class="doc-stat">
-      <div class="dkpi"><div class="dn" id="dCount">0</div><div class="dc">Perfiles completados</div></div>
-      <div class="dkpi"><div class="dn" id="dComm" style="font-size:18px">—</div><div class="dc">Comm. más frecuente</div></div>
+
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="dCount">0</div><div class="kpi-lbl">Perfiles completados</div></div>
+      <div class="kpi-box gold"><div class="kpi-val" id="dPct">-</div><div class="kpi-lbl">% del grupo (de 26)</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="dComm" style="font-size:14px">—</div><div class="kpi-lbl">Comunicación más frecuente</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="dKil" style="font-size:14px">—</div><div class="kpi-lbl">Manejo de conflicto más frecuente</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="dCombo" style="font-size:12px">—</div><div class="kpi-lbl">Combinación de perfil más común</div></div>
+      <div class="kpi-box red"><div class="kpi-val" id="dGap" style="font-size:12px">—</div><div class="kpi-lbl">Estilo con menor presencia (brecha)</div></div>
     </div>
+
+    <div class="card" style="padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--navy)">Participación del grupo</span>
+        <span style="font-size:13px;font-weight:700;color:var(--gold)" id="dPctLbl">0 / 26</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="dProgressBar" style="width:0%"></div></div>
+    </div>
+
+    <div id="docAlerts"></div>
+
+    <div class="section-title">Cómo comunica el aula</div>
+    <div class="card chart-card">
+      <div class="cc-title">Distribución de estilos de comunicación</div>
+      <div class="cc-sub">Basado en los perfiles guardados hasta ahora</div>
+      <canvas id="docCommChart" height="210"></canvas>
+    </div>
+
+    <div class="section-title">Cómo maneja el conflicto el aula</div>
+    <div class="card chart-card">
+      <div class="cc-title">Distribución de estilos de manejo de conflictos</div>
+      <div class="cc-sub">Modelo Thomas-Kilmann adaptado</div>
+      <canvas id="docKilChart" height="230"></canvas>
+    </div>
+
+    <div class="section-title">Participantes</div>
     <div class="card">
-      <div class="step-label"><span class="sl-dot"></span>Participantes</div>
       <div id="docList"></div>
     </div>
-    <button class="btn navy full" onclick="window.print()">Exportar PDF</button>
-    <div class="live"><span class="pulse"></span>Actualizando cada 6 s</div>
+
+    <div class="section-title">Pendientes</div>
+    <div id="docPending" class="card" style="padding:14px 18px"></div>
+
+    <button class="btn navy full" style="margin-top:6px" onclick="window.print()">Exportar PDF</button>
+    <div class="live no-print"><span class="pulse"></span>Actualizando cada 6 s</div>
   </div>
 </div>
 
@@ -942,21 +1002,104 @@ async function readAll(){
   if(!s7ok)return localBin;
   try{const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});if(!r.ok)return localBin;const j=await r.json();const rec=j.record!==undefined?j.record:j;return Array.isArray(rec)?rec:(rec.entries||[]);}catch(e){return localBin;}
 }
+const COMM_LABELS={DI:'⚡ Directo',VI:'🔥 Vigoroso',CO:'🤝 Considerado',SI:'📊 Sistemático'};
+const KIL_LABELS={COM:'⚔️ Competitivo',COL:'🤝 Colaborativo',NEG:'⚖️ Negociador',EV:'🚪 Evitativo',CED:'🕊️ Adaptativo'};
+const COMM_CHART_COLORS={DI:'#E85D2F',VI:'#C9972B',CO:'#2F9E5F',SI:'#002A8D'};
+const KIL_CHART_COLORS={COM:'#C2431A',COL:'#2F9E5F',NEG:'#C9972B',EV:'#6B7688',CED:'#002A8D'};
+let docCommChart=null,docKilChart=null;
+
 async function pollDoc(){
-  const all=await readAll();$('dCount').textContent=all.length;
-  const fc={};all.forEach(e=>{if(e.commDom)fc[e.commDom]=(fc[e.commDom]||0)+1;});
-  const top=Object.entries(fc).sort((a,b)=>b[1]-a[1])[0];
-  const labels={DI:'⚡ Directo',VI:'🔥 Vigoroso',CO:'🤝 Considerado',SI:'📊 Sistemático'};
-  $('dComm').textContent=top?labels[top[0]]||top[0]:'—';
+  const btn=document.querySelector('.refresh-btn');if(btn){btn.textContent='↻ Actualizando…';btn.disabled=true;}
+  const all=await readAll();
+  const rosterSize=Object.keys(ROSTER).length;
+  const total=all.length;
+  const pct=rosterSize>0?Math.round(total/rosterSize*100):0;
+
+  // conteos por estilo
+  const fc={DI:0,VI:0,CO:0,SI:0};all.forEach(e=>{if(e.commDom)fc[e.commDom]=(fc[e.commDom]||0)+1;});
+  const kc={COM:0,COL:0,NEG:0,EV:0,CED:0};all.forEach(e=>{if(e.kilDom)kc[e.kilDom]=(kc[e.kilDom]||0)+1;});
+  const topComm=Object.entries(fc).sort((a,b)=>b[1]-a[1])[0];
+  const topKil=Object.entries(kc).sort((a,b)=>b[1]-a[1])[0];
+
+  // combinación más frecuente
+  const cc={};all.forEach(e=>{if(e.commDom&&e.kilDom){const k=e.commDom+'+'+e.kilDom;cc[k]=(cc[k]||0)+1;}});
+  const topCombo=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0];
+
+  // estilo de comunicación con menor presencia en el aula (posible brecha pedagógica)
+  const gapEntry=total>0?Object.entries(fc).sort((a,b)=>a[1]-b[1])[0]:null;
+
+  // KPIs
+  $('dCount').textContent=total;
+  $('dPct').textContent=total>0?pct+'%':'-';
+  $('dComm').textContent=topComm&&topComm[1]>0?COMM_LABELS[topComm[0]]:'—';
+  $('dKil').textContent=topKil&&topKil[1]>0?KIL_LABELS[topKil[0]]:'—';
+  $('dCombo').textContent=topCombo?`${COMM_AVATARS[topCombo[0].split('+')[0]].char} ${COMM_PROFILES[topCombo[0].split('+')[0]].name} + ${KIL_AVATARS[topCombo[0].split('+')[1]].char} ${KIL_PROFILES[topCombo[0].split('+')[1]].name}`:'—';
+  $('dGap').textContent=gapEntry?COMM_LABELS[gapEntry[0]]+' ('+gapEntry[1]+')':'—';
+  $('dPctLbl').textContent=total+' / '+rosterSize;
+  $('dProgressBar').style.width=Math.min(pct,100)+'%';
+  $('docWelcome').textContent=total+' emprendedoras completaron su perfil de comunicación y manejo de conflictos.';
+
+  // alertas
+  let al='';
+  if(total===0)al+='<div class="alert-box amber"><b>Aún no hay perfiles guardados.</b> Pide a las emprendedoras que completen ambos tests y guarden.</div>';
+  else if(pct>=80)al+='<div class="alert-box green"><b>Excelente participación ('+pct+'%).</b> Ya tienes una muestra sólida para cerrar la sesión con el perfil del aula.</div>';
+  else if(pct>0)al+='<div class="alert-box amber"><b>Participación parcial ('+pct+'%).</b> Aún faltan '+(rosterSize-total)+' emprendedoras por completar su perfil.</div>';
+  if(total>=3){
+    const spread=Object.values(fc).filter(v=>v>0).length;
+    if(spread<=2)al+='<div class="alert-box gold"><b>Poca diversidad de estilos de comunicación</b> — el aula se concentra en '+spread+' estilo(s). Útil para adaptar tu forma de explicar en sesión.</div>';
+  }
+  $('docAlerts').innerHTML=al;
+
+  // gráfica de comunicación (dona)
+  const commCtx=document.getElementById('docCommChart');
+  if(commCtx){
+    if(docCommChart)docCommChart.destroy();
+    const order=['DI','VI','CO','SI'];
+    docCommChart=new Chart(commCtx,{type:'doughnut',
+      data:{labels:order.map(k=>COMM_LABELS[k]),datasets:[{data:order.map(k=>fc[k]),backgroundColor:order.map(k=>COMM_CHART_COLORS[k]),borderColor:'#fff',borderWidth:2}]},
+      options:{responsive:true,cutout:'58%',plugins:{legend:{position:'bottom',labels:{font:{size:11,weight:'600'},color:'#1C2536',padding:12}},
+        tooltip:{callbacks:{label:(ctx)=>{const v=ctx.parsed;const pctL=total>0?Math.round(v/total*100):0;return ` ${v} emprendedora(s) · ${pctL}%`;}}}}}
+    });
+  }
+
+  // gráfica de conflicto (barras horizontales)
+  const kilCtx=document.getElementById('docKilChart');
+  if(kilCtx){
+    if(docKilChart)docKilChart.destroy();
+    const order=['COM','COL','NEG','EV','CED'];
+    docKilChart=new Chart(kilCtx,{type:'bar',
+      data:{labels:order.map(k=>KIL_LABELS[k]),datasets:[{data:order.map(k=>kc[k]),backgroundColor:order.map(k=>KIL_CHART_COLORS[k]),borderRadius:6,barThickness:22}]},
+      options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=>{const v=ctx.parsed.x;const pctL=total>0?Math.round(v/total*100):0;return ` ${v} emprendedora(s) · ${pctL}%`;}}}},
+        scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:10},color:'#6B7688'},grid:{color:'rgba(0,0,0,0.06)'}},
+          y:{ticks:{font:{size:11,weight:'600'},color:'#1C2536'},grid:{display:false}}}}
+    });
+  }
+
+  // lista de participantes
   const list=$('docList');list.innerHTML='';
-  if(!all.length){list.innerHTML='<p style="color:var(--muted);font-size:13px;font-style:italic;padding:8px 0">Sin perfiles aún.</p>';return;}
-  all.sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(e=>{
-    const cp=e.commDom?COMM_PROFILES[e.commDom]:null;const kp=e.kilDom?KIL_PROFILES[e.kilDom]:null;
-    const row=document.createElement('div');row.className='emp-row';
-    row.innerHTML=`<div class="en">${e.name||e.dni}</div><div class="eb">${e.biz||'—'}</div>
-      <div style="margin-top:6px">${cp?`<span class="style-pill sp-${e.commDom.toLowerCase()}">${COMM_AVATARS[e.commDom]?.char||''} ${cp.name}</span>`:''}${kp?`<span class="style-pill sp-${e.kilDom.toLowerCase()}">${KIL_AVATARS[e.kilDom]?.char||''} ${kp.name}</span>`:''}</div>`;
-    row.onclick=()=>openModal(e);list.appendChild(row);
-  });
+  if(!all.length){list.innerHTML='<p style="color:var(--muted);font-size:13px;font-style:italic;padding:8px 0">Sin perfiles aún.</p>';}
+  else{
+    all.sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(e=>{
+      const cp=e.commDom?COMM_PROFILES[e.commDom]:null;const kp=e.kilDom?KIL_PROFILES[e.kilDom]:null;
+      const row=document.createElement('div');row.className='emp-row';
+      row.innerHTML=`<div class="en">${e.name||e.dni}</div><div class="eb">${e.biz||'—'}</div>
+        <div style="margin-top:6px">${cp?`<span class="style-pill sp-${e.commDom.toLowerCase()}">${COMM_AVATARS[e.commDom]?.char||''} ${cp.name}</span>`:''}${kp?`<span class="style-pill sp-${e.kilDom.toLowerCase()}">${KIL_AVATARS[e.kilDom]?.char||''} ${kp.name}</span>`:''}</div>`;
+      row.onclick=()=>openModal(e);list.appendChild(row);
+    });
+  }
+
+  // pendientes
+  const reg=new Set(all.map(e=>e.dni));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  if(pend.length===0)$('docPending').innerHTML='<div class="alert-box green"><b>¡Todas completaron su perfil!</b></div>';
+  else{
+    let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">'+pend.length+' sin guardar:</p><div>';
+    pend.forEach(([,v])=>{ph+='<span class="pending-chip">'+(v.n||'').split(' ')[0]+'</span>';});
+    ph+='</div>';$('docPending').innerHTML=ph;
+  }
+
+  if(btn){btn.textContent='↻ Actualizar';btn.disabled=false;}
 }
 function startDoc(){pollDoc();docTimer=setInterval(pollDoc,6000);}
 function stopDoc(){clearInterval(docTimer);}

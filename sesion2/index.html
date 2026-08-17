@@ -42,6 +42,7 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
 .rc-icon.emp{background:var(--orange)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--teal)}
 .rc-texts{flex:1}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
@@ -169,6 +170,16 @@ input[type=text]:focus{outline:none;border-color:var(--navy)}
 .emp-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 .emp-table tr:hover td{background:#F4F7FF;cursor:pointer}
 .emp-name-cell{font-weight:600;color:var(--navy);font-size:13px}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-emp-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink)}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin:1px}
 .tag.green{background:#E6F8EE;color:var(--green)}
 .tag.amber{background:#FFF8E1;color:#B45309}
@@ -228,6 +239,7 @@ input[type=password]{-webkit-appearance:none}
 const BIN_ID     = '6a6ab4a3f5f4af5e29d3bc50';
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOCENTE_PW = '70003700';
+const ADMIN_DNI   = '70003700';
 </script>
 
 <script>
@@ -262,6 +274,23 @@ const ROSTER = {
 };
 // Helper: nombre completo para login
 function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
+// Dado un array de entries, retorna la versión más reciente para un DNI (o null)
+function latestEntryFor(entries, dni){
+  const mine = entries.filter(e => e.dni === dni);
+  if (!mine.length) return null;
+  // >= para que, en caso de empate de timestamp, gane el guardado más reciente en orden de inserción
+  return mine.reduce((a,b) => new Date(b.savedAt||0) >= new Date(a.savedAt||0) ? b : a);
+}
+// Dado un array de entries con posibles múltiples versiones por DNI, retorna
+// solo la versión más reciente de cada DNI (para estadísticas/tablero docente).
+function latestPerDni(entries){
+  const map = new Map();
+  entries.forEach(e => {
+    const prev = map.get(e.dni);
+    if (!prev || new Date(e.savedAt||0) >= new Date(prev.savedAt||0)) map.set(e.dni, e);
+  });
+  return Array.from(map.values());
+}
 // Lista de DNIs solo emprendedoras (excluye control)
 const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
 </script>
@@ -292,6 +321,12 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
             <span class="rc-sub">Ver el tablero global del aula</span>
           </div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div class="rc-texts">
+            <span class="rc-label">Administrador</span>
+          </div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contraseña)</span>
@@ -311,6 +346,16 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+        <button class="gate-back" onclick="resetRole()">Volver</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 dígitos" maxlength="8" inputmode="numeric" style="padding-right:46px;letter-spacing:4px">
+          <button type="button" id="toggleAdmin" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
         <button class="gate-back" onclick="resetRole()">Volver</button>
       </div>
     </div>
@@ -417,6 +462,29 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
   </div>
 </div>
 
+<!-- VISTA ADMINISTRADOR -->
+<div id="adminView" style="display:none">
+  <div class="top doc-top">
+    <div class="eyebrow">Administrador · Módulo 3 · Sesión 2</div>
+    <h1>Descarga de <span>Flujogramas</span></h1>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box orange"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODOS los PDFs (todas las emprendedoras)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
+    <div class="foot" style="margin-top:16px">Programa BCP · UCSP–CENDES · Módulo 3</div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div id="flowModal">
   <div class="modal-box">
@@ -466,9 +534,11 @@ async function binWrite(data) {
 function pickRole(role) {
   $('cardEmp').classList.toggle('selected', role==='emp');
   $('cardDoc').classList.toggle('selected', role==='doc');
+  $('cardAdmin').classList.toggle('selected', role==='admin');
   $('panelEmp').classList.toggle('on', role==='emp');
   $('panelDoc').classList.toggle('on', role==='doc');
-  setTimeout(() => { const inp = role==='emp' ? $('inputEmp') : $('inputDoc'); if(inp) inp.focus(); }, 50);
+  $('panelAdmin').classList.toggle('on', role==='admin');
+  setTimeout(() => { const inp = role==='emp' ? $('inputEmp') : role==='doc' ? $('inputDoc') : $('inputAdmin'); if(inp) inp.focus(); }, 50);
 }
 function resetRole() { pickRole('emp'); }
 
@@ -490,14 +560,23 @@ function doLoginDoc() {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role:'doc' }));
   showDocView();
 }
+function doLoginAdmin() {
+  const val = $('inputAdmin').value.trim();
+  $('errAdmin').textContent = '';
+  if (!val) { $('errAdmin').textContent = 'Ingresa tu DNI.'; return; }
+  if (val !== ADMIN_DNI) { $('errAdmin').textContent = 'DNI de administrador incorrecto.'; return; }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ role:'admin' }));
+  showAdminView();
+}
 function doLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   currentDNI = null; currentName = null;
   $('gateScreen').style.display = '';
   $('empView').style.display    = 'none';
   $('docView').style.display    = 'none';
-  $('inputEmp').value = ''; $('inputDoc').value = '';
-  $('errEmp').textContent = ''; $('errDoc').textContent = '';
+  $('adminView').style.display  = 'none';
+  $('inputEmp').value = ''; $('inputDoc').value = ''; $('inputAdmin').value = '';
+  $('errEmp').textContent = ''; $('errDoc').textContent = ''; $('errAdmin').textContent = '';
   pickRole('emp');
 }
 function tryResume() {
@@ -505,6 +584,7 @@ function tryResume() {
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
     if (!s) return;
     if (s.role === 'doc') showDocView();
+    else if (s.role === 'admin') showAdminView();
     else if (s.role === 'emp' && ROSTER[s.dni]) {
       currentDNI = s.dni; currentName = s.name || (ROSTER[s.dni] ? ROSTER[s.dni].n : s.dni);
       showEmpView();
@@ -528,7 +608,7 @@ async function showEmpView() {
     const rec = await binRead();
     if (rec) {
       const entries = Array.isArray(rec.entries) ? rec.entries : [];
-      const entry   = entries.find(e => e.dni === currentDNI);
+      const entry   = latestEntryFor(entries, currentDNI);
       if (entry && Array.isArray(entry.steps) && entry.steps.length > 0) {
         steps  = entry.steps;
         arrows = Array.isArray(entry.arrows) ? entry.arrows : [];
@@ -548,6 +628,13 @@ function showDocView() {
   $('empView').style.display    = 'none';
   $('docView').style.display    = '';
   loadDocData();
+}
+function showAdminView() {
+  $('gateScreen').style.display = 'none';
+  $('empView').style.display    = 'none';
+  $('docView').style.display    = 'none';
+  $('adminView').style.display  = '';
+  loadAdminData();
 }
 
 // ── LOCAL STORAGE ────────────────────────────────────────────────
@@ -870,6 +957,7 @@ $('cancelEditBtn').addEventListener('click', stopEditing);
 $('typeRow').querySelectorAll('.type-chip').forEach(c => c.addEventListener('click', () => selectType(c.dataset.type)));
 $('inputEmp').addEventListener('keydown', e => { if(e.key==='Enter') doLoginEmp(); });
 $('inputDoc').addEventListener('keydown', e => { if(e.key==='Enter') doLoginDoc(); });
+$('inputAdmin').addEventListener('keydown', e => { if(e.key==='Enter') doLoginAdmin(); });
 $('addOptionBtn').addEventListener('click', addOptionInput);
 
 $('flowWrap').addEventListener('click', e => {
@@ -1138,14 +1226,11 @@ $('flowWrap').addEventListener('blur', e => {
 }, true);
 
 // ── GUARDAR EN NUBE ──────────────────────────────────────────────
-$('printBtn').addEventListener('click', async () => {
-  const btn = $('printBtn');
-  const orig = btn.textContent;
-  btn.textContent = 'Generando PDF...';
-  btn.disabled = true;
-
+// Genera y descarga el PDF del flujo (usa los steps/arrows GLOBALES actuales).
+// Reutilizable tanto por el botón de la emprendedora como por el panel de administrador.
+async function exportFlowToPdf(processName, personName) {
+    processName = processName || 'Mi proceso';
   try {
-    const processName = $('processNameInput').value.trim() || 'Mi proceso';
     const flowEl = $('flowWrap');
 
     // Ocultar controles temporalmente
@@ -1169,7 +1254,7 @@ $('printBtn').addEventListener('click', async () => {
     hdr.innerHTML =
       '<div style="font-size:9px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
       '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
-      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(currentName) + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName||currentName||'') + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
     wrapper.appendChild(hdr);
 
     // Clonar el flujo completo
@@ -1239,12 +1324,21 @@ $('printBtn').addEventListener('click', async () => {
 
     const safeName = processName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]/g,'').trim().slice(0,40) || 'flujo';
     pdf.save('Flujo_' + safeName + '.pdf');
+    return true;
 
   } catch(err) {
     console.error('PDF error:', err);
-    alert('No se pudo generar el PDF. Intenta de nuevo.');
+    return false;
   }
+}
 
+$('printBtn').addEventListener('click', async () => {
+  const btn = $('printBtn');
+  const orig = btn.textContent;
+  btn.textContent = 'Generando PDF...';
+  btn.disabled = true;
+  const ok = await exportFlowToPdf($('processNameInput').value.trim() || 'Mi proceso', currentName);
+  if (!ok) alert('No se pudo generar el PDF. Intenta de nuevo.');
   btn.textContent = orig;
   btn.disabled = false;
 });
@@ -1256,6 +1350,7 @@ $('saveCloudBtn').addEventListener('click', async () => {
   if (rec === null) { showStatus('Error de conexión. Verifica tu internet.', 'err'); return; }
   const entries = Array.isArray(rec.entries) ? rec.entries : [];
   const payload = {
+    id: currentDNI + '_' + Date.now(),
     dni: currentDNI, name: currentName,
     processName: $('processNameInput').value.trim() || '(sin nombre)',
     steps, arrows,
@@ -1264,8 +1359,8 @@ $('saveCloudBtn').addEventListener('click', async () => {
     hasOval:     steps.some(s => s.type==='oval'),
     savedAt:     new Date().toISOString()
   };
-  const idx = entries.findIndex(e => e.dni===currentDNI);
-  if (idx >= 0) entries[idx] = payload; else entries.push(payload);
+  // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
+  entries.push(payload);
   const ok = await binWrite({ entries });
   showStatus(
     ok ? '✅ Flujograma guardado correctamente.' : '⚠️ Error al guardar. Intenta de nuevo.',
@@ -1285,7 +1380,7 @@ $('loadCloudBtn').addEventListener('click', async () => {
   const rec = await binRead();
   if (rec === null) { showStatus('Error de conexión. Verifica tu internet.', 'err'); return; }
   const entries = Array.isArray(rec.entries) ? rec.entries : [];
-  const entry   = entries.find(e => e.dni === currentDNI);
+  const entry   = latestEntryFor(entries, currentDNI);
   if (!entry) {
     showStatus('No encontramos un flujo guardado para tu DNI. Empieza a construir el tuyo.', 'err');
     return;
@@ -1340,7 +1435,9 @@ async function loadDocData() {
     return;
   }
 
-  docEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  // El tablero docente muestra 1 fila por emprendedora (su versión más reciente),
+  // aunque en el BIN puedan existir múltiples versiones guardadas por esa persona.
+  docEntries = latestPerDni(Array.isArray(rec.entries) ? rec.entries : []);
 
   // Separar entradas de control vs emprendedoras reales
   const ctrlDnis = new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
@@ -1454,6 +1551,149 @@ async function loadDocData() {
 }
 
 // Modal flujo emprendedora
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────
+function fmtDateTime(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d)) return '-';
+  return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}) + ', ' +
+         d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+}
+async function loadAdminData() {
+  $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent = '';
+  const rec = await binRead();
+  if (rec === null) {
+    $('adminTableBody').innerHTML =
+      '<div class="alert-box amber"><b>Error de conexión al servidor.</b></div>';
+    return;
+  }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+
+  // Agrupar TODAS las versiones por DNI (para admin sí importan todas, no solo la última)
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if (!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list => list.sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0)));
+
+  const withData = ROSTER_EMP_DNIS.filter(dni => byDni.has(dni));
+  const totalVersions = allEntries.filter(e => ROSTER[e.dni] && !ROSTER[e.dni].control).length;
+
+  $('kAdminEmp').textContent = withData.length;
+  $('kAdminVer').textContent = totalVersions;
+
+  // Mostrar TODAS las emprendedoras del roster (con o sin guardado), ordenadas por nombre
+  const allEmpDnis = ROSTER_EMP_DNIS.slice().sort((a,b) => (ROSTER[a].n||'').localeCompare(ROSTER[b].n||''));
+
+  let html = '';
+  allEmpDnis.forEach(dni => {
+    const versions = byDni.get(dni) || [];
+    const rosterEntry = ROSTER[dni];
+
+    let versionListHtml = '';
+    if (versions.length > 0) {
+      versionListHtml = '<div class="admin-version-list">' +
+        versions.map((v,i) =>
+          '<div class="admin-version-item">' +
+            '<span class="v-num">v'+(i+1)+'</span>' +
+            '<span class="v-name">'+esc(v.processName||'(sin nombre)')+'</span>' +
+            '<span class="v-date">'+fmtDateTime(v.savedAt)+'</span>' +
+          '</div>'
+        ).join('') +
+        '</div>';
+    } else {
+      versionListHtml = '<div class="admin-empty-versions">Sin flujos guardados todavía.</div>';
+    }
+
+    html +=
+      '<div class="admin-emp-card">' +
+      '<div class="admin-emp-head">' +
+        '<div><div class="admin-emp-name">'+esc(rosterEntry.n)+'</div>'+
+          (rosterEntry.b ? '<div class="admin-emp-biz">'+esc(rosterEntry.b)+'</div>' : '')+'</div>'+
+        '<span class="tag '+(versions.length>0?'green':'gray')+'">'+versions.length+' versión'+(versions.length===1?'':'es')+'</span>'+
+      '</div>' +
+      versionListHtml +
+      (versions.length>0
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(rosterEntry.n.split(' ')[0])+' ('+versions.length+' PDF'+(versions.length===1?'':'s')+')</button>'
+        : '') +
+      '</div>';
+  });
+  $('adminTableBody').innerHTML = html;
+}
+
+// Descarga TODAS las versiones guardadas de UNA emprendedora (un PDF por versión).
+async function downloadVersionsFor(dni) {
+  const rec = await binRead();
+  if (!rec) { alert('Error de conexión.'); return; }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  const versions = allEntries.filter(e => e.dni === dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+  if (!versions.length) { alert('Esta emprendedora no tiene flujos guardados.'); return; }
+
+  const savedSteps = steps, savedArrows = arrows; // preservar estado (admin no tiene flujo propio)
+  const personName = rosterName(dni) || dni;
+  $('adminBulkStatus').className = 'save-status loading';
+  for (let i = 0; i < versions.length; i++) {
+    const v = versions[i];
+    $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' — '+personName+'...';
+    steps  = Array.isArray(v.steps)  ? v.steps  : [];
+    arrows = Array.isArray(v.arrows) ? v.arrows : [];
+    renderFlow();
+    await new Promise(r => setTimeout(r, 200)); // dejar que el DOM se asiente antes de capturar
+    const label = versions.length > 1 ? (' - v' + (i+1)) : '';
+    await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName);
+    await new Promise(r => setTimeout(r, 500)); // pausa entre descargas para que el navegador no las bloquee
+  }
+  steps = savedSteps; arrows = savedArrows; renderFlow();
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '✅ '+versions.length+' PDF(s) descargado(s) de '+personName+'.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
+}
+
+// Descarga TODAS las versiones de TODAS las emprendedoras registradas.
+async function downloadAllVersions() {
+  const rec = await binRead();
+  if (!rec) { alert('Error de conexión.'); return; }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if (!ROSTER[e.dni] || ROSTER[e.dni].control) return; // saltar controles
+    if (!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  if (byDni.size === 0) { alert('Aún no hay flujos guardados.'); return; }
+  if (!confirm('Se descargarán los PDFs de '+byDni.size+' emprendedora(s). Esto puede tomar un momento. ¿Continuar?')) return;
+
+  const savedSteps = steps, savedArrows = arrows;
+  const btn = $('adminDownloadAllBtn');
+  btn.disabled = true;
+  const dnis = Array.from(byDni.keys());
+  for (let d = 0; d < dnis.length; d++) {
+    const dni = dnis[d];
+    const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+    const personName = rosterName(dni) || dni;
+    for (let i = 0; i < versions.length; i++) {
+      const v = versions[i];
+      $('adminBulkStatus').className = 'save-status loading';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' — PDF '+(i+1)+'/'+versions.length+' — '+personName+'...';
+      steps  = Array.isArray(v.steps)  ? v.steps  : [];
+      arrows = Array.isArray(v.arrows) ? v.arrows : [];
+      renderFlow();
+      await new Promise(r => setTimeout(r, 200));
+      const label = versions.length > 1 ? (' - v' + (i+1)) : '';
+      await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName);
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+  steps = savedSteps; arrows = savedArrows; renderFlow();
+  btn.disabled = false;
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '✅ Descarga completa de '+dnis.length+' emprendedora(s).';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
+}
+$('adminDownloadAllBtn').addEventListener('click', downloadAllVersions);
+
 function openModal(source, idx) {
   const ctrlDnis2 = new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
   const empEnt = docEntries.filter(e=>!ctrlDnis2.has(e.dni));
@@ -1555,6 +1795,7 @@ document.addEventListener('click', e => {
 pickRole('emp');
 setupEye('toggleDni', 'inputEmp');
 setupEye('toggleDoc', 'inputDoc');
+setupEye('toggleAdmin', 'inputAdmin');
 tryResume();
 </script>
 </body>

@@ -1468,12 +1468,27 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
         if (naiveCut < imgH) {
           for (const z of zonesPx) {
             const partido = naiveCut > z.top && naiveCut < z.bottom;
-            // Solo se puede subir el corte si el bloque empieza dentro de esta página;
-            // si el bloque ya venía de antes y es más alto que una página, se acepta
-            // el corte para no entrar en bucle infinito.
+            // Solo se puede subir el corte si el bloque empieza dentro de esta página.
             const sePuedeSubir = z.top > yOffset;
             if (partido && sePuedeSubir && z.top < cut) {
               cut = z.top;
+            }
+          }
+        }
+
+        // Segunda capa de seguridad: si el bloque que arranca en este yOffset es MÁS ALTO
+        // que una página completa, no hay corte válido posible — en ese caso se lleva el
+        // bloque entero a esta página y se reduce la escala para que quepa completo,
+        // en vez de partirlo. Así ningún bloque se corta jamás, sin importar su tamaño.
+        let forcedFit = false;
+        if (cut === naiveCut && naiveCut < imgH) {
+          for (const z of zonesPx) {
+            const arrancaAqui = Math.abs(z.top - yOffset) < 2;
+            const noCabe = (z.bottom - z.top) > pageHpx;
+            if (arrancaAqui && noCabe && naiveCut < z.bottom) {
+              cut = Math.min(z.bottom, imgH);
+              forcedFit = true;
+              break;
             }
           }
         }
@@ -1482,8 +1497,16 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
         sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
-        const sliceScaledH = (sliceH / imgW) * usableW;
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
+        // Anchura de dibujo: normalmente ocupa todo el ancho útil, pero si se forzó
+        // que quepa un bloque sobredimensionado, se reduce proporcionalmente.
+        let drawW = usableW;
+        let drawH = (sliceH / imgW) * usableW;
+        if (forcedFit && drawH > usableH) {
+          const factor = usableH / drawH;
+          drawW = usableW * factor;
+          drawH = usableH;
+        }
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, drawW, drawH);
         yOffset += sliceH; pageNum++;
       }
     }

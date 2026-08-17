@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -268,6 +269,7 @@ const ROSTER = {
   "74250220":{n:"Beatriz Palacios Espinoza",          b:"BCP",     control:true}
 };
 const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
+function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
 </script>
 
 <!-- ════ GATE ════ -->
@@ -1335,7 +1337,10 @@ async function loadDocData(){
 
 // Genera y descarga el PDF de UN diagnóstico (usa el estado GLOBAL actual:
 // semSteps/causes/symptomInput/currentName). Reutilizable por admin.
-async function exportDiagnosticoToPdf(personName, versionLabel) {
+// Si asBlob=true retorna {blob, filename} en vez de descargar directamente,
+// para poder empaquetar varios PDFs en un solo ZIP (evita que el navegador
+// bloquee múltiples descargas automáticas disparadas desde un mismo clic).
+async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
   try {
     const symptom = $('symptomInput').value.trim() || 'Sin s\u00edntoma';
 
@@ -1438,11 +1443,15 @@ async function exportDiagnosticoToPdf(personName, versionLabel) {
 
     const safeName = (personName||'diagnostico').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'diagnostico';
     const safeVer = versionLabel ? '_'+versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
-    pdf.save('Diagnostico_' + safeName + safeVer + '.pdf');
+    const filename = 'Diagnostico_' + safeName + safeVer + '.pdf';
+    if (asBlob) {
+      return { blob: pdf.output('blob'), filename };
+    }
+    pdf.save(filename);
     return true;
   } catch(err) {
     console.error('PDF error:', err);
-    return false;
+    return asBlob ? null : false;
   }
 }
 
@@ -1495,7 +1504,7 @@ async function loadAdminData() {
       '<div class="admin-emp-card">' +
       '<div class="admin-emp-head">' +
         '<div><div class="admin-emp-name">'+esc(rosterEntry.n)+'</div></div>'+
-        '<span class="tag '+(versions.length>0?'green':'gray')+'">'+versions.length+' versi\u00f3n'+(versions.length===1?'':'es')+'</span>'+
+        '<span class="tag '+(versions.length>0?'green':'gray')+'">'+versions.length+' '+(versions.length===1?'versi\u00f3n':'versiones')+'</span>'+
       '</div>' +
       versionListHtml +
       (versions.length>0
@@ -1543,7 +1552,19 @@ function loadEntryIntoState(v) {
   }
 }
 
-// Descarga TODAS las versiones guardadas de UNA emprendedora (un PDF por versión).
+// Dispara UNA sola descarga de un blob (PDF suelto o ZIP empaquetado).
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// Descarga TODAS las versiones guardadas de UNA emprendedora.
+// Si hay más de 1 versión, se empaquetan en un ZIP (1 sola descarga: los navegadores
+// bloquean varias descargas automáticas seguidas disparadas desde un mismo clic).
 async function downloadVersionsFor(dni) {
   const rec = await binRead();
   if (!rec) { alert('Error de conexi\u00f3n.'); return; }
@@ -1553,22 +1574,39 @@ async function downloadVersionsFor(dni) {
 
   const personName = rosterName(dni) || dni;
   $('adminBulkStatus').className = 'save-status loading';
+
+  const zip = versions.length > 1 ? new JSZip() : null;
+  let singleResult = null;
+
   for (let i = 0; i < versions.length; i++) {
     const v = versions[i];
     $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
     loadEntryIntoState(v);
     await new Promise(r => setTimeout(r, 200));
     const label = versions.length > 1 ? ('v' + (i+1)) : '';
-    await exportDiagnosticoToPdf(personName, label);
-    await new Promise(r => setTimeout(r, 500));
+    const result = await exportDiagnosticoToPdf(personName, label, true);
+    if (result && result.blob) {
+      if (zip) zip.file(result.filename, result.blob);
+      else singleResult = result;
+    }
   }
   resetAdminExportState();
+
+  const safePerson = personName.replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'emprendedora';
+  if (zip) {
+    $('adminBulkStatus').textContent = 'Empaquetando '+versions.length+' PDFs...';
+    const content = await zip.generateAsync({ type: 'blob' });
+    triggerBlobDownload(content, 'Diagnosticos_' + safePerson + '.zip');
+  } else if (singleResult) {
+    triggerBlobDownload(singleResult.blob, singleResult.filename);
+  }
+
   $('adminBulkStatus').className = 'save-status ok';
   $('adminBulkStatus').textContent = '\u2705 '+versions.length+' PDF(s) descargado(s) de '+personName+'.';
   setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
 }
 
-// Descarga TODAS las versiones de TODAS las emprendedoras registradas.
+// Descarga TODAS las versiones de TODAS las emprendedoras registradas, en UN solo ZIP.
 async function downloadAllVersions() {
   const rec = await binRead();
   if (!rec) { alert('Error de conexi\u00f3n.'); return; }
@@ -1580,15 +1618,19 @@ async function downloadAllVersions() {
     byDni.get(e.dni).push(e);
   });
   if (byDni.size === 0) { alert('A\u00fan no hay diagn\u00f3sticos guardados.'); return; }
-  if (!confirm('Se descargar\u00e1n los PDFs de '+byDni.size+' emprendedora(s). Esto puede tomar un momento. \u00bfContinuar?')) return;
+  if (!confirm('Se descargar\u00e1n los PDFs de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?')) return;
 
   const btn = $('adminDownloadAllBtn');
   btn.disabled = true;
   const dnis = Array.from(byDni.keys());
+  const zip = new JSZip();
+
   for (let d = 0; d < dnis.length; d++) {
     const dni = dnis[d];
     const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
     const personName = rosterName(dni) || dni;
+    const safePerson = personName.replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'emprendedora';
+    const folder = zip.folder(safePerson);
     for (let i = 0; i < versions.length; i++) {
       const v = versions[i];
       $('adminBulkStatus').className = 'save-status loading';
@@ -1596,11 +1638,16 @@ async function downloadAllVersions() {
       loadEntryIntoState(v);
       await new Promise(r => setTimeout(r, 200));
       const label = versions.length > 1 ? ('v' + (i+1)) : '';
-      await exportDiagnosticoToPdf(personName, label);
-      await new Promise(r => setTimeout(r, 500));
+      const result = await exportDiagnosticoToPdf(personName, label, true);
+      if (result && result.blob) folder.file(result.filename, result.blob);
     }
   }
   resetAdminExportState();
+
+  $('adminBulkStatus').textContent = 'Empaquetando todos los PDFs en un ZIP...';
+  const content = await zip.generateAsync({ type: 'blob' });
+  triggerBlobDownload(content, 'Todos_los_diagnosticos_S3.zip');
+
   btn.disabled = false;
   $('adminBulkStatus').className = 'save-status ok';
   $('adminBulkStatus').textContent = '\u2705 Descarga completa de '+dnis.length+' emprendedora(s).';

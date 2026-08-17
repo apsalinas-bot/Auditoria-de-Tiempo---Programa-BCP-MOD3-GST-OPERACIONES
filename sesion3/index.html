@@ -1335,194 +1335,327 @@ async function loadDocData(){
 
 // ── PANEL ADMINISTRADOR ─────────────────────────────────────────
 
+// ════════════════════════════════════════════════════════════════
+//  EXPORTADOR PDF · V7 "flujo por bloques"
+//  ------------------------------------------------------------
+//  Problema que resuelve (y previene a futuro):
+//  1) html2canvas NO rasteriza el DOM original: clona el documento dentro de
+//     un iframe y dibuja ESE clon. Si se le pasa `height` medido en el
+//     documento original, y el clon termina con otra altura (típico cuando la
+//     tipografía web —Rubik— aún no cargó al medir), el canvas queda con
+//     espacio en blanco al final o, peor, recorta la última caja. Además, los
+//     offsets de cada bloque quedan desplazados y los cortes de página caen
+//     dentro de las tarjetas. Eso es exactamente lo que cortaba el bloque de
+//     diagnóstico ("Sugerencia de consultor").
+//     → Solución: NO se pasa width/height (html2canvas mide el clon) y los
+//       límites de cada bloque se miden DENTRO del clon vía `onclone`, que se
+//       ejecuta después de `document.fonts.ready` del iframe. Medición y
+//       render quedan en el mismo sistema de coordenadas, siempre.
+//  2) El corte de página se calcula con un planificador de flujo: se arma la
+//     lista de "bloques atómicos" (fila del semáforo, tarjeta 6M, espina,
+//     análisis, sugerencia) y la página SIEMPRE corta en un punto que no cae
+//     dentro de ninguno. Si un bloque no cabe ni en una página entera, se
+//     lleva completo y esa página se reduce para que entre sin recortarse.
+//  3) Compactación: si la última página quedaría casi vacía, se reduce el
+//     conjunto hasta un 12% para eliminarla. El espacio se adapta al
+//     contenido real del diagnóstico y todas las páginas quedan uniformes.
+//
+//  Para proteger un bloque NUEVO en el futuro: basta agregar su clase a
+//  PDF_ATOM_SELECTOR o ponerle el atributo data-pdf-atom en el HTML.
+//  No hay que tocar el algoritmo.
+// ════════════════════════════════════════════════════════════════
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom],.sem-step,.m-card,.analisis-global,.analisis-cierre';
+
+const PDF_CFG = {
+  renderW: 1100,   // ancho de composición en px CSS
+  scale: 2,        // nitidez del raster
+  marginMm: 10,    // margen de página
+  footerMm: 8,     // franja reservada para el pie
+  atomPadPx: 12,   // colchón bajo cada bloque (bordes redondeados / sombras)
+  minFill: 0.10,   // una página no puede llevar menos de este % de alto útil
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]  // compactación máxima permitida
+};
+
+// Espera a que la tipografía del documento (Rubik, vía Google Fonts) esté
+// realmente disponible. Si se mide o rasteriza antes, el texto se maqueta con
+// la fuente de respaldo, cambia el número de líneas y todas las alturas se
+// desplazan: ese es el origen clásico de los recortes en el PDF.
+async function pdfEsperarTipografia(doc) {
+  try {
+    const links = Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l => l.sheet ? Promise.resolve() : new Promise(res => {
+      l.addEventListener('load', res, { once: true });
+      l.addEventListener('error', res, { once: true });
+      setTimeout(res, 1500);
+    })));
+  } catch (e) {}
+  try {
+    if (doc.fonts && doc.fonts.load) {
+      await Promise.all(['400', '500', '600', '700'].map(w => doc.fonts.load(w + ' 14px Rubik')));
+    }
+    if (doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+  } catch (e) {}
+}
+
+// Mide, dentro de un contenedor ya maquetado, la posición de cada bloque que
+// no debe partirse. Devuelve todo en px CSS relativos al borde superior del
+// contenedor, que es exactamente el origen que usa el canvas de html2canvas.
+function pdfMedirBloques(root) {
+  const wr = root.getBoundingClientRect();
+  const nodos = Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  // Si un bloque está dentro de otro bloque, solo cuenta el externo:
+  // así el selector se puede ampliar sin generar zonas redundantes.
+  const atomos = nodos.filter(n => !nodos.some(o => o !== n && o.contains(n)));
+
+  const zonas = [];
+  atomos.forEach(n => {
+    const r = n.getBoundingClientRect();
+    if (r.height > 0) zonas.push({ top: r.top - wr.top, bottom: r.bottom - wr.top });
+  });
+
+  // Un título de sección nunca queda huérfano al pie: viaja pegado a su
+  // primer bloque. Si la sección no tiene bloques propios, se protege entera.
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'), sec => {
+    const t = sec.querySelector('[data-pdf-title]');
+    if (!t) return;
+    const primero = atomos.filter(a => sec.contains(a))[0];
+    const rt = t.getBoundingClientRect();
+    if (!primero) {
+      const rs = sec.getBoundingClientRect();
+      if (rs.height > 0) zonas.push({ top: rs.top - wr.top, bottom: rs.bottom - wr.top });
+      return;
+    }
+    const rf = primero.getBoundingClientRect();
+    zonas.push({ top: rt.top - wr.top, bottom: rf.bottom - wr.top });
+  });
+
+  return { height: wr.height, width: wr.width, zonas: zonas };
+}
+
+// Planificador de páginas: recibe el alto total del raster y las zonas
+// protegidas (en px de canvas) y devuelve los cortes. Nunca corta dentro de
+// una zona; si una zona es más alta que la página, la entrega completa y
+// marca la página para que se reduzca al dibujar.
+function pdfPlanificarPaginas(imgH, zonas, altoPagPx) {
+  const dentro = p => zonas.some(z => p > z.top + 0.5 && p < z.bottom - 0.5);
+  const candidatos = [];
+  zonas.forEach(z => { candidatos.push(z.top); candidatos.push(z.bottom); });
+  candidatos.push(imgH);
+  candidatos.sort((a, b) => a - b);
+
+  const minSlice = altoPagPx * PDF_CFG.minFill;
+  const paginas = [];
+  let y = 0, guarda = 0;
+
+  while (y < imgH - 1 && guarda++ < 400) {
+    let corte = Math.min(y + altoPagPx, imgH);
+
+    if (corte < imgH && dentro(corte)) {
+      // Mejor punto válido por debajo del corte natural
+      let mejor = -1;
+      for (let i = 0; i < candidatos.length; i++) {
+        const c = candidatos[i];
+        if (c > corte) break;
+        if (c <= y + minSlice) continue;
+        if (!dentro(c)) mejor = c;
+      }
+      if (mejor > y) {
+        corte = mejor;
+      } else {
+        // Ningún corte válido: hay un bloque más alto que una página entera.
+        // Se lleva completo (la página se reduce al dibujar) en vez de partirlo.
+        let fin = corte;
+        for (let pasada = 0; pasada < 4; pasada++) {
+          let antes = fin;
+          zonas.forEach(z => { if (fin > z.top && fin < z.bottom) fin = z.bottom; });
+          if (fin === antes) break;
+        }
+        corte = Math.min(fin, imgH);
+      }
+    }
+    if (corte <= y) corte = Math.min(y + altoPagPx, imgH); // salvavidas
+    paginas.push({ from: y, to: corte });
+    y = corte;
+  }
+  return paginas;
+}
+
 // Genera y descarga el PDF de UN diagnóstico (usa el estado GLOBAL actual:
 // semSteps/causes/symptomInput/currentName). Reutilizable por admin.
 // Si asBlob=true retorna {blob, filename} en vez de descargar directamente,
 // para poder empaquetar varios PDFs en un solo ZIP (evita que el navegador
 // bloquee múltiples descargas automáticas disparadas desde un mismo clic).
 async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
-  console.log('[PDF] version del exportador: V6-nocorta');
+  console.log('[PDF] exportador V7-flow');
+  const hideEls = document.querySelectorAll('.sem-del,.m-input-row,.btn-del');
+  let wrapper = null;
   try {
     const symptom = $('symptomInput').value.trim() || 'Sin s\u00edntoma';
+    hideEls.forEach(el => el.style.setProperty('display', 'none', 'important'));
 
-    const hideEls = document.querySelectorAll('.sem-del,.m-input-row,.btn-del');
-    hideEls.forEach(el => el.style.setProperty('display','none','important'));
-
-    const wrapper = document.createElement('div');
+    wrapper = document.createElement('div');
+    wrapper.setAttribute('data-pdf-root', '1');
     wrapper.style.cssText = [
-      'position:absolute','top:0','left:-9999px',
-      'background:#fff','padding:28px',
-      'font-family:Rubik,system-ui,sans-serif',
-      'width:1100px','box-sizing:border-box','overflow:visible'
+      'position:absolute', 'top:0', 'left:-9999px',
+      'background:#fff', 'padding:28px',
+      'font-family:Rubik,system-ui,\'Segoe UI\',sans-serif',
+      'width:' + PDF_CFG.renderW + 'px', 'box-sizing:border-box', 'overflow:visible'
     ].join(';');
 
     const hdr = document.createElement('div');
+    hdr.setAttribute('data-pdf-atom', '1');
     hdr.style.cssText = 'margin-bottom:16px;padding-bottom:10px;border-bottom:2.5px solid #002A8D';
     hdr.innerHTML =
       '<div style="font-size:9px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 3 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
       '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(symptom) + '</div>' +
-      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName||'') + (versionLabel?' \u00b7 '+esc(versionLabel):'') + ' \u00b7 ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName || '') + (versionLabel ? ' \u00b7 ' + esc(versionLabel) : '') + ' \u00b7 ' + new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) + '</div>';
     wrapper.appendChild(hdr);
 
-    // Bloques que NO deben partirse a la mitad entre páginas del PDF
-    const noSplitEls = [];
-
-    function cloneSection(title, el) {
+    function cloneSection(title, el, esAtomo) {
       if (!el) return;
       const sec = document.createElement('div');
-      sec.style.cssText = 'margin-bottom:20px';
+      sec.setAttribute('data-pdf-sec', '1');
+      sec.style.cssText = 'margin-bottom:18px';
       const h = document.createElement('div');
+      h.setAttribute('data-pdf-title', '1');
       h.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#002A8D;margin-bottom:8px';
       h.textContent = title;
       sec.appendChild(h);
       const clone = el.cloneNode(true);
       clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+      // Sin IDs duplicados mientras el wrapper vive en el documento
+      if (clone.id) clone.removeAttribute('id');
+      clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+      if (esAtomo) clone.setAttribute('data-pdf-atom', '1');
       sec.appendChild(clone);
       wrapper.appendChild(sec);
-      // Si el bloque trae sub-cajas propias que deben protegerse por separado
-      // (p.ej. análisis global + cierre, o cada tarjeta de las 6M con su propio
-      // análisis), cada una se protege individualmente. Así la página puede
-      // cortar limpiamente ENTRE tarjetas, pero nunca DENTRO de una.
-      const subBoxes = clone.querySelectorAll('.analisis-global, .analisis-cierre, .m-card');
-      if (subBoxes.length) subBoxes.forEach(b => noSplitEls.push(b));
-      else noSplitEls.push(sec);
     }
 
     cloneSection('Sem\u00e1foro operativo', $('semList'));
     cloneSection('Ishikawa (6M)', $('mGrid'));
+
     const fbBlock = document.createElement('div');
     fbBlock.appendChild($('fishboneWrap').cloneNode(true));
     const legendClone = $('fbLegend').cloneNode(true);
-    legendClone.style.cssText = 'margin-top:8px;font-size:12px';
+    legendClone.style.cssText = 'margin-top:8px;font-size:12px;text-align:center;color:#6B7688';
     fbBlock.appendChild(legendClone);
-    cloneSection('Diagrama espina de pescado', fbBlock);
+    cloneSection('Diagrama espina de pescado', fbBlock, true);
+
     if ($('analisisWrap').style.display !== 'none') {
       cloneSection('An\u00e1lisis con IA', $('analisisWrap'));
     }
 
-    // Colchón final: garantiza que el padding/borde inferior de la última caja
-    // (p.ej. "Sugerencia de consultor") quede completamente capturado, sin recortarse.
+    // Colchón final: el borde inferior de la última caja siempre queda dentro.
     const bottomSpacer = document.createElement('div');
-    bottomSpacer.style.cssText = 'height:24px';
+    bottomSpacer.style.cssText = 'height:20px';
     wrapper.appendChild(bottomSpacer);
 
     document.body.appendChild(wrapper);
-    await new Promise(r => setTimeout(r, 400));
 
-    // Medir los límites de cada bloque protegido, en px CSS relativos al TOP del wrapper.
-    // Se usa offsetTop acumulado en lugar de getBoundingClientRect() porque este último
-    // devuelve coordenadas relativas al viewport visible: si la página está scrolleada,
-    // los valores salen desplazados y los cortes de página caen en lugares equivocados.
-    function offsetTopDentroDe(el, contenedor) {
-      let y = 0, n = el;
-      while (n && n !== contenedor) { y += n.offsetTop; n = n.offsetParent; }
-      return y;
-    }
-    const protectedZones = noSplitEls.map(el => {
-      const top = offsetTopDentroDe(el, wrapper);
-      // bottomReal = final exacto del bloque (para decidir si un corte lo parte)
-      // bottomSeguro = incluye colchón para bordes/sombras que se pintan fuera de
-      // offsetHeight (para que el corte no deje el borde inferior en la otra página).
-      // Se guardan por separado: si el colchón se usara para AMBAS cosas, las zonas
-      // contiguas se solaparían y el algoritmo elegiría cortes equivocados.
-      return { top: top, bottom: top + el.offsetHeight, pad: 14 };
-    });
+    // La tipografía debe estar disponible ANTES de medir y de rasterizar.
+    await pdfEsperarTipografia(document);
+    await new Promise(r => setTimeout(r, 250));
 
-    const realW = Math.max(wrapper.scrollWidth, 1100);
-    const realH = wrapper.scrollHeight;
+    // Medición de respaldo (por si el navegador no ejecutara onclone)
+    const fallback = pdfMedirBloques(wrapper);
+    let metrics = null;
 
     const canvas = await html2canvas(wrapper, {
-      scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
-      width: realW, height: realH,
-      windowWidth: realW + 100, windowHeight: realH + 100,
+      // Sin width/height: html2canvas mide el CLON y así el canvas nunca
+      // recorta ni deja aire de más al final del contenido.
+      scale: PDF_CFG.scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: PDF_CFG.renderW + 300,
+      windowHeight: Math.max(1200, wrapper.scrollHeight + 300),
       scrollX: 0, scrollY: 0,
+      onclone: async (doc, cloned) => {
+        // html2canvas dibuja ESTE clon, no el DOM original: medir aquí (y no
+        // afuera) garantiza que los cortes de página coincidan exactamente con
+        // lo que se rasteriza, aunque el clon maquete distinto.
+        await pdfEsperarTipografia(doc);
+        await new Promise(r => setTimeout(r, 80));
+        try { metrics = pdfMedirBloques(cloned); } catch (e) { metrics = null; }
+      }
     });
 
-    document.body.removeChild(wrapper);
-    hideEls.forEach(el => el.style.removeProperty('display'));
+    const med = (metrics && metrics.height > 0) ? metrics : fallback;
 
     const { jsPDF } = window.jspdf;
     const imgW = canvas.width, imgH = canvas.height;
-    const aspect = imgH / imgW;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 10;
+    const margin = PDF_CFG.marginMm;
     const usableW = pageW - margin * 2;
-    const usableH = pageH - margin * 2 - 8;
-    const scaledW = usableW;
-    const scaledH = scaledW * aspect;
+    const usableH = pageH - margin * 2 - PDF_CFG.footerMm;
 
-    if (scaledH <= usableH) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
+    // px de canvas por px CSS (medido, no supuesto)
+    const sy = med.height > 0 ? (imgH / med.height) : PDF_CFG.scale;
+    const padPx = PDF_CFG.atomPadPx * sy;
+    const zonas = med.zonas
+      .map(z => ({ top: z.top * sy, bottom: z.bottom * sy }))
+      .filter(z => z.bottom > z.top + 1)
+      .sort((a, b) => a.top - b.top);
+
+    // Colchón inferior por bloque (bordes redondeados / sombras), pero NUNCA
+    // tan grande que se coma la separación con el bloque siguiente: si dos
+    // zonas se fusionaran, desaparecería el punto de corte que hay entre ellas
+    // y la página terminaría partiendo una tarjeta. El colchón se limita al
+    // 60% del espacio libre real hasta el próximo bloque.
+    zonas.forEach(z => {
+      let sigTop = imgH;
+      zonas.forEach(o => { if (o.top > z.bottom && o.top < sigTop) sigTop = o.top; });
+      z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
+      if (z.bottom > imgH) z.bottom = imgH;
+    });
+
+    const altoPagBase = imgW * (usableH / usableW);
+
+    if (imgH <= altoPagBase) {
+      // Cabe todo en una página
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG',
+        margin, margin, usableW, (imgH / imgW) * usableW);
     } else {
-      const pageHpx = Math.floor(imgW * (usableH / usableW));
-      // Convertir los límites de los bloques protegidos (medidos en px CSS) a px de canvas
-      const canvasScale = canvas.height / realH;
-      const zonesPx = protectedZones.map(z => ({
-        top: z.top * canvasScale,
-        bottom: z.bottom * canvasScale,
-        // bottomSeguro: hasta dónde debe llegar el corte para no dejar el borde
-        // inferior del bloque (redondeo/sombra) suelto en la página siguiente.
-        bottomSeguro: (z.bottom + (z.pad || 0)) * canvasScale
-      }));
+      // Compactación: se elige el factor MÁS GRANDE que logre el menor
+      // número de páginas, para que no sobre una página casi vacía.
+      let mejor = null;
+      PDF_CFG.shrinkSteps.forEach(k => {
+        const pg = pdfPlanificarPaginas(imgH, zonas, altoPagBase / k);
+        if (!mejor || pg.length < mejor.paginas.length) mejor = { k: k, paginas: pg };
+      });
+      const k = mejor.k, paginas = mejor.paginas;
 
-      let yOffset = 0, pageNum = 0;
-      while (yOffset < imgH) {
-        if (pageNum > 0) pdf.addPage();
-        const naiveCut = Math.min(yOffset + pageHpx, imgH);
-        let cut = naiveCut;
+      // Verificación defensiva: ningún corte puede caer dentro de un bloque.
+      paginas.forEach((p, i) => {
+        if (i === paginas.length - 1) return;
+        const roto = zonas.some(z => p.to > z.top + 0.5 && p.to < z.bottom - 0.5);
+        if (roto) console.warn('[PDF] corte revisado en p\u00e1gina ' + (i + 1));
+      });
 
-        // Si el corte natural parte algún bloque protegido, subirlo al inicio de ese
-        // bloque. Se usa bottomSeguro (borde real + colchón) para detectar el conflicto:
-        // así un corte que caiga justo entre el final del texto y el borde redondeado
-        // también se considera "partido" y se corrige, evitando bordes sueltos.
-        if (naiveCut < imgH) {
-          for (const z of zonesPx) {
-            const partido = naiveCut > z.top && naiveCut < z.bottomSeguro;
-            // Solo se puede subir el corte si el bloque empieza dentro de esta página.
-            const sePuedeSubir = z.top > yOffset;
-            if (partido && sePuedeSubir && z.top < cut) {
-              cut = z.top;
-            }
-          }
-        }
+      for (let i = 0; i < paginas.length; i++) {
+        if (i > 0) pdf.addPage();
+        const p = paginas[i];
+        const sliceH = Math.max(1, Math.round(p.to - p.from));
+        const slice = document.createElement('canvas');
+        slice.width = imgW; slice.height = sliceH;
+        const ctx = slice.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, imgW, sliceH);
+        ctx.drawImage(canvas, 0, p.from, imgW, sliceH, 0, 0, imgW, sliceH);
 
-        // Segunda capa de seguridad: si el bloque que arranca en este yOffset es MÁS ALTO
-        // que una página completa, no hay corte válido posible — en ese caso se lleva el
-        // bloque entero a esta página y se reduce la escala para que quepa completo,
-        // en vez de partirlo. Así ningún bloque se corta jamás, sin importar su tamaño.
-        let forcedFit = false;
-        if (cut === naiveCut && naiveCut < imgH) {
-          for (const z of zonesPx) {
-            const arrancaAqui = Math.abs(z.top - yOffset) < 2;
-            const noCabe = (z.bottom - z.top) > pageHpx;
-            if (arrancaAqui && noCabe && naiveCut < z.bottom) {
-              cut = Math.min(z.bottom, imgH);
-              forcedFit = true;
-              break;
-            }
-          }
-        }
-
-        const sliceH = Math.max(1, Math.round(cut - yOffset));
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
-        sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
-
-        // Ajuste de dibujo: si la rebanada, al escalarse al ancho útil, resulta MÁS ALTA
-        // que el alto útil de la página, jsPDF la recorta por abajo (el contenido del
-        // final se pierde). Por eso se reduce proporcionalmente para que SIEMPRE entre
-        // completa. Esto aplica a cualquier página, no solo a bloques sobredimensionados.
-        let drawW = usableW;
-        let drawH = (sliceH / imgW) * usableW;
+        let drawW = usableW * k;
+        let drawH = (sliceH / imgW) * drawW;
+        // Red de seguridad: si aun así excede el alto útil (bloque gigante),
+        // se reduce proporcionalmente para que NUNCA se recorte por abajo.
         if (drawH > usableH) {
-          const factor = usableH / drawH;
-          drawW = usableW * factor;
-          drawH = usableH;
+          const f = usableH / drawH;
+          drawW *= f; drawH = usableH;
         }
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, drawW, drawH);
-        yOffset += sliceH; pageNum++;
+        const x = margin + (usableW - drawW) / 2;  // centrado horizontal
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
       }
     }
 
@@ -1530,20 +1663,21 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
     for (let p = 1; p <= totalPages; p++) {
       pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
       pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 v7', margin, pageH - 4);
-      if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
+      if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, { align: 'right' });
     }
 
-    const safeName = (personName||'diagnostico').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'diagnostico';
-    const safeVer = versionLabel ? '_'+versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
+    const safeName = (personName || 'diagnostico').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g, '').trim().slice(0, 40) || 'diagnostico';
+    const safeVer = versionLabel ? '_' + versionLabel.replace(/[^a-zA-Z0-9]/g, '') : '';
     const filename = 'Diagnostico_' + safeName + safeVer + '.pdf';
-    if (asBlob) {
-      return { blob: pdf.output('blob'), filename };
-    }
+    if (asBlob) return { blob: pdf.output('blob'), filename };
     pdf.save(filename);
     return true;
-  } catch(err) {
+  } catch (err) {
     console.error('PDF error:', err);
     return asBlob ? null : false;
+  } finally {
+    if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+    hideEls.forEach(el => el.style.removeProperty('display'));
   }
 }
 

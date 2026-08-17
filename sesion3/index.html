@@ -1341,7 +1341,7 @@ async function loadDocData(){
 // para poder empaquetar varios PDFs en un solo ZIP (evita que el navegador
 // bloquee múltiples descargas automáticas disparadas desde un mismo clic).
 async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
-  console.log('[PDF] version del exportador: V5-nocorta');
+  console.log('[PDF] version del exportador: V6-nocorta');
   try {
     const symptom = $('symptomInput').value.trim() || 'Sin s\u00edntoma';
 
@@ -1420,7 +1420,12 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
     }
     const protectedZones = noSplitEls.map(el => {
       const top = offsetTopDentroDe(el, wrapper);
-      return { top: top, bottom: top + el.offsetHeight + 6 };
+      // bottomReal = final exacto del bloque (para decidir si un corte lo parte)
+      // bottomSeguro = incluye colchón para bordes/sombras que se pintan fuera de
+      // offsetHeight (para que el corte no deje el borde inferior en la otra página).
+      // Se guardan por separado: si el colchón se usara para AMBAS cosas, las zonas
+      // contiguas se solaparían y el algoritmo elegiría cortes equivocados.
+      return { top: top, bottom: top + el.offsetHeight, pad: 14 };
     });
 
     const realW = Math.max(wrapper.scrollWidth, 1100);
@@ -1454,7 +1459,13 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       const pageHpx = Math.floor(imgW * (usableH / usableW));
       // Convertir los límites de los bloques protegidos (medidos en px CSS) a px de canvas
       const canvasScale = canvas.height / realH;
-      const zonesPx = protectedZones.map(z => ({ top: z.top * canvasScale, bottom: z.bottom * canvasScale }));
+      const zonesPx = protectedZones.map(z => ({
+        top: z.top * canvasScale,
+        bottom: z.bottom * canvasScale,
+        // bottomSeguro: hasta dónde debe llegar el corte para no dejar el borde
+        // inferior del bloque (redondeo/sombra) suelto en la página siguiente.
+        bottomSeguro: (z.bottom + (z.pad || 0)) * canvasScale
+      }));
 
       let yOffset = 0, pageNum = 0;
       while (yOffset < imgH) {
@@ -1462,13 +1473,13 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
         const naiveCut = Math.min(yOffset + pageHpx, imgH);
         let cut = naiveCut;
 
-        // Si el corte natural parte algún bloque protegido por la mitad, subirlo al
-        // inicio de ese bloque. Se evalúan TODAS las zonas y se toma el corte más
-        // temprano válido (no la primera coincidencia), porque los bloques pueden
-        // anidarse o solaparse y quedarse con el primero dejaría cortes malos.
+        // Si el corte natural parte algún bloque protegido, subirlo al inicio de ese
+        // bloque. Se usa bottomSeguro (borde real + colchón) para detectar el conflicto:
+        // así un corte que caiga justo entre el final del texto y el borde redondeado
+        // también se considera "partido" y se corrige, evitando bordes sueltos.
         if (naiveCut < imgH) {
           for (const z of zonesPx) {
-            const partido = naiveCut > z.top && naiveCut < z.bottom;
+            const partido = naiveCut > z.top && naiveCut < z.bottomSeguro;
             // Solo se puede subir el corte si el bloque empieza dentro de esta página.
             const sePuedeSubir = z.top > yOffset;
             if (partido && sePuedeSubir && z.top < cut) {
@@ -1515,7 +1526,7 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
     const totalPages = pdf.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
-      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 v5', margin, pageH - 4);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 v6', margin, pageH - 4);
       if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
     }
 

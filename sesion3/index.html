@@ -1363,6 +1363,9 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName||'') + (versionLabel?' \u00b7 '+esc(versionLabel):'') + ' \u00b7 ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
     wrapper.appendChild(hdr);
 
+    // Bloques que NO deben partirse a la mitad entre páginas del PDF
+    const noSplitEls = [];
+
     function cloneSection(title, el) {
       if (!el) return;
       const sec = document.createElement('div');
@@ -1375,6 +1378,11 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
       sec.appendChild(clone);
       wrapper.appendChild(sec);
+      // Si el bloque trae sub-cajas propias (p.ej. análisis global + cierre), cada una
+      // se protege por separado; si no, se protege el bloque completo.
+      const subBoxes = clone.querySelectorAll('.analisis-global, .analisis-cierre');
+      if (subBoxes.length) subBoxes.forEach(b => noSplitEls.push(b));
+      else noSplitEls.push(sec);
     }
 
     cloneSection('Sem\u00e1foro operativo', $('semList'));
@@ -1391,6 +1399,13 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
 
     document.body.appendChild(wrapper);
     await new Promise(r => setTimeout(r, 400));
+
+    // Medir los límites (top/bottom en px CSS, relativos al wrapper) de cada bloque protegido
+    const wrapperTop = wrapper.getBoundingClientRect().top;
+    const protectedZones = noSplitEls.map(el => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top - wrapperTop, bottom: r.bottom - wrapperTop };
+    });
 
     const realW = Math.max(wrapper.scrollWidth, 1100);
     const realH = wrapper.scrollHeight;
@@ -1421,16 +1436,30 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
     } else {
       const pageHpx = Math.floor(imgW * (usableH / usableW));
+      // Convertir los límites de los bloques protegidos (medidos en px CSS) a px de canvas
+      const canvasScale = canvas.height / realH;
+      const zonesPx = protectedZones.map(z => ({ top: z.top * canvasScale, bottom: z.bottom * canvasScale }));
+
       let yOffset = 0, pageNum = 0;
       while (yOffset < imgH) {
         if (pageNum > 0) pdf.addPage();
-        const sliceH = Math.min(pageHpx, imgH - yOffset);
+        let naiveCut = Math.min(yOffset + pageHpx, imgH);
+        // Si el corte cae DENTRO de un bloque protegido, subirlo hasta el inicio de ese bloque
+        // (siempre que quede al menos algo de contenido nuevo en esta página, para no generar
+        // páginas vacías si el bloque es más alto que una página completa).
+        for (const z of zonesPx) {
+          if (naiveCut > z.top && naiveCut < z.bottom && z.top > yOffset) {
+            naiveCut = z.top;
+            break;
+          }
+        }
+        const sliceH = Math.max(1, Math.round(naiveCut - yOffset));
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
         sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
         const sliceScaledH = (sliceH / imgW) * usableW;
         pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
-        yOffset += pageHpx; pageNum++;
+        yOffset += sliceH; pageNum++;
       }
     }
 

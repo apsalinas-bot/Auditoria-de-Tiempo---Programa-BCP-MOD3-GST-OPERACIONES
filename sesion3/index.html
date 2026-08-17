@@ -1452,17 +1452,27 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       let yOffset = 0, pageNum = 0;
       while (yOffset < imgH) {
         if (pageNum > 0) pdf.addPage();
-        let naiveCut = Math.min(yOffset + pageHpx, imgH);
-        // Si el corte cae DENTRO de un bloque protegido, subirlo hasta el inicio de ese bloque
-        // (siempre que quede al menos algo de contenido nuevo en esta página, para no generar
-        // páginas vacías si el bloque es más alto que una página completa).
-        for (const z of zonesPx) {
-          if (naiveCut > z.top && naiveCut < z.bottom && z.top > yOffset) {
-            naiveCut = z.top;
-            break;
+        const naiveCut = Math.min(yOffset + pageHpx, imgH);
+        let cut = naiveCut;
+
+        // Si el corte natural parte algún bloque protegido por la mitad, subirlo al
+        // inicio de ese bloque. Se evalúan TODAS las zonas y se toma el corte más
+        // temprano válido (no la primera coincidencia), porque los bloques pueden
+        // anidarse o solaparse y quedarse con el primero dejaría cortes malos.
+        if (naiveCut < imgH) {
+          for (const z of zonesPx) {
+            const partido = naiveCut > z.top && naiveCut < z.bottom;
+            // Solo se puede subir el corte si el bloque empieza dentro de esta página;
+            // si el bloque ya venía de antes y es más alto que una página, se acepta
+            // el corte para no entrar en bucle infinito.
+            const sePuedeSubir = z.top > yOffset;
+            if (partido && sePuedeSubir && z.top < cut) {
+              cut = z.top;
+            }
           }
         }
-        const sliceH = Math.max(1, Math.round(naiveCut - yOffset));
+
+        const sliceH = Math.max(1, Math.round(cut - yOffset));
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
         sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);

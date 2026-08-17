@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -42,6 +45,17 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
 .rc-icon.emp{background:var(--purple)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--navy)}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 6px 24px rgba(0,20,80,.08)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-emp-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
 .role-card.selected .rc-label{color:var(--navy)}
@@ -211,20 +225,6 @@ input[type=password]{-webkit-appearance:none}
 .sb-main{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
 .sb-sub{font-size:10px;color:rgba(255,255,255,0.7);font-weight:500}
 .sb-badge{background:rgba(255,255,255,0.15);border-radius:20px;padding:3px 8px;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
-/* mini bar charts (docente) */
-.mbar-card{padding:16px 18px}
-.mbar-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--navy);margin-bottom:2px}
-.mbar-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.4}
-.mbar-row{display:grid;grid-template-columns:96px 1fr 46px;align-items:center;gap:10px;margin-bottom:11px}
-.mbar-row:last-of-type{margin-bottom:0}
-.mbar-label{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mbar-track{background:#EEF1F7;border-radius:99px;height:10px;overflow:hidden;position:relative}
-.mbar-fill{height:100%;border-radius:99px;min-width:3px;transition:width .4s ease}
-.mbar-count{font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
-.mbar-ratio{font-size:9.5px;color:var(--muted);text-align:right;display:block;font-weight:500}
-.mbar-summary{font-size:12px;color:var(--muted);line-height:1.55;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.mbar-summary b{color:var(--ink)}
-@media(max-width:380px){ .mbar-row{grid-template-columns:74px 1fr 40px} }
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
@@ -256,6 +256,7 @@ const BIN_ID     = '6a6e904ada38895dfeae307d';
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOCENTE_PW = '70003700';
 const BIN_ID_S3  = '6a6bfa73f5f4af5e29d83006';
+const ADMIN_DNI  = '70003700';
 </script>
 
 <script>
@@ -270,6 +271,9 @@ const ROSTER = {
   "41929947":"Silvana Angela Riveros Chavez","72772991":"Jessica Jenny Romero Torres","29646340":"Patricia del Pilar Tinta Chambi",
   "74943408":"Dayana Vargas Arizaca"
 };
+const TEST_DNIS = new Set(['71509678','74250220']); // Franchesca (Aprenda) y Beatriz (BCP) — cuentas de prueba, no cuentan en el tablero docente
+ROSTER['71509678']='Franchesca Quezada Cabrera';
+ROSTER['74250220']='Beatriz Palacios Espinoza';
 const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "detalle": "Venta de computadoras, impresas, suministros informáticos. Adicionalmente dar servicios de instalaciones de equipos.", "producto": "una computadora armada", "precio": "1200", "costo": "950", "recurso_nombre": "horas de tu tiempo", "recurso_uso": "3", "maximo": "10 al mes (tu mejor mes)"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "detalle": "Diseño y confección de lencerías para mujeres", "producto": "una bata de lencería", "precio": "80", "costo": "45", "recurso_nombre": "horas de costura", "recurso_uso": "4", "maximo": "15 por semana"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "detalle": "Catering. 15 años en el rubro. El negocio lo conocía y producía la mamá y con la pandemia se fortaleció. Con RUC 10 por ", "producto": "un servicio de catering para 50", "precio": "900", "costo": "600", "recurso_nombre": "horas de cocina", "recurso_uso": "8", "maximo": "6 eventos al mes"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "detalle": "Organizaba eventos para conciertos, ofrece servicios de eventos para empresas. Eventos de conciertos musicales, eventos ", "producto": "un evento producido", "precio": "3000", "costo": "2000", "recurso_nombre": "horas de tu equipo", "recurso_uso": "40", "maximo": "4 eventos al mes"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "detalle": "Distribución de materiales de construcción y transporte de carga en general.", "producto": "un flete de material", "precio": "400", "costo": "280", "recurso_nombre": "horas de camión disponibles", "recurso_uso": "5", "maximo": "20 fletes por semana"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "detalle": "Importan y venden sábanas, cubrecamas, cobertores, toalla, cortinas, ventas al por mayor y menor. Tienen dos tiendas fís", "producto": "un cobertor importado", "precio": "120", "costo": "80", "recurso_nombre": "unidades en almacén", "recurso_uso": "1", "maximo": "200 en stock"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "detalle": "Fabricación y venta de instrumentos ancestrales musicales en cerámica y kit educativos de música andina. Alquilan un loc", "producto": "un instrumento ancestral", "precio": "150", "costo": "70", "recurso_nombre": "horas de taller", "recurso_uso": "6", "maximo": "12 por mes"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "detalle": "Tiene una funeraria el Eden. Ofrecen los servicios funerarios por paquetes que incluyen ataúd, traslados, preparación de", "producto": "un servicio funerario", "precio": "2500", "costo": "1600", "recurso_nombre": "servicios que puedes atender", "recurso_uso": "1", "maximo": "8 al mes"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "detalle": "Desde el 2019 tiene una florería, local comercial.\nRUC 10.", "producto": "un arreglo floral", "precio": "60", "costo": "30", "recurso_nombre": "horas de armado", "recurso_uso": "1", "maximo": "40 por semana"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "detalle": "Ferretería, comercialización de materiales de construcción", "producto": "una venta de material", "precio": "500", "costo": "380", "recurso_nombre": "horas de atención en tienda", "recurso_uso": "0.5", "maximo": "60 ventas por semana"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "detalle": "Tecnología para manualidades, ofrecen máquinas que ayudan a realizar el proceso más profesional. Es decir son distribuid", "producto": "una máquina de manualidades", "precio": "300", "costo": "180", "recurso_nombre": "horas de ensamblaje", "recurso_uso": "5", "maximo": "20 por mes"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "detalle": "Venta de snack dulces y saladas, y elaboración y venta de yogures.", "producto": "una tanda de snacks", "precio": "25", "costo": "12", "recurso_nombre": "horas de preparación", "recurso_uso": "2", "maximo": "50 tandas por semana"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "detalle": "Venta de Ropa de Dama y Varón, para adultos. Tiene un puesto  propio y tres alquilados y los cuatro puestos están juntos", "producto": "una prenda vendida", "precio": "70", "costo": "40", "recurso_nombre": "prendas que exhibes", "recurso_uso": "1", "maximo": "100 en tienda"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "detalle": "Venta de repuestos para vehículos comerciales como camiones.", "producto": "un repuesto vendido", "precio": "150", "costo": "100", "recurso_nombre": "horas de atención", "recurso_uso": "0.3", "maximo": "80 ventas por semana"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "detalle": "Comercialización de materiales no convencionales para la construcción, como por ejemplo: Poliestireno expandido", "producto": "un lote de material", "precio": "600", "costo": "420", "recurso_nombre": "horas de transporte", "recurso_uso": "4", "maximo": "25 lotes por semana"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "detalle": "Producen y venden conservas de pescado", "producto": "una caja de conservas", "precio": "90", "costo": "55", "recurso_nombre": "horas de producción", "recurso_uso": "3", "maximo": "40 cajas por semana"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "detalle": "Es un Minimarket", "producto": "una venta del minimarket", "precio": "30", "costo": "20", "recurso_nombre": "espacio de góndola", "recurso_uso": "1", "maximo": "500 productos"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "detalle": "Es una escuela de cocina que ofrece clases a jóvenes o adultos mayores. Dan clases sólo sábados y domingos. Tiene actual", "producto": "un curso de cocina", "precio": "200", "costo": "90", "recurso_nombre": "horas de clase disponibles", "recurso_uso": "4", "maximo": "15 cupos por semana"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "detalle": "Tercerización de personal de salud, laboratorio y odontología. Oficina virtual.", "producto": "un servicio de personal", "precio": "1500", "costo": "1000", "recurso_nombre": "servicios que puedes cubrir", "recurso_uso": "1", "maximo": "10 al mes"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "detalle": "Compra y vende ladrillos, cementos, alambres y fierros, entre otros afines. Su cliente principal es el Estado. Es distri", "producto": "un pedido de ladrillos", "precio": "800", "costo": "600", "recurso_nombre": "horas de despacho", "recurso_uso": "3", "maximo": "30 pedidos por semana"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "detalle": "Formalizados desde el 2021, desarrolla servicios ambientales a empresas, ayudan a las empresas a prevenir multas ambient", "producto": "un servicio empresarial", "precio": "1200", "costo": "700", "recurso_nombre": "horas de consultoría", "recurso_uso": "10", "maximo": "8 servicios al mes"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "detalle": "Es un Hospedaje que fue inaugurado en el 2018 que atiende publico del sector salud y ejecutivo. Está ubicado en Cerro Co", "producto": "una noche de hospedaje", "precio": "120", "costo": "50", "recurso_nombre": "habitaciones-noche por día", "recurso_uso": "1", "maximo": "20 habitaciones"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "detalle": "Brindar asesoría a las  MYPES para certificarse en Normas ISO", "producto": "una asesoría MYPE", "precio": "900", "costo": "500", "recurso_nombre": "horas de asesoría", "recurso_uso": "12", "maximo": "6 al mes"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "detalle": "Su empresa brinda servicios profesionales a empresas, para certificaciones ISO, homologaciones, auditorías. Tiene 20 año", "producto": "un servicio profesional", "precio": "1000", "costo": "600", "recurso_nombre": "horas de trabajo disponibles", "recurso_uso": "15", "maximo": "5 al mes"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "detalle": "Hospedaje", "producto": "una noche de hospedaje", "precio": "100", "costo": "45", "recurso_nombre": "habitaciones-noche por día", "recurso_uso": "1", "maximo": "15 habitaciones"}};
 </script>
 
@@ -293,6 +297,10 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
           <div class="rc-icon doc">&#9783;</div>
           <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div><span class="rc-label">Administrador</span><span class="rc-sub">Descargar los res&uacute;menes en PDF</span></div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
@@ -311,6 +319,15 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric" style="padding-right:46px">
+          <button type="button" id="toggleAdmin" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
       </div>
     </div>
     <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
@@ -481,7 +498,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       <div class="kpi-box"><div class="kpi-val" id="kTotal">-</div><div class="kpi-lbl">Trabajos guardados</div></div>
       <div class="kpi-box purple"><div class="kpi-val" id="kPct">-</div><div class="kpi-lbl">% del grupo (de 25)</div></div>
       <div class="kpi-box green"><div class="kpi-val" id="kPlan">-</div><div class="kpi-lbl">Definieron plan de mejora</div></div>
-      <div class="kpi-box"><div class="kpi-val" id="kCombo">-</div><div class="kpi-lbl">Encontraron su combinaci&oacute;n &oacute;ptima</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kOpt">-</div><div class="kpi-lbl">Plantearon optimizaci&oacute;n</div></div>
     </div>
     <div class="card" style="padding:14px 18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -491,38 +508,40 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
     </div>
     <div id="docAlerts"></div>
-
-    <div class="section-title">Promedios y tendencias del grupo</div>
-    <div class="kpi-grid">
-      <div class="kpi-box green"><div class="kpi-val" id="kGanProm">-</div><div class="kpi-lbl">Ganancia &oacute;ptima promedio /sem (S/)</div></div>
-      <div class="kpi-box"><div class="kpi-val" id="kAvgProd">-</div><div class="kpi-lbl">Productos promedio por negocio</div></div>
-    </div>
-    <div class="card mbar-card" id="accionBarCard" style="display:none">
-      <div class="mbar-title">Qu&eacute; est&aacute; priorizando el aula</div>
-      <div class="mbar-sub">Acci&oacute;n elegida para atacar el cuello de botella &mdash; de m&aacute;s a menos frecuente</div>
-      <div id="accionBarBody"></div>
-      <div class="mbar-summary" id="accionBarSummary"></div>
-    </div>
-    <div class="card mbar-card" id="recursoBarCard" style="display:none">
-      <div class="mbar-title">Recursos limitantes del aula</div>
-      <div class="mbar-sub">Lo que m&aacute;s repiten las emprendedoras como su recurso escaso &mdash; de m&aacute;s a menos frecuente</div>
-      <div id="recursoBarBody"></div>
-      <div class="mbar-summary" id="recursoBarSummary"></div>
-    </div>
-    <div class="card" id="cuelloTopCard" style="padding:14px 18px;display:none">
-      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">Cuellos de botella m&aacute;s repetidos en el aula</div>
-      <div id="cuelloTopBody"></div>
-    </div>
     <div class="section-title">Trabajos registrados</div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="emp-table">
-        <thead><tr><th>#</th><th>Emprendedora</th><th>Acci&oacute;n</th><th>Combinaci&oacute;n &oacute;ptima</th></tr></thead>
+        <thead><tr><th>#</th><th>Emprendedora</th><th>Acci&oacute;n</th><th>Productos</th></tr></thead>
         <tbody id="docTableBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</td></tr></tbody>
       </table>
     </div>
     <div class="section-title">Pendientes</div>
     <div id="docPending" class="card" style="padding:14px 18px"></div>
     <button class="cta navy full no-print" id="docPrintBtn" style="margin-top:6px">&#128438; Imprimir panel</button>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
+<!-- ════ VISTA ADMINISTRADOR ════ -->
+<div id="adminView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#0a3d6b 100%)">
+    <div class="eyebrow">Administrador &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 4</div>
+    <h1>Descarga de <span style="color:#FF8C42">Res&uacute;menes</span></h1>
+    <p>Plan de mejora, mezcla &oacute;ptima y diagn&oacute;stico de cada emprendedora.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box purple"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODOS los PDFs (todas las emprendedoras)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
     <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
   </div>
 </div>
@@ -573,9 +592,11 @@ async function getCuelloS3(dni){
 function pickRole(role){
   $('cardEmp').classList.toggle('selected',role==='emp');
   $('cardDoc').classList.toggle('selected',role==='doc');
+  $('cardAdmin').classList.toggle('selected',role==='admin');
   $('panelEmp').classList.toggle('on',role==='emp');
   $('panelDoc').classList.toggle('on',role==='doc');
-  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+  $('panelAdmin').classList.toggle('on',role==='admin');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):role==='doc'?$('inputDoc'):$('inputAdmin'); if(i)i.focus(); },50);
 }
 function doLoginEmp(){
   const v=$('inputEmp').value.trim(); $('errEmp').textContent='';
@@ -591,15 +612,54 @@ function doLoginDoc(){
   sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
   showDocView();
 }
+function doLoginAdmin(){
+  const v=$('inputAdmin').value.trim(); $('errAdmin').textContent='';
+  if(!v){ $('errAdmin').textContent='Ingresa tu DNI.'; return; }
+  if(v!==ADMIN_DNI){ $('errAdmin').textContent='DNI de administrador incorrecto.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'admin'}));
+  showAdminView();
+}
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
-  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
-  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; $('inputAdmin').value='';
+  $('errEmp').textContent=''; $('errDoc').textContent=''; $('errAdmin').textContent='';
+  pickRole('emp');
 }
 function tryResume(){
   try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
-    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+    if(s.role==='doc'){ showDocView(); }
+    else if(s.role==='admin'){ showAdminView(); }
+    else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
   }catch(e){}
+}
+function showAdminView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='';
+  loadAdminData();
+}
+
+// ── Versionado: cada guardado crea una version nueva, no pisa la anterior ──
+// Devuelve la version mas reciente de un DNI (o null).
+function latestEntryFor(entries, dni){
+  const mine = entries.filter(e => e.dni === dni);
+  if(!mine.length) return null;
+  return mine.reduce((a,b) => new Date(b.savedAt||0) >= new Date(a.savedAt||0) ? b : a);
+}
+// De un array con varias versiones por DNI, deja solo la mas reciente de cada uno.
+function latestPerDni(entries){
+  const map = new Map();
+  entries.forEach(e => {
+    const prev = map.get(e.dni);
+    if(!prev || new Date(e.savedAt||0) >= new Date(prev.savedAt||0)) map.set(e.dni, e);
+  });
+  return Array.from(map.values());
+}
+function fmtDateTime(iso){
+  if(!iso) return '-';
+  const d = new Date(iso);
+  if(isNaN(d)) return '-';
+  return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}) + ', ' +
+         d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
 }
 
 function showEmpView(){
@@ -933,7 +993,7 @@ async function generarAnalisisMixS4Main(){
   const recurso=$('recursoName').value.trim()||'recurso';
   const recursoTotal=$('recursoTotal').value.trim();
   const valid=products.filter(p=>p.name&&p.price);
-  if(!solverResults.length||valid.length<2) return null;
+  if(!solverResults.length||valid.length<2) return;
 
   const prodTexto=valid.map(function(p){
     return '- '+p.name+': S/'+p.price+' precio, S/'+(p.cost||0)+' costo, margen S/'+(Number(p.price)-Number(p.cost||0))+', usa '+p.resourcePerUnit+' '+recurso;
@@ -975,21 +1035,16 @@ async function generarAnalisisMixS4Main(){
     '\nDirecta, cercana, sin redundancia. Resalta con **asteriscos** la acción más importante.'
   );
 
-  const ia1Txt = ia1||'Produce la mezcla que el Solver calculó para maximizar tu ganancia.';
-  const ia2Txt = ia2||firstName+', arranca esta semana produciendo la mezcla óptima y mide tus resultados al final.';
-
   // Mostrar los 2 bloques
   dBody.innerHTML =
     '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.15)">' +
     '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">📊 Lo que dice el Solver</div>' +
-    renderNegS4(ia1Txt) +
+    renderNegS4(ia1||'Produce la mezcla que el Solver calculó para maximizar tu ganancia.') +
     '</div>' +
     '<div>' +
     '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">🎯 Qué hacer con esto</div>' +
-    renderNegS4(ia2Txt) +
+    renderNegS4(ia2||firstName+', arranca esta semana produciendo la mezcla óptima y mide tus resultados al final.') +
     '</div>';
-
-  return { solverOptimal: solverResults.slice(), gananciaOptima: ganOpt, diagnosticoFinal: ia1Txt+'\n\n'+ia2Txt };
 }
 
 // Descargar Excel (CSV que Excel abre; con instrucciones de Solver)
@@ -1137,259 +1192,611 @@ async function generarExcelSolver(valid, rName, rTotal){
   return wb;
 }
 
-$('printBtn').addEventListener('click', () => {
-  // ── Recopilar todos los datos ─────────────────────────────────────────────
-  const nombre     = currentName || '';
-  const cuelloTxt  = ($('cuelloText') && $('cuelloText').textContent) ? $('cuelloText').textContent.trim() : '';
-  const cuelloCauseTxt = ($('cuelloCause') && $('cuelloCause').textContent) ? $('cuelloCause').textContent.trim() : '';
-  const accion     = action ? ({'eliminar':'Eliminar','automatizar':'Automatizar','simplificar':'Simplificar'}[action]||action) : '';
-  const planTxt    = $('actionPlan') ? $('actionPlan').value.trim() : '';
-  // Análisis IA – Paso 1
-  const analisis1El = $('analisisPlanS4');
-  const analisis1  = (analisis1El && analisis1El.innerHTML && !analisis1El.innerHTML.includes('dots-s4')) ? analisis1El.innerHTML : '';
-  // Paso 2 – productos
-  const validP     = products.filter(p=>p.name&&p.price);
-  const recurso    = $('recursoName') ? $('recursoName').value.trim() : '';
-  const recursoTotal = $('recursoTotal') ? $('recursoTotal').value.trim() : '';
-  // Ecuación formal (lo que va al Solver)
-  const eqFormalEl = $('eqFormalBody');
-  const eqFormal   = (eqFormalEl && eqFormalEl.innerHTML && validP.length>=2) ? eqFormalEl.innerHTML : '';
-  // Ecuación resumen
-  const eqSumEl    = $('eqBody');
-  const eqSum      = (eqSumEl && eqSumEl.innerHTML && validP.length>=1) ? eqSumEl.innerHTML : '';
-  // Resultados Solver (si los subieron)
-  const hasSolver  = solverResults && solverResults.length>0;
-  const solverRows = hasSolver ? solverResults.map(r=>'<tr><td style="padding:6px 10px;border:1px solid #C8D4E8">'+esc(r.nombre)+'</td><td style="padding:6px 10px;border:1px solid #C8D4E8;text-align:right;font-weight:700;color:#002A8D">'+r.cantidad+'</td></tr>').join('') : '';
-  // Ganancia óptima calculada
-  let ganOpt = 0;
-  if(hasSolver) solverResults.forEach(function(sr){ const p=validP.find(function(p){return p.name.trim()===sr.nombre;}); if(p) ganOpt+=(Number(p.price)-Number(p.cost||0))*sr.cantidad; });
-  // Análisis mix S4 (diagnóstico de consultor del bloque solver)
-  const diagEl   = $('diagnosticoS4MainBody');
-  const diagBody = (diagEl && diagEl.innerHTML && !diagEl.innerHTML.includes('dots-s4')) ? diagEl.innerHTML : '';
-  const hasDiag  = diagBody && diagBody.trim().length > 0;
+// ════════════════════════════════════════════════════════════════════════════
+//  EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2 y S3)
+//  ------------------------------------------------------------------------
+//  Antes esto abría una ventana emergente y llamaba a window.print(): en móvil
+//  el navegador la bloquea, y aunque pase, la emprendedora termina en el
+//  diálogo de impresión del sistema en vez de con un PDF descargado. Además
+//  los saltos de página iban forzados a mano (page-break entre Paso 1, Paso 2
+//  y diagnóstico), así que una tabla larga o un análisis extenso se partía a
+//  la mitad y sobraban hojas casi vacías.
+//
+//  Ahora se compone el mismo documento en un contenedor fuera de pantalla y se
+//  rasteriza con html2canvas + jsPDF:
+//   · NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+//     así el lienzo nunca recorta el final ni deja aire de más.
+//   · Los límites de cada bloque se miden DENTRO del clon vía `onclone`, ya con
+//     la tipografía cargada: medición y render en el mismo sistema.
+//   · Cada caja (cuello, plan, análisis, tabla, ecuación, Solver, diagnóstico)
+//     es un "átomo" y la página solo corta donde no rompe ninguno.
+//   · Los títulos de sección viajan pegados a su primer bloque.
+//
+//  Para proteger un bloque nuevo: agrega su clase a PDF_ATOM_SELECTOR o ponle
+//  data-pdf-atom. No hay que tocar el algoritmo.
+// ════════════════════════════════════════════════════════════════════════════
 
-  // Filas de productos para tabla Paso 2
-  const prodRows = validP.map(p=>'<tr>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;font-weight:600">'+esc(p.name)+'</td>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">S/ '+esc(p.price)+'</td>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">S/ '+esc(p.cost||'0')+'</td>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right;color:#2F9E5F;font-weight:700">S/ '+(Number(p.price)-Number(p.cost||0))+'</td>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right">'+esc(p.resourcePerUnit||'-')+'</td>'
-    +'<td style="padding:7px 9px;border:1px solid #C8D4E8;text-align:right;color:#6B7688">'+esc(p.maxDemand||'-')+'</td>'
-    +'</tr>').join('');
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
 
-  // ── HTML con saltos de página forzados ────────────────────────────────────
-  // PAGE 1 = PASO 1 completo
-  // PAGE 2-3 = PASO 2 (tabla + ecuación + resultados Solver)
-  // RESTO = diagnóstico IA
+const PDF_CFG = {
+  renderW: 820,      // ancho de composición en px CSS (tablas cómodas)
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6, // techo de memoria del lienzo
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>S4 Resumen – ${esc(nombre)}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#1C2536;line-height:1.6;background:#fff}
+// Espera a que Rubik esté realmente disponible: si se mide o rasteriza antes,
+// el texto se maqueta con la fuente de respaldo y todas las alturas se corren.
+async function pdfEsperarTipografia(doc){
+  try{
+    const links = Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l => l.sheet ? Promise.resolve() : new Promise(res => {
+      l.addEventListener('load', res, { once:true });
+      l.addEventListener('error', res, { once:true });
+      setTimeout(res, 1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts && doc.fonts.load){
+      await Promise.all(['400','500','600','700'].map(w => doc.fonts.load(w + ' 14px Rubik')));
+    }
+    if(doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
 
-  /* ── saltos de página ── */
-  .page{padding:18px 20px 14px;min-height:0}
-  .page-break{page-break-after:always;break-after:page}
-  .page-break-before{page-break-before:always;break-before:page}
-  .avoid-break{page-break-inside:avoid;break-inside:avoid}
+// Mide los bloques dentro del contenedor ya maquetado, en px CSS relativos al
+// borde superior — el mismo origen que usa el canvas de html2canvas.
+function pdfMedirBloques(root){
+  const wr = root.getBoundingClientRect();
+  const nodos = Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  // Si un bloque está dentro de otro, solo cuenta el externo.
+  const atomos = nodos.filter(n => !nodos.some(o => o !== n && o.contains(n)));
 
-  /* ── cabecera ── */
-  .header{background:#002A8D;color:#fff;padding:14px 18px 12px;border-radius:8px;margin-bottom:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .header .eyebrow{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:#7FA0FF;margin-bottom:3px}
-  .header h1{font-size:18px;font-weight:700;margin-bottom:2px}
-  .header h1 span{color:#FF8C42}
-  .header p{font-size:11px;color:#C6D2F5}
+  const zonas = [];
+  atomos.forEach(n => {
+    const r = n.getBoundingClientRect();
+    if(r.height > 0) zonas.push({ top:r.top - wr.top, bottom:r.bottom - wr.top });
+  });
 
-  /* ── cuello ── */
-  .cuello-box{background:#FDECEA;border:1.5px solid #D64545;border-radius:8px;padding:10px 14px;margin-bottom:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .cuello-box .cb-label{font-size:9px;font-weight:700;color:#D64545;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .cuello-box .cb-cause{font-size:11px;color:#7C0000;margin-top:4px}
+  // Un título de sección nunca queda huérfano al pie: viaja con su primer bloque.
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'), sec => {
+    const t = sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero = atomos.filter(a => sec.contains(a))[0];
+    const rt = t.getBoundingClientRect();
+    if(!primero){
+      const rs = sec.getBoundingClientRect();
+      if(rs.height > 0) zonas.push({ top:rs.top - wr.top, bottom:rs.bottom - wr.top });
+      return;
+    }
+    zonas.push({ top:rt.top - wr.top, bottom:primero.getBoundingClientRect().bottom - wr.top });
+  });
 
-  /* ── sección ── */
-  .section-label{font-size:8.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#002A8D;margin-bottom:8px;display:block}
-  .section{margin-bottom:14px;padding:13px 15px;border:1px solid #C8D4E8;border-radius:8px}
-  .action-pill{display:inline-block;background:#EEEDFE;color:#3C3489;font-weight:700;font-size:11.5px;padding:3px 12px;border-radius:20px;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  return { height:wr.height, width:wr.width, zonas:zonas };
+}
 
-  /* ── análisis IA ── */
-  .analisis{background:#EEF2FB;border-left:3px solid #002A8D;padding:11px 13px;border-radius:0 8px 8px 0;margin-top:10px;font-size:12px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .analisis b{color:#002A8D;font-weight:700}
+// Planificador: devuelve los cortes. Nunca corta dentro de una zona; si una
+// zona es más alta que la página, la entrega completa y esa página se reduce.
+function pdfPlanificarPaginas(imgH, zonas, altoPagPx){
+  const dentro = p => zonas.some(z => p > z.top + 0.5 && p < z.bottom - 0.5);
+  const candidatos = [];
+  zonas.forEach(z => { candidatos.push(z.top); candidatos.push(z.bottom); });
+  candidatos.push(imgH);
+  candidatos.sort((a,b) => a - b);
 
-  /* ── tablas ── */
-  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
-  th{background:#002A8D;color:#fff;padding:6px 9px;text-align:left;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  td{padding:6px 9px;border:1px solid #C8D4E8;vertical-align:middle}
+  const minSlice = altoPagPx * PDF_CFG.minFill;
+  const paginas = [];
+  let y = 0, guarda = 0;
 
-  /* ── ecuación ── */
-  /* ── Así quedó planteado tu problema ── */
-  .eq-summary-box{background:#002A8D;border-radius:10px;padding:14px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .eq-sum-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#B79CFF;margin-bottom:10px}
-  .eq-sum-content{font-size:11.5px;color:#E4EAFF;line-height:1.9}
-  .eq-sum-content b{color:#fff}
-  .eq-sum-content .eq-goal{background:rgba(109,59,212,.4);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px;color:#E4EAFF}
-  .eq-sum-content .eq-goal b{color:#fff}
-  .eq-sum-content .eq-line{display:block;padding:2px 0;color:#C6D2F5}
-  .eq-sum-content .eq-line b{color:#fff}
-
-  .eq-formal-box{background:#0D1B2A;border-radius:10px;padding:14px 16px;margin-top:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .eq-formal-box .eq-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#F4A228;margin-bottom:10px}
-  .eq-formal-box .eq-content{font-size:11.5px;color:#E4EAFF;line-height:1.9}
-  .eq-formal-box .eq-content b{color:#B79CFF}
-  .eq-formal-box .eq-content .hl{color:#2F9E5F}
-  .eq-formal-box .eq-content .cmt{color:#8AACBD;font-size:10px;font-style:italic}
-
-  /* ── Solver results ── */
-  .solver-result{background:#F0FBF0;border:1.5px solid #2F9E5F;border-radius:8px;padding:12px 14px;margin-top:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .solver-result .sr-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#2F9E5F;margin-bottom:8px}
-  .solver-result .sr-gan{font-size:14px;font-weight:700;color:#2F9E5F;margin-top:8px}
-
-  /* ── diagnóstico IA consultor ── */
-  .diagnostico{background:#1a0a00;border-radius:10px;padding:18px;margin-top:14px;color:#FFD4A8;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .diagnostico .diag-ey{font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C42;margin-bottom:5px}
-  .diagnostico .diag-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
-  .diagnostico .diag-body{font-size:12px;color:#FFD4A8;line-height:1.8}
-  .diagnostico .diag-body b{color:#fff;font-weight:700}
-  .diagnostico .diag-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FF8C42;margin:10px 0 5px}
-
-  /* ── pie ── */
-  .footer{text-align:center;font-size:9.5px;color:#9AACBE;padding-top:10px;border-top:1px solid #E2E7F0;margin-top:14px}
-
-  @media print{
-    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    body{padding:0}
-    @page{margin:1.1cm;size:A4 portrait}
+  while(y < imgH - 1 && guarda++ < 400){
+    let corte = Math.min(y + altoPagPx, imgH);
+    if(corte < imgH && dentro(corte)){
+      let mejor = -1;
+      for(let i = 0; i < candidatos.length; i++){
+        const c = candidatos[i];
+        if(c > corte) break;
+        if(c <= y + minSlice) continue;
+        if(!dentro(c)) mejor = c;
+      }
+      if(mejor > y) corte = mejor;
+      else {
+        let fin = corte;
+        for(let pasada = 0; pasada < 4; pasada++){
+          const antes = fin;
+          zonas.forEach(z => { if(fin > z.top && fin < z.bottom) fin = z.bottom; });
+          if(fin === antes) break;
+        }
+        corte = Math.min(fin, imgH);
+      }
+    }
+    if(corte <= y) corte = Math.min(y + altoPagPx, imgH);
+    paginas.push({ from:y, to:corte });
+    y = corte;
   }
-</style></head><body>
+  return paginas;
+}
 
-<!-- ══════════════════════════════════════════════════════════════
-     PÁGINA 1 — PASO 1: FLUJOGRAMA 2.0 / PLAN DE MEJORA
-     ══════════════════════════════════════════════════════════════ -->
-<div class="page">
+// Estilos de la composición: solo viven dentro del wrapper de exportación.
+const PDF_S4_CSS = [
+  '.pdf-s4{font-family:Rubik,system-ui,"Segoe UI",sans-serif;font-size:12.5px;color:#1C2536;line-height:1.65}',
+  '.pdf-s4 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#002A8D;margin:0 0 9px}',
+  '.pdf-s4 .sec{margin-bottom:18px}',
+  '.pdf-s4 .box{border:1px solid #C8D4E8;border-radius:10px;padding:14px 16px;margin-bottom:10px}',
+  '.pdf-s4 .cuello-pdf{background:#FDECEA;border:1.5px solid #D64545;border-radius:10px;padding:12px 15px;margin-bottom:10px}',
+  '.pdf-s4 .cuello-pdf .lb{font-size:9px;font-weight:700;color:#D64545;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}',
+  '.pdf-s4 .cuello-pdf .tx{font-size:14px;font-weight:700;color:#7C0000}',
+  '.pdf-s4 .cuello-pdf .cz{font-size:11.5px;color:#9B2C2C;margin-top:5px}',
+  '.pdf-s4 .pill{display:inline-block;background:#EEEDFE;color:#3C3489;font-weight:700;font-size:11.5px;padding:4px 13px;border-radius:20px}',
+  '.pdf-s4 .lb2{font-size:9px;font-weight:700;color:#002A8D;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}',
+  '.pdf-s4 .plan{font-size:12.5px;line-height:1.7;white-space:pre-wrap}',
+  '.pdf-s4 .analisis{background:#EEF2FB;border-left:3px solid #002A8D;padding:12px 14px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.75;margin-bottom:10px}',
+  '.pdf-s4 .analisis b{color:#002A8D;font-weight:700}',
+  '.pdf-s4 table{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.pdf-s4 th{background:#002A8D;color:#fff;padding:7px 9px;text-align:left;font-size:10.5px;font-weight:600}',
+  '.pdf-s4 td{padding:7px 9px;border:1px solid #C8D4E8;vertical-align:middle}',
+  '.pdf-s4 .eq-sum{background:#002A8D;border-radius:10px;padding:15px 17px;margin-bottom:10px}',
+  '.pdf-s4 .eq-sum .t{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#B79CFF;margin-bottom:9px}',
+  '.pdf-s4 .eq-sum .c{font-size:11.5px;color:#E4EAFF;line-height:1.9}',
+  '.pdf-s4 .eq-sum .c b{color:#fff}',
+  '.pdf-s4 .eq-sum .c .eq-goal{background:rgba(109,59,212,.4);border-radius:8px;padding:8px 11px;margin-bottom:9px;display:block}',
+  '.pdf-s4 .eq-sum .c .eq-line{display:block;padding:2px 0;color:#C6D2F5}',
+  '.pdf-s4 .eq-sum .c .eq-line b{color:#fff}',
+  '.pdf-s4 .eq-for{background:#0D1B2A;border-radius:10px;padding:15px 17px;margin-bottom:10px}',
+  '.pdf-s4 .eq-for .t{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#F4A228;margin-bottom:9px}',
+  '.pdf-s4 .eq-for .c{font-size:11.5px;color:#E4EAFF;line-height:1.9}',
+  '.pdf-s4 .eq-for .c b{color:#B79CFF}',
+  '.pdf-s4 .eq-for .c .hl{color:#2F9E5F}',
+  '.pdf-s4 .eq-for .c .cmt{color:#8AACBD;font-size:10px;font-style:italic}',
+  '.pdf-s4 .solver{background:#F0FBF0;border:1.5px solid #2F9E5F;border-radius:10px;padding:13px 15px;margin-bottom:10px}',
+  '.pdf-s4 .solver .lb{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#2F9E5F;margin-bottom:8px}',
+  '.pdf-s4 .solver .gan{font-size:14.5px;font-weight:700;color:#2F9E5F;margin-top:9px}',
+  '.pdf-s4 .diag{background:linear-gradient(135deg,#1a0a00,#3d1500);border-radius:12px;padding:20px;color:#FFD4A8}',
+  '.pdf-s4 .diag .ey{font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C42;margin-bottom:5px}',
+  '.pdf-s4 .diag .ti{font-size:16px;font-weight:700;color:#fff;margin-bottom:11px}',
+  '.pdf-s4 .diag .bo{font-size:12.5px;color:#FFD4A8;line-height:1.8}',
+  '.pdf-s4 .diag .bo b{color:#fff;font-weight:700}',
+  '.pdf-s4 .vacio{font-size:12px;color:#9AACBE;font-style:italic}'
+].join('\n');
 
-  <div class="header">
-    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES</div>
-    <h1>La Limpieza <span>(Optimización)</span></h1>
-    <p>${esc(nombre)}</p>
-  </div>
+// Arma el documento del resumen a partir del estado GLOBAL actual.
+function construirResumenS4(personName){
+  const nombre    = personName || currentName || '';
+  const cuelloTxt = ($('cuelloText') && $('cuelloText').textContent) ? $('cuelloText').textContent.trim() : '';
+  const cuelloCz  = ($('cuelloCause') && $('cuelloCause').textContent) ? $('cuelloCause').textContent.trim() : '';
+  const accion    = action ? ({eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar',elim:'Eliminar',auto:'Automatizar',simp:'Simplificar'}[action]||action) : '';
+  const planTxt   = $('actionPlan') ? $('actionPlan').value.trim() : '';
+  const analisis1 = textoLimpioS4('analisisPlanS4');
+  const diagBody  = textoLimpioS4('diagnosticoS4MainBody');
+  const validP    = products.filter(p => p.name && p.price);
+  const recurso   = $('recursoName') ? $('recursoName').value.trim() : '';
+  const recursoT  = $('recursoTotal') ? $('recursoTotal').value.trim() : '';
+  const eqFormal  = ($('eqFormalBody') && validP.length >= 2) ? ($('eqFormalBody').innerHTML || '') : '';
+  const eqSum     = ($('eqBody') && validP.length >= 1) ? ($('eqBody').innerHTML || '') : '';
+  const hasSolver = solverResults && solverResults.length > 0;
 
-  <div class="section avoid-break">
-    <span class="section-label">Paso 1 · Flujograma 2.0 — Atacar el cuello de botella</span>
+  let ganOpt = 0;
+  if(hasSolver) solverResults.forEach(sr => {
+    const p = validP.find(x => x.name.trim() === sr.nombre);
+    if(p) ganOpt += (Number(p.price) - Number(p.cost||0)) * sr.cantidad;
+  });
 
-    ${cuelloTxt ? `<div class="cuello-box">
-      <div class="cb-label">🔴 Tu cuello de botella</div>
-      <strong style="font-size:13.5px">${esc(cuelloTxt)}</strong>
-      ${cuelloCauseTxt ? `<div class="cb-cause">${esc(cuelloCauseTxt)}</div>` : ''}
-    </div>` : ''}
+  const A = a => ' data-pdf-atom="1"';
+  let h = '<div class="pdf-s4">';
 
-    ${accion ? `<div><span class="action-pill">Acción elegida: ${esc(accion)}</span></div>` : ''}
+  // ── Paso 1
+  h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Paso 1 &middot; Flujograma 2.0 &mdash; atacar el cuello de botella</div>';
+  if(cuelloTxt){
+    h += '<div class="cuello-pdf"'+A()+'><div class="lb">Tu cuello de botella</div><div class="tx">' + esc(cuelloTxt) + '</div>' +
+         (cuelloCz ? '<div class="cz">' + esc(cuelloCz) + '</div>' : '') + '</div>';
+  }
+  if(accion || planTxt){
+    h += '<div class="box"'+A()+'>' +
+         (accion ? '<div style="margin-bottom:10px"><span class="pill">Acci\u00f3n elegida: ' + esc(accion) + '</span></div>' : '') +
+         (planTxt ? '<div class="lb2">Mi plan concreto</div><div class="plan">' + esc(planTxt) + '</div>' : '') +
+         '</div>';
+  }
+  if(analisis1) h += '<div class="analisis"'+A()+'><div class="lb2">An\u00e1lisis de tu plan</div>' + analisis1 + '</div>';
+  if(!cuelloTxt && !accion && !planTxt) h += '<div class="box"'+A()+'><div class="vacio">A\u00fan sin plan de mejora registrado.</div></div>';
+  h += '</div>';
 
-    ${planTxt ? `<div style="margin-top:8px">
-      <div style="font-size:9px;font-weight:700;color:#002A8D;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Mi plan concreto</div>
-      <p style="font-size:12.5px;color:#1C2536;line-height:1.7;white-space:pre-wrap">${esc(planTxt)}</p>
-    </div>` : ''}
+  // ── Paso 2
+  if(validP.length >= 1){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Paso 2 &middot; Optimizador de mix &mdash; tu mezcla ideal</div>';
+    h += '<div class="box"'+A()+'>' +
+         '<div style="font-size:11.5px;color:#6B7688;margin-bottom:9px">Recurso limitante: <b style="color:#002A8D">' + esc(recurso||'\u2014') + '</b>' +
+         (recursoT ? ' &nbsp;&middot;&nbsp; Disponible por semana: <b style="color:#002A8D">' + esc(recursoT) + '</b>' : '') + '</div>' +
+         '<table><thead><tr><th>Producto / Servicio</th><th style="text-align:right">Precio</th><th style="text-align:right">Costo</th>' +
+         '<th style="text-align:right">Margen</th><th style="text-align:right">Recurso c/u</th><th style="text-align:right">M\u00e1x/sem</th></tr></thead><tbody>' +
+         validP.map(p =>
+           '<tr><td style="font-weight:600">' + esc(p.name) + '</td>' +
+           '<td style="text-align:right">S/ ' + esc(p.price) + '</td>' +
+           '<td style="text-align:right">S/ ' + esc(p.cost||'0') + '</td>' +
+           '<td style="text-align:right;color:#2F9E5F;font-weight:700">S/ ' + (Number(p.price)-Number(p.cost||0)) + '</td>' +
+           '<td style="text-align:right">' + esc(p.resourcePerUnit||'-') + '</td>' +
+           '<td style="text-align:right;color:#6B7688">' + esc(p.maxDemand||'-') + '</td></tr>'
+         ).join('') + '</tbody></table></div>';
+    if(eqSum)    h += '<div class="eq-sum"'+A()+'><div class="t">As\u00ed qued\u00f3 planteado tu problema</div><div class="c">' + eqSum + '</div></div>';
+    if(eqFormal) h += '<div class="eq-for"'+A()+'><div class="t">Tu ecuaci\u00f3n (esto va al Solver)</div><div class="c">' + eqFormal + '</div></div>';
+    if(hasSolver){
+      h += '<div class="solver"'+A()+'><div class="lb">Resultados del Solver &mdash; mezcla \u00f3ptima</div>' +
+           '<table><thead><tr><th>Producto</th><th style="text-align:right">Cantidad \u00f3ptima</th></tr></thead><tbody>' +
+           solverResults.map(r => '<tr><td>' + esc(r.nombre) + '</td><td style="text-align:right;font-weight:700;color:#002A8D">' + r.cantidad + '</td></tr>').join('') +
+           '</tbody></table><div class="gan">Ganancia total \u00f3ptima: S/ ' + ganOpt.toFixed(0) + '</div></div>';
+    }
+    h += '</div>';
+  }
 
-    ${analisis1 ? `<div style="margin-top:12px">
-      <div style="font-size:9px;font-weight:700;color:#002A8D;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Análisis IA de tu plan</div>
-      <div class="analisis">${analisis1}</div>
-    </div>` : ''}
-  </div>
+  // ── Diagnóstico
+  if(diagBody){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Diagn\u00f3stico de consultor</div>' +
+         '<div class="diag"'+A()+'><div class="ey">&#9670; Diagn\u00f3stico de consultor</div>' +
+         '<div class="ti">Tu hoja de ruta esta semana</div><div class="bo">' + diagBody + '</div></div></div>';
+  }
 
-  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
-</div>
+  h += '</div>';
+  return { html:h, nombre:nombre };
+}
 
-${(validP.length >= 1) ? `<!-- ══════════════════════════════════════════════════════════════
-     PÁGINAS 2-3 — PASO 2: OPTIMIZADOR DE MIX
-     ══════════════════════════════════════════════════════════════ -->
-<div class="page-break"></div>
-<div class="page">
+// Genera el PDF del resumen. Si asBlob=true devuelve {blob, filename} para
+// empaquetar varios en un solo ZIP (el navegador bloquea descargas múltiples).
+async function exportResumenS4ToPdf(personName, versionLabel, asBlob){
+  console.log('[PDF] exportador S4 V7-flow');
+  let wrapper = null;
+  try{
+    const doc = construirResumenS4(personName);
 
-  <div class="header">
-    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES — continuación</div>
-    <h1>La Limpieza <span>(Optimización)</span></h1>
-    <p>${esc(nombre)} — Paso 2: Tu mezcla ideal</p>
-  </div>
+    wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      'font-family:Rubik,system-ui,\'Segoe UI\',sans-serif',
+      'width:' + PDF_CFG.renderW + 'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
 
-  <div class="section avoid-break">
-    <span class="section-label">Paso 2 · Optimizador de mix — ¿Cuánto hacer de cada producto?</span>
+    const estilos = document.createElement('style');
+    estilos.textContent = PDF_S4_CSS;
+    wrapper.appendChild(estilos);
 
-    <p style="font-size:11.5px;color:#6B7688;margin-bottom:10px">
-      Recurso limitante: <strong style="color:#002A8D">${esc(recurso||'—')}</strong>
-      ${recursoTotal ? ` &nbsp;·&nbsp; Disponible por semana: <strong style="color:#002A8D">${esc(recursoTotal)}</strong>` : ''}
-    </p>
+    const hdr = document.createElement('div');
+    hdr.setAttribute('data-pdf-atom','1');
+    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #002A8D';
+    hdr.innerHTML =
+      '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 4 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">La Limpieza <span style="color:#EC6607">(Optimizaci\u00f3n)</span></div>' +
+      '<div style="font-size:10.5px;color:#6B7688;margin-top:4px">' + esc(doc.nombre) +
+        (versionLabel ? ' \u00b7 ' + esc(versionLabel) : '') + ' \u00b7 ' +
+        new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+    wrapper.appendChild(hdr);
 
-    <table class="avoid-break">
-      <thead>
-        <tr>
-          <th>Producto / Servicio</th>
-          <th style="text-align:right">Precio (S/)</th>
-          <th style="text-align:right">Costo (S/)</th>
-          <th style="text-align:right">Margen (S/)</th>
-          <th style="text-align:right">Recurso c/u</th>
-          <th style="text-align:right">Máx/sem</th>
-        </tr>
-      </thead>
-      <tbody>${prodRows}</tbody>
-    </table>
-  </div>
+    const cuerpo = document.createElement('div');
+    cuerpo.innerHTML = doc.html;
+    wrapper.appendChild(cuerpo);
 
-  ${eqSum ? `<div class="section avoid-break">
-    <div class="eq-summary-box">
-      <div class="eq-sum-title">📊 Así quedó planteado tu problema</div>
-      <div class="eq-sum-content">${eqSum}</div>
-    </div>
-  </div>` : ''}
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:18px';
+    wrapper.appendChild(spacer);
 
-  ${eqFormal ? `<div class="section avoid-break" style="padding:0;overflow:hidden">
-    <div class="eq-formal-box">
-      <div class="eq-title">🧮 Tu ecuación (esto va al Solver)</div>
-      <div class="eq-content">${eqFormal}</div>
-    </div>
-  </div>` : ''}
+    document.body.appendChild(wrapper);
 
-  ${hasSolver ? `<div class="section avoid-break">
-    <div class="solver-result">
-      <div class="sr-label">✅ Resultados del Solver — Mezcla óptima</div>
-      <table>
-        <thead><tr><th>Producto</th><th style="text-align:right">Cantidad óptima</th></tr></thead>
-        <tbody>${solverRows}</tbody>
-      </table>
-      <div class="sr-gan">Ganancia total óptima: S/ ${ganOpt.toFixed(0)}</div>
-    </div>
-  </div>` : ''}
+    await pdfEsperarTipografia(document);
+    await new Promise(r => setTimeout(r, 250));
 
-  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
-</div>` : ''}
+    const fallback = pdfMedirBloques(wrapper);
 
-${hasDiag ? `<!-- ══════════════════════════════════════════════════════════════
-     PÁGINA FINAL — DIAGNÓSTICO IA: HOJA DE RUTA
-     ══════════════════════════════════════════════════════════════ -->
-<div class="page-break"></div>
-<div class="page">
+    // Escala adaptativa: en resúmenes muy largos un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del móvil.
+    let scale = PDF_CFG.scaleMax;
+    const altoCss = Math.max(fallback.height, wrapper.scrollHeight, 1);
+    while(scale > 1.2 && (PDF_CFG.renderW * scale) * (altoCss * scale) > PDF_CFG.maxCanvasPx) scale -= 0.2;
 
-  <div class="header">
-    <div class="eyebrow">Módulo 3 · Sesión 4 · BCP × UCSP-CENDES — diagnóstico</div>
-    <h1>La Limpieza <span>(Optimización)</span></h1>
-    <p>${esc(nombre)} — Diagnóstico de consultor</p>
-  </div>
+    let metrics = null;
+    const canvas = await html2canvas(wrapper, {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: PDF_CFG.renderW + 300,
+      windowHeight: Math.max(1200, altoCss + 300),
+      scrollX: 0, scrollY: 0,
+      onclone: async (d, cloned) => {
+        await pdfEsperarTipografia(d);
+        await new Promise(r => setTimeout(r, 80));
+        try{ metrics = pdfMedirBloques(cloned); }catch(e){ metrics = null; }
+      }
+    });
 
-  <div class="diagnostico avoid-break">
-    <div class="diag-ey">◆ Diagnóstico de consultor</div>
-    <div class="diag-title">🔥 Tu hoja de ruta esta semana</div>
-    <div class="diag-body">${diagBody}</div>
-  </div>
+    const med = (metrics && metrics.height > 0) ? metrics : fallback;
 
-  <div class="footer">Programa BCP · UCSP-CENDES · Módulo 3 · S4 &nbsp;|&nbsp; ${esc(nombre)}</div>
-</div>` : ''}
+    const { jsPDF } = window.jspdf;
+    const imgW = canvas.width, imgH = canvas.height;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = PDF_CFG.marginMm;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2 - PDF_CFG.footerMm;
 
-</body></html>`;
+    const sy = med.height > 0 ? (imgH / med.height) : scale;
+    const altoPagBase = imgW * (usableH / usableW);
 
-  const win = window.open('','_blank','width=820,height=960');
-  if(!win){ alert('El navegador bloqueó la ventana emergente. Permite popups para este sitio e intenta de nuevo.'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = function(){ win.focus(); win.print(); };
+    const zonas = med.zonas
+      .map(z => ({ top:z.top * sy, bottom:z.bottom * sy }))
+      .filter(z => z.bottom > z.top + 1)
+      .sort((a,b) => a.top - b.top);
+
+    // Colchón inferior por bloque, limitado al 60% del espacio libre hasta el
+    // siguiente: si dos zonas se fusionaran desaparecería el corte entre ellas.
+    const padPx = PDF_CFG.atomPadPx * sy;
+    zonas.forEach(z => {
+      let sigTop = imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchón debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o => { if(o.top >= z.bottom && o.top < sigTop) sigTop = o.top; });
+      z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
+      if(z.bottom > imgH) z.bottom = imgH;
+    });
+
+    if(imgH <= altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG',
+        margin, margin, usableW, (imgH / imgW) * usableW);
+    } else {
+      // Compactación: el factor MÁS GRANDE que logre el menor número de páginas.
+      let mejor = null;
+      PDF_CFG.shrinkSteps.forEach(k => {
+        const pg = pdfPlanificarPaginas(imgH, zonas, altoPagBase / k);
+        if(!mejor || pg.length < mejor.paginas.length) mejor = { k:k, paginas:pg };
+      });
+      const k = mejor.k, paginas = mejor.paginas;
+
+      paginas.forEach((p,i) => {
+        if(i === paginas.length - 1) return;
+        if(zonas.some(z => p.to > z.top + 0.5 && p.to < z.bottom - 0.5)) console.warn('[PDF] corte revisado en p\u00e1gina ' + (i+1));
+      });
+
+      for(let i = 0; i < paginas.length; i++){
+        if(i > 0) pdf.addPage();
+        const p = paginas[i];
+        const sliceH = Math.max(1, Math.round(p.to - p.from));
+        const slice = document.createElement('canvas');
+        slice.width = imgW; slice.height = sliceH;
+        const ctx = slice.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, imgW, sliceH);
+        ctx.drawImage(canvas, 0, p.from, imgW, sliceH, 0, 0, imgW, sliceH);
+
+        let drawW = usableW * k;
+        let drawH = (sliceH / imgW) * drawW;
+        if(drawH > usableH){ const f = usableH / drawH; drawW *= f; drawH = usableH; }
+        const x = margin + (usableW - drawW) / 2;
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
+      }
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for(let p = 1; p <= totalPages; p++){
+      pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 4', margin, pageH - 5);
+      if(totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 5, { align:'right' });
+    }
+
+    const safeName = String(doc.nombre || 'resumen').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45) || 'resumen';
+    const safeVer = versionLabel ? '_' + versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
+    const filename = 'Optimizacion_' + safeName + safeVer + '.pdf';
+    if(asBlob) return { blob:pdf.output('blob'), filename:filename };
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:', err);
+    return asBlob ? null : false;
+  }finally{
+    if(wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+// Dispara UNA sola descarga de un blob (PDF suelto o ZIP empaquetado).
+function triggerBlobDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+$('printBtn').addEventListener('click', async () => {
+  const btn = $('printBtn');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Generando PDF...';
+  const ok = await exportResumenS4ToPdf(currentName, '', false);
+  btn.disabled = false;
+  btn.innerHTML = orig;
+  if(!ok) alert('No se pudo generar el PDF. Intenta de nuevo.');
 });
+
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────────────────
+
+async function loadAdminData(){
+  $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent = '';
+  const rec = await binRead();
+  if(rec === null){
+    $('adminTableBody').innerHTML = '<div class="alert-box amber"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list => list.sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0)));
+
+  const empDnis = Object.keys(ROSTER).filter(d => !TEST_DNIS.has(d));
+  const conDatos = empDnis.filter(d => byDni.has(d));
+  const totalVersiones = allEntries.filter(e => ROSTER[e.dni] && !TEST_DNIS.has(e.dni)).length;
+
+  $('kAdminEmp').textContent = conDatos.length;
+  $('kAdminVer').textContent = totalVersiones;
+
+  const ordenados = empDnis.slice().sort((a,b) => (ROSTER[a]||'').localeCompare(ROSTER[b]||''));
+
+  let html = '';
+  ordenados.forEach(dni => {
+    const versions = byDni.get(dni) || [];
+    const nombre = ROSTER[dni] || dni;
+
+    const lista = versions.length
+      ? '<div class="admin-version-list">' + versions.map((v,i) => {
+          const acc = v.action ? ({eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar',elim:'Eliminar',auto:'Automatizar',simp:'Simplificar'}[v.action]||v.action) : '';
+          const desc = (v.cuello || '') + (acc ? ' \u2014 ' + acc : '') || '(sin plan registrado)';
+          return '<div class="admin-version-item"><span class="v-num">v'+(i+1)+'</span>' +
+                 '<span class="v-name">'+esc(desc)+'</span>' +
+                 '<span class="v-date">'+fmtDateTime(v.savedAt)+'</span></div>';
+        }).join('') + '</div>'
+      : '<div class="admin-empty-versions">Sin res\u00famenes guardados todav\u00eda.</div>';
+
+    html += '<div class="admin-emp-card">' +
+      '<div class="admin-emp-head"><div><div class="admin-emp-name">'+esc(nombre)+'</div></div>' +
+      '<span class="tag '+(versions.length?'green':'gray')+'">'+versions.length+' '+(versions.length===1?'versi\u00f3n':'versiones')+'</span></div>' +
+      lista +
+      (versions.length
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(String(nombre).split(' ')[0])+' ('+versions.length+' PDF'+(versions.length===1?'':'s')+')</button>'
+        : '') +
+      '</div>';
+  });
+  $('adminTableBody').innerHTML = html;
+}
+
+// Restaura el estado global desde UNA version guardada, para poder exportarla.
+function loadEntryIntoStateS4(v){
+  currentDNI  = v.dni;
+  currentName = v.name || ROSTER[v.dni] || v.dni;
+  const MAPA_ACC = {elim:'eliminar', auto:'automatizar', simp:'simplificar'};
+  action = v.action ? (MAPA_ACC[v.action] || v.action) : null;
+  try{ if(typeof markAction === 'function' && action) markAction(action); }catch(e){}
+  products = Array.isArray(v.products) ? v.products.slice() : [];
+  solverResults = Array.isArray(v.solverResults) ? v.solverResults : [];
+  if($('actionPlan'))   $('actionPlan').value   = v.actionPlan || '';
+  if($('recursoName'))  $('recursoName').value  = v.recursoName || '';
+  if($('recursoTotal')) $('recursoTotal').value = v.recursoTotal || '';
+  if($('cuelloText'))   $('cuelloText').textContent  = v.cuello || '';
+  if($('cuelloCause'))  $('cuelloCause').textContent = '';
+  // Los bloques de analisis se repintan desde lo guardado
+  ['analisisPlanS4','analisisMixS4Main','diagnosticoS4MainBody'].forEach(id => { if($(id)) $(id).innerHTML = ''; });
+  pintarAnalisisS4(v);
+  // La ecuacion se recalcula con los productos de esa version, si la app lo permite
+  try{ if(typeof renderProducts === 'function') renderProducts(); }catch(e){}
+  try{ if(typeof updateEqSummary === 'function') updateEqSummary(); }catch(e){}
+}
+
+// Descarga TODAS las versiones de UNA emprendedora en una sola descarga.
+async function downloadVersionsFor(dni){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const versions = all.filter(e => e.dni === dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+  if(!versions.length){ alert('Esta emprendedora no tiene res\u00famenes guardados.'); return; }
+
+  const personName = ROSTER[dni] || dni;
+  $('adminBulkStatus').className = 'save-status loading';
+
+  const archivos = [];
+  for(let i = 0; i < versions.length; i++){
+    $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
+    loadEntryIntoStateS4(versions[i]);
+    await new Promise(r => setTimeout(r, 200));
+    const label = versions.length > 1 ? ('v'+(i+1)) : '';
+    const res = await exportResumenS4ToPdf(personName, label, true);
+    if(res) archivos.push(res);
+  }
+  limpiarEstadoAdminS4();
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan PDF.';
+    return;
+  }
+  if(archivos.length === 1){
+    triggerBlobDownload(archivos[0].blob, archivos[0].filename);
+  } else {
+    $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs...';
+    const zip = new JSZip();
+    archivos.forEach(f => zip.file(f.filename, f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Optimizacion_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' PDF(s) descargado(s) de '+personName+'.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
+}
+
+// Descarga TODAS las versiones de TODAS las emprendedoras en un solo ZIP.
+async function downloadAllVersionsS4(){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const byDni = new Map();
+  all.forEach(e => {
+    if(!ROSTER[e.dni] || TEST_DNIS.has(e.dni)) return;
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  if(byDni.size === 0){ alert('A\u00fan no hay res\u00famenes guardados.'); return; }
+  if(!confirm('Se descargar\u00e1n los PDFs de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?')) return;
+
+  const btn = $('adminDownloadAllBtn');
+  btn.disabled = true;
+  const dnis = Array.from(byDni.keys());
+  const archivos = [];
+
+  for(let d = 0; d < dnis.length; d++){
+    const dni = dnis[d];
+    const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+    const personName = ROSTER[dni] || dni;
+    for(let i = 0; i < versions.length; i++){
+      $('adminBulkStatus').className = 'save-status loading';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 PDF '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
+      loadEntryIntoStateS4(versions[i]);
+      await new Promise(r => setTimeout(r, 200));
+      const label = versions.length > 1 ? ('v'+(i+1)) : '';
+      const res = await exportResumenS4ToPdf(personName, label, true);
+      if(res) archivos.push(res);
+    }
+  }
+  limpiarEstadoAdminS4();
+  btn.disabled = false;
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan PDF.';
+    return;
+  }
+  $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs en un ZIP...';
+  const zip = new JSZip();
+  archivos.forEach(f => zip.file(f.filename, f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Optimizacion_S4_todas.zip');
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' PDF(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
+}
+
+// El admin no tiene datos propios: se limpia el estado prestado tras exportar.
+function limpiarEstadoAdminS4(){
+  currentDNI = null; currentName = null;
+  action = null; products = []; solverResults = [];
+  ['actionPlan','recursoName','recursoTotal'].forEach(id => { if($(id)) $(id).value = ''; });
+  ['analisisPlanS4','analisisMixS4Main','diagnosticoS4MainBody'].forEach(id => { if($(id)) $(id).innerHTML = ''; });
+  if($('cuelloText'))  $('cuelloText').textContent = '';
+  if($('cuelloCause')) $('cuelloCause').textContent = '';
+}
+
+$('adminDownloadAllBtn').addEventListener('click', downloadAllVersionsS4);
 
 
 let clearArmed=false;
@@ -1452,15 +1859,15 @@ document.addEventListener('change',async function(e){
   }catch(e){resEl.textContent='Error: '+e.message; resEl.style.color='#A32D2D';}
 });
 
+const BTN_GUARDAR_HTML = '<div class="cb4-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div><div class="cb4-text"><div class="cb4-main">Guardar y generar análisis</div><div class="cb4-sub">Diagnóstico personalizado con IA</div></div><div class="cb4-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>';
 $('saveCloudBtn').addEventListener('click', async ()=>{
   if(!action && products.filter(p=>p.name&&p.price).length===0){ showStatus('Completa al menos el plan de mejora o un producto.','err'); return; }
   const btn=$('saveCloudBtn');
+  const btnHtmlOriginal = BTN_GUARDAR_HTML;
   btn.disabled=true;
   btn.innerHTML='<div class="cb4-icon" style="animation:spin-s4 1s linear infinite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FF8C42"/></svg></div><div class="cb4-text"><div class="cb4-main">Generando análisis...</div><div class="cb4-sub">Claude está procesando tu información</div></div>';
-  showStatus('Guardando y generando análisis...','loading');
-  const rec=await binRead();
-  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); return; }
-  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  showStatus('Generando tu análisis con IA...','loading');
+
   const valid=products.filter(p=>p.name&&p.price);
   const payload={
     dni:currentDNI, name:currentName,
@@ -1469,15 +1876,19 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
     recursoName:$('recursoName').value.trim(), recursoTotal:$('recursoTotal').value.trim(),
     products:valid, productCount:valid.length,
     hasPlan: !!(action && $('actionPlan').value.trim()),
-    hasOpt: valid.length>=2 && !!$('recursoTotal').value.trim(),
-    savedAt:new Date().toISOString()
+    hasOpt: valid.length>=2 && !!$('recursoTotal').value.trim()
   };
-  const idx=entries.findIndex(e=>e.dni===currentDNI);
-  if(idx>=0) entries[idx]=payload; else entries.push(payload);
-  // ── Análisis Plan de Acción con Claude ────────────────────────────────────
+
+  // ── Análisis con Claude ────────────────────────────────────────────────────
+  // IMPORTANTE: la IA corre ANTES de tocar la nube. Si se leyera el BIN aquí y
+  // se escribiera 20-30 segundos después, cualquier guardado de otra
+  // emprendedora ocurrido en ese lapso quedaría pisado (el BIN es un solo
+  // documento: lectura-modificación-escritura). Con 25 personas guardando a la
+  // vez en el taller, eso era pérdida de datos garantizada. La lectura y la
+  // escritura ahora van pegadas, al final.
   const firstName=currentName.trim().split(' ')[0];
   const cuello=$('cuelloBox')._cuello||'paso crítico';
-  const accionLabel={'elim':'Eliminar','simp':'Simplificar','auto':'Automatizar'}[action]||action||'mejora';
+  const accionLabel={'eliminar':'Eliminar','automatizar':'Automatizar','simplificar':'Simplificar','elim':'Eliminar','simp':'Simplificar','auto':'Automatizar'}[action]||action||'mejora';
   const plan=$('actionPlan').value.trim();
   if(action||plan){
     const el1=$('analisisPlanS4'); el1.classList.add('visible'); dotsS4El(el1);
@@ -1487,56 +1898,81 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
       '\nAcción elegida: '+accionLabel+(plan?'\nSu plan concreto: "'+plan+'"':'')+
       '\n\nEscribe 2-3 oraciones directas y muy personales (máx 80 palabras): qué va a ganar exactamente con esta decisión (en tiempo, dinero o energía), qué riesgo debe cuidar esta semana, y si su plan es suficientemente concreto o necesita más detalle. Usa su nombre una vez. Habla de tú. Resalta la ganancia esperada.'
     );
-    const ia1Final=ia1||firstName+', esta acción tiene potencial real. Asegúrate de ejecutar el primer paso antes del viernes.';
-    el1.innerHTML=renderNegS4(ia1Final);
-    payload.analisisPlan=ia1Final;
+    el1.innerHTML=renderNegS4(ia1||firstName+', esta acción tiene potencial real. Asegúrate de ejecutar el primer paso antes del viernes.');
   }
-  // Si tiene resultados del Solver, generar el análisis de mezcla + diagnóstico
   if(solverResults.length && valid.length>=2){
-    const mixData=await generarAnalisisMixS4Main();
-    if(mixData){
-      payload.solverOptimal=mixData.solverOptimal;
-      payload.gananciaOptima=mixData.gananciaOptima;
-      payload.diagnosticoFinal=mixData.diagnosticoFinal;
-    }
+    await generarAnalisisMixS4Main();
   }
-  // Mostrar zona de upload Solver si tiene 2+ productos
   if(valid.length>=2){
     $('uploadSolverBox').classList.add('visible');
   }
+
+  // El análisis se persiste con la versión: antes se pintaba en pantalla pero
+  // nunca se guardaba, así que al recargar desaparecía.
+  payload.analisisPlan     = textoLimpioS4('analisisPlanS4');
+  payload.analisisMix      = textoLimpioS4('analisisMixS4Main');
+  payload.diagnosticoFinal = textoLimpioS4('diagnosticoS4MainBody');
+  payload.solverResults    = Array.isArray(solverResults) ? solverResults : [];
+
+  // ── Guardar: lectura y escritura pegadas, ventana mínima ───────────────────
+  showStatus('Guardando en la nube...','loading');
+  const rec=await binRead();
+  if(rec===null){
+    showStatus('Error de conexión. Tu análisis sigue en pantalla — vuelve a tocar Guardar.','err');
+    btn.disabled=false; btn.innerHTML=btnHtmlOriginal;
+    return;
+  }
+  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
+  payload.savedAt = new Date().toISOString();
+  payload.id      = currentDNI + '_' + Date.now();
+  entries.push(payload);
+
   const ok=await binWrite({entries});
-  showStatus(ok?'✅ Guardado y análisis generado.':'⚠️ Error al guardar.',ok?'ok':'err');
+  showStatus(ok?'✅ Guardado y análisis generado.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);
-  // Reset botón
   btn.disabled=false;
-  btn.innerHTML='<div class="cb4-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div><div class="cb4-text"><div class="cb4-main">Guardar y generar análisis</div><div class="cb4-sub">Diagnóstico personalizado con IA</div></div><div class="cb4-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>';
+  btn.innerHTML=btnHtmlOriginal;
 });
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
+
+// Devuelve el texto de un bloque de analisis, o '' si solo tiene el spinner.
+function textoLimpioS4(id){
+  const el = $(id);
+  if(!el) return '';
+  const html = el.innerHTML || '';
+  if(!html.trim() || html.indexOf('dots-s4') >= 0) return '';
+  return html;
+}
+
+// Pinta en pantalla el analisis de UNA version guardada.
+function pintarAnalisisS4(saved){
+  if(!saved) return;
+  const pares = [
+    ['analisisPlanS4',     saved.analisisPlan],
+    ['analisisMixS4Main',  saved.analisisMix],
+    ['diagnosticoS4MainBody', saved.diagnosticoFinal]
+  ];
+  pares.forEach(function(par){
+    const el = $(par[0]);
+    if(!el) return;
+    if(par[1]){ el.classList.add('visible'); el.innerHTML = renderNegS4(par[1]); }
+    else { el.innerHTML = ''; }
+  });
+  if(saved.diagnosticoFinal && $('diagnosticoS4Main')) $('diagnosticoS4Main').classList.add('visible');
+  if(saved.analisisMix && $('analisisMixS4Main')) $('analisisMixS4Main').style.display = 'block';
+  if(saved.products && saved.products.length>=2 && $('uploadSolverBox')) $('uploadSolverBox').classList.add('visible');
+}
 
 async function restaurarAnalisisS4(){
   try{
     const rec=await binRead(); if(!rec) return;
     const entries=Array.isArray(rec.entries)?rec.entries:[];
-    const saved=entries.find(function(e){return e.dni===currentDNI;});
+    // latestEntryFor y no find(): con versionado, find() devolvia la mas vieja.
+    const saved=latestEntryFor(entries, currentDNI);
     if(!saved) return;
-    if(saved.analisisPlan){const el=$('analisisPlanS4');el.classList.add('visible');el.innerHTML=renderNegS4(saved.analisisPlan);}
-    if(saved.products&&saved.products.length>=2){ $('uploadSolverBox').classList.add('visible'); $('solverUploadZone').style.display='block'; }
-    if(Array.isArray(saved.solverOptimal)&&saved.solverOptimal.length){
-      solverResults=saved.solverOptimal.slice();
-      const resEl=$('uploadSolverResult2');
-      if(resEl){ resEl.style.display='block'; resEl.textContent='\u2705 Tu \u00faltima combinaci\u00f3n \u00f3ptima guardada \u2014 '+solverResults.length+' productos.'; resEl.style.color='#3B6D11'; }
-    }
-    if(saved.diagnosticoFinal){
-      const parts=saved.diagnosticoFinal.split('\n\n');
-      const dEl=$('diagnosticoS4Main'), dBody=$('diagnosticoS4MainBody');
-      dEl.classList.add('visible');
-      dBody.innerHTML =
-        '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.15)">' +
-        '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">📊 Lo que dice el Solver</div>' +
-        renderNegS4(parts[0]||'') + '</div>' +
-        '<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#FF8C42;margin-bottom:6px;text-transform:uppercase">🎯 Qué hacer con esto</div>' +
-        renderNegS4(parts[1]||'') + '</div>';
-    }
+    if(Array.isArray(saved.solverResults) && saved.solverResults.length) solverResults = saved.solverResults;
+    pintarAnalisisS4(saved);
   }catch(e){console.error('restaurar S4',e);}
 }
 
@@ -1566,88 +2002,20 @@ async function loadDocData(){
   $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
   const rec=await binRead();
   if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
-  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  // Una fila por emprendedora: su version mas reciente.
+  docEntries=latestPerDni(Array.isArray(rec.entries)?rec.entries:[]);
+  docEntries=docEntries.filter(e=>!TEST_DNIS.has(e.dni));
   const total=docEntries.length, pct=Math.round(total/25*100);
   const conPlan=docEntries.filter(e=>e.hasPlan).length;
-  const conCombo=docEntries.filter(e=>Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0).length;
+  const conOpt=docEntries.filter(e=>e.hasOpt).length;
   $('kTotal').textContent=total; $('kPct').textContent=pct+'%';
-  $('kPlan').textContent=conPlan; $('kCombo').textContent=conCombo;
+  $('kPlan').textContent=conPlan; $('kOpt').textContent=conOpt;
   $('kPctLbl').textContent=total+' / 25'; $('progressBar').style.width=pct+'%';
   $('docWelcome').textContent=total+' emprendedoras guardaron su trabajo.';
-
-  // ── Promedios y tendencias ─────────────────────────────────────────────
-  const conGanancia=docEntries.filter(e=>typeof e.gananciaOptima==='number'&&e.gananciaOptima>0);
-  const ganProm=conGanancia.length?Math.round(conGanancia.reduce((s,e)=>s+e.gananciaOptima,0)/conGanancia.length):null;
-  $('kGanProm').textContent=ganProm!==null?('S/ '+ganProm):'\u2013';
-
-  const accionLbl={eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar'};
-  const accionColor={eliminar:'#D64545',automatizar:'#6D3BD4',simplificar:'#0891B2'};
-  const accionCounts={eliminar:0,automatizar:0,simplificar:0,sin:0};
-  docEntries.forEach(e=>{ const a=e.action; if(a&&accionCounts.hasOwnProperty(a)) accionCounts[a]++; else accionCounts.sin++; });
-
-  const prodCounts=docEntries.map(e=>e.productCount||0).filter(n=>n>0);
-  const avgProd=prodCounts.length?(prodCounts.reduce((s,n)=>s+n,0)/prodCounts.length).toFixed(1):null;
-  $('kAvgProd').textContent=avgProd!==null?avgProd:'\u2013';
-
-  // ── Gráfico de barras: acciones priorizadas ─────────────────────────────
-  const abCard=$('accionBarCard'), abBody=$('accionBarBody'), abSum=$('accionBarSummary');
-  if(total>0){
-    abCard.style.display='block';
-    const rows=[
-      {key:'automatizar',label:'Automatizar',n:accionCounts.automatizar,color:accionColor.automatizar},
-      {key:'simplificar',label:'Simplificar',n:accionCounts.simplificar,color:accionColor.simplificar},
-      {key:'eliminar',label:'Eliminar',n:accionCounts.eliminar,color:accionColor.eliminar},
-      {key:'sin',label:'Sin definir',n:accionCounts.sin,color:'#B9C2D4'}
-    ].filter(r=>r.n>0).sort((a,b)=>b.n-a.n);
-    const maxN=rows.length?rows[0].n:1;
-    abBody.innerHTML=rows.map(r=>
-      '<div class="mbar-row">'+
-        '<span class="mbar-label">'+esc(r.label)+'</span>'+
-        '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxN*100))+'%;background:'+r.color+'"></div></div>'+
-        '<div><span class="mbar-count" style="color:'+r.color+'">'+r.n+'</span><span class="mbar-ratio">'+Math.round(r.n/total*100)+'%</span></div>'+
-      '</div>'
-    ).join('');
-    if(rows.length){
-      const top=rows[0];
-      abSum.innerHTML='La acci\u00f3n m\u00e1s elegida es "<b>'+esc(top.label)+'</b>" ('+top.n+' de '+total+' casos, '+Math.round(top.n/total*100)+'% del aula)'+(rows[1]?'. Le sigue "<b>'+esc(rows[1].label)+'</b>" ('+rows[1].n+').':'.');
-    }
-  } else { abCard.style.display='none'; }
-
-  // ── Gráfico de barras: recursos limitantes ──────────────────────────────
-  const rbCard=$('recursoBarCard'), rbBody=$('recursoBarBody'), rbSum=$('recursoBarSummary');
-  const recCounts={};
-  docEntries.forEach(e=>{ const r=(e.recursoName||'').trim(); if(!r) return; const key=r.toLowerCase(); recCounts[key]=recCounts[key]||{label:r,n:0}; recCounts[key].n++; });
-  const recRows=Object.values(recCounts).sort((a,b)=>b.n-a.n).slice(0,6);
-  const recPalette=['#002A8D','#6D3BD4','#0891B2','#EC6607','#E8A800','#94A3B8'];
-  if(recRows.length>0){
-    rbCard.style.display='block';
-    const maxR=recRows[0].n;
-    rbBody.innerHTML=recRows.map((r,i)=>
-      '<div class="mbar-row">'+
-        '<span class="mbar-label" title="'+esc(r.label)+'">'+esc(r.label)+'</span>'+
-        '<div class="mbar-track"><div class="mbar-fill" style="width:'+Math.max(4,Math.round(r.n/maxR*100))+'%;background:'+recPalette[i%recPalette.length]+'"></div></div>'+
-        '<div><span class="mbar-count" style="color:'+recPalette[i%recPalette.length]+'">'+r.n+'</span><span class="mbar-ratio">'+Math.round(r.n/total*100)+'%</span></div>'+
-      '</div>'
-    ).join('');
-    const distintos=Object.keys(recCounts).length;
-    rbSum.innerHTML='El recurso m\u00e1s citado es "<b>'+esc(recRows[0].label)+'</b>" ('+recRows[0].n+' casos). Recursos distintos registrados en el aula: <b>'+distintos+'</b>.';
-  } else { rbCard.style.display='none'; }
-
-  // Cuellos de botella más repetidos
-  const cuCard=$('cuelloTopCard'), cuBody=$('cuelloTopBody');
-  const cuCounts={};
-  docEntries.forEach(e=>{ const c=(e.cuello||'').trim(); if(!c) return; const key=c.toLowerCase(); cuCounts[key]=cuCounts[key]||{label:c,n:0}; cuCounts[key].n++; });
-  const cuTop=Object.values(cuCounts).sort((a,b)=>b.n-a.n).slice(0,5);
-  if(cuTop.length>0){
-    cuCard.style.display='block';
-    cuBody.innerHTML=cuTop.map(c=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span>'+esc(c.label)+'</span><span style="font-weight:700;color:var(--purple);flex-shrink:0">'+c.n+(c.n===1?' caso':' casos')+'</span></div>').join('');
-  } else { cuCard.style.display='none'; }
-
   let al='';
   if(total===0) al+='<div class="alert-box amber"><b>A\u00fan no hay trabajos guardados.</b></div>';
   else { if(pct>=80) al+='<div class="alert-box green"><b>Excelente participaci\u00f3n ('+pct+'%).</b></div>';
-    const conOpt=docEntries.filter(e=>e.hasOpt).length;
-    if(conOpt>conCombo && total>=3) al+='<div class="alert-box amber"><b>'+(conOpt-conCombo)+' plantearon su optimizaci\u00f3n pero a\u00fan no suben el resultado del Solver.</b> Ya armaron la ecuaci\u00f3n \u2014 falta correr Solver y subir el Excel para ver su combinaci\u00f3n \u00f3ptima.</div>'; }
+    if(conOpt<total && total>=3) al+='<div class="alert-box amber"><b>'+(total-conOpt)+' a\u00fan no plantearon su optimizaci\u00f3n de mix.</b> Muchas quiz\u00e1 solo tienen un producto \u2014 revisa cu\u00e1les s\u00ed necesitan Solver.</div>'; }
   $('docAlerts').innerHTML=al;
   if(total===0){ $('docTableBody').innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Sin registros.</td></tr>'; }
   else {
@@ -1656,25 +2024,14 @@ async function loadDocData(){
       const first=(e.name||e.dni).split(' ')[0];
       const actTag=e.action?'<span class="tag purple">'+esc(e.action)+'</span>':'<span class="tag gray">sin acci\u00f3n</span>';
       const pc=e.productCount||0;
-      let comboTag;
-      if(Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0){
-        const g=typeof e.gananciaOptima==='number'?(' \u00b7 S/'+Math.round(e.gananciaOptima)):'';
-        comboTag='<span class="tag green">\u2713 \u00d3ptimo'+g+'</span>';
-      } else if(pc>=2){
-        comboTag='<span class="tag gray">Pendiente Solver</span>';
-      } else if(pc===1){
-        comboTag='<span class="tag gray">1 producto</span>';
-      } else {
-        comboTag='<span class="tag gray">\u2013</span>';
-      }
       rows+='<tr onclick="openModal('+idx+')"><td style="color:var(--muted);font-size:12px">'+(idx+1)+'</td>'+
         '<td><div style="font-weight:600;color:var(--navy)">'+esc(first)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(e.name||'')+'</div></td>'+
-        '<td>'+actTag+'</td><td>'+comboTag+'</td></tr>';
+        '<td>'+actTag+'</td><td>'+(pc>=2?'<span class="tag green">'+pc+' productos</span>':'<span class="tag gray">'+pc+'</span>')+'</td></tr>';
     });
     $('docTableBody').innerHTML=rows;
   }
   const reg=new Set(docEntries.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d)&&!TEST_DNIS.has(d));
   if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas guardaron su trabajo!</b></div>';
   else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
     pend.forEach(([,n])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(n.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }
@@ -1685,50 +2042,10 @@ function openModal(idx){
   $('modalMeta').textContent=(e.savedAt?e.savedAt.slice(0,16).replace('T',' '):'-');
   let b='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Cuello de botella</b><div style="font-size:13px;margin-top:4px">'+esc(e.cuello||'-')+'</div></div>';
   b+='<div style="margin-bottom:12px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Acci\u00f3n: '+esc(e.action||'-')+'</b><div style="font-size:13px;margin-top:4px;color:var(--muted)">'+esc(e.actionPlan||'(sin plan escrito)')+'</div></div>';
-
-  // Diagnóstico IA sobre el plan de mejora (si existe)
-  if(e.analisisPlan){
-    b+='<div style="margin-bottom:12px;padding:10px 12px;background:#EEF2FB;border-left:3px solid var(--navy);border-radius:0 8px 8px 0"><b style="font-size:11px;color:var(--navy);text-transform:uppercase;letter-spacing:.4px">An\u00e1lisis IA del plan</b><div style="font-size:12.5px;margin-top:5px;line-height:1.55">'+renderNegS4(e.analisisPlan)+'</div></div>';
-  }
-
   if(e.products&&e.products.length){
-    // Mapa de cantidades óptimas por nombre de producto (si ya corrieron el Solver)
-    const optMap={};
-    if(Array.isArray(e.solverOptimal)) e.solverOptimal.forEach(r=>{ optMap[(r.nombre||'').trim().toLowerCase()]=r.cantidad; });
-    const hasCombo=Array.isArray(e.solverOptimal)&&e.solverOptimal.length>0;
-
-    b+='<div style="margin-bottom:6px"><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Optimizaci\u00f3n ('+esc(e.recursoName||'recurso')+': '+esc(e.recursoTotal||'?')+' por semana)</b></div>';
-    b+='<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px">';
-    b+='<thead><tr>'+
-      '<th style="text-align:left;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Producto</th>'+
-      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Gana c/u</th>'+
-      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">Usa</th>'+
-      '<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase">M\u00e1x/sem</th>'+
-      (hasCombo?'<th style="text-align:right;padding:5px 6px;border-bottom:2px solid var(--line);color:var(--green);font-size:10.5px;text-transform:uppercase">\u00d3ptimo</th>':'')+
-      '</tr></thead><tbody>';
-    e.products.forEach(p=>{
-      const gan=(typeof p.price!=='undefined'&&typeof p.cost!=='undefined')?(Number(p.price)-Number(p.cost||0)):null;
-      const optCant=optMap[(p.name||'').trim().toLowerCase()];
-      b+='<tr>'+
-        '<td style="padding:6px;border-bottom:1px solid var(--line);font-weight:600">'+esc(p.name)+'</td>'+
-        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;color:var(--green)">'+(gan!==null&&!isNaN(gan)?('S/'+gan):'-')+'</td>'+
-        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right">'+esc(p.resourcePerUnit||'?')+'</td>'+
-        '<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;color:var(--muted)">'+esc(p.maxDemand||'?')+'</td>'+
-        (hasCombo?'<td style="padding:6px;border-bottom:1px solid var(--line);text-align:right;font-weight:700;color:var(--purple)">'+(typeof optCant!=='undefined'?optCant:'-')+'</td>':'')+
-        '</tr>';
-    });
-    b+='</tbody></table>';
-
-    if(hasCombo){
-      b+='<div style="background:#E6F8EE;border:1.5px solid var(--green);border-radius:10px;padding:10px 12px;margin-bottom:10px">'+
-        '<div style="font-size:11px;font-weight:700;color:#1A5C35;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">\u2713 Combinaci\u00f3n \u00f3ptima encontrada</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--green)">Ganancia m\u00e1xima: S/ '+(typeof e.gananciaOptima==='number'?Math.round(e.gananciaOptima):'-')+' por semana</div>'+
-        '</div>';
-    }
-
-    if(e.diagnosticoFinal){
-      b+='<div style="padding:10px 12px;background:#FFF6EA;border-left:3px solid var(--orange);border-radius:0 8px 8px 0"><b style="font-size:11px;color:var(--orange-d);text-transform:uppercase;letter-spacing:.4px">Diagn\u00f3stico de consultor (IA)</b><div style="font-size:12.5px;margin-top:5px;line-height:1.55">'+renderNegS4(e.diagnosticoFinal)+'</div></div>';
-    }
+    b+='<div><b style="font-size:12px;color:var(--navy);text-transform:uppercase">Optimizaci\u00f3n ('+esc(e.recursoName||'recurso')+': '+esc(e.recursoTotal||'?')+')</b>';
+    e.products.forEach(p=>{ b+='<div style="font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)"><b>'+esc(p.name)+'</b> \u2014 gana S/'+esc(p.profit)+', usa '+esc(p.resourcePerUnit||'?')+', m\u00e1x '+esc(p.maxDemand||'?')+'</div>'; });
+    b+='</div>';
   }
   $('modalBody').innerHTML=b;
   $('detailModal').classList.add('on'); document.body.style.overflow='hidden';
@@ -1748,6 +2065,7 @@ function setupEye(bId,iId){
 pickRole('emp');
 setupEye('toggleDni','inputEmp');
 setupEye('toggleDoc','inputDoc');
+setupEye('toggleAdmin','inputAdmin');
 tryResume();
 </script>
 </body>

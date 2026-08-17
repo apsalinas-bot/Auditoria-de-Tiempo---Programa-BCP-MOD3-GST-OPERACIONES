@@ -1932,7 +1932,12 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
     // 60% del espacio libre real hasta el próximo bloque.
     zonas.forEach(z => {
       let sigTop = imgH;
-      zonas.forEach(o => { if (o.top > z.bottom && o.top < sigTop) sigTop = o.top; });
+      // >= y no >: cuando dos bloques se tocan exactamente (sin margen entre
+      // ellos, como los nodos del flujo) el hueco es 0 y el colchon debe ser 0.
+      // Con > el hueco salia "infinito", cada zona invadia a la siguiente, todas
+      // se fusionaban en una sola y el documento terminaba en una unica pagina
+      // gigante reescalada.
+      zonas.forEach(o => { if (o.top >= z.bottom && o.top < sigTop) sigTop = o.top; });
       z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
       if (z.bottom > imgH) z.bottom = imgH;
     });

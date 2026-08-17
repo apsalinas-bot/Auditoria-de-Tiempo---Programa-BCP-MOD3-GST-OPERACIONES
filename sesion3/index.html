@@ -6,6 +6,8 @@
 <title>Caza de Cuellos de Botella &middot; S3 &middot; BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -44,6 +46,17 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
 .rc-icon.emp{background:var(--red)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--navy)}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 6px 24px rgba(0,20,80,.08)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-emp-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink)}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .rc-texts{flex:1}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
@@ -193,18 +206,6 @@ input[type=password]{-webkit-appearance:none}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
-@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-@keyframes spin-c{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.claude-btn{background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);background-size:300% auto;animation:shimmer 4s linear infinite;border:none;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.35);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
-.claude-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45)}
-.claude-btn:active{transform:translateY(0)}
-.claude-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
-.claude-btn-icon{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:700;color:#fff;border:1.5px solid rgba(255,255,255,0.3)}
-.claude-btn-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px;flex:1}
-.claude-btn-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
-.claude-btn-sub{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.5px;font-weight:500}
-.claude-btn-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;flex-shrink:0}
-.claude-btn-badge span{font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:.4px}
 @media print{
 *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
@@ -231,6 +232,7 @@ body{max-width:none!important;margin:0!important;padding:0!important;background:
 const BIN_ID     = '6a6bfa73f5f4af5e29d83006';                    // ← BIN de la Sesion 3 (crea uno nuevo)
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm'; // ← tu Master Key
 const DOCENTE_PW = '70003700';                              // ← tu DNI
+const ADMIN_DNI   = '70003700';
 const BIN_ID_S2  = '6a6ab4a3f5f4af5e29d3bc50';              // ← BIN de la Sesion 2 (para traer flujogramas)
 </script>
 <!-- ▲▲▲ FIN CLAVES ▲▲▲ -->
@@ -294,6 +296,12 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
             <span class="rc-sub">Ver el tablero global del aula</span>
           </div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div class="rc-texts">
+            <span class="rc-label">Administrador</span>
+          </div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
@@ -312,6 +320,15 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 digitos" maxlength="8" inputmode="numeric" style="padding-right:46px;letter-spacing:4px">
+          <button type="button" id="toggleAdmin" class="pw-eye-btn"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
       </div>
     </div>
     <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
@@ -382,14 +399,7 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
         <div id="analisisCierreBody" class="ac-body"></div>
       </div>
     </div>
-    <button class="claude-btn no-print" id="saveCloudBtn">
-      <div class="claude-btn-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div>
-      <div class="claude-btn-text">
-        <div class="claude-btn-main">Guardar y generar análisis</div>
-        <div class="claude-btn-sub">Diagnóstico personalizado con IA</div>
-      </div>
-      <div class="claude-btn-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>
-    </button>
+    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagnóstico</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -486,6 +496,29 @@ const ROSTER_EMP_DNIS = Object.keys(ROSTER).filter(d=>!ROSTER[d].control);
   </div>
 </div>
 
+<!-- ════ VISTA ADMINISTRADOR ════ -->
+<div id="adminView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#0a3d6b 100%)">
+    <div class="eyebrow">Administrador &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 3</div>
+    <h1>Descarga de <span style="color:var(--red)">Diagn&oacute;sticos</span></h1>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box orange"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODOS los PDFs (todas las emprendedoras)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
 <!-- ════ MODAL DETALLE ════ -->
 <div id="detailModal">
   <div class="modal-box">
@@ -553,9 +586,11 @@ async function getFlujoS2FromCloud(dni){
 function pickRole(role){
   $('cardEmp').classList.toggle('selected', role==='emp');
   $('cardDoc').classList.toggle('selected', role==='doc');
+  $('cardAdmin').classList.toggle('selected', role==='admin');
   $('panelEmp').classList.toggle('on', role==='emp');
   $('panelDoc').classList.toggle('on', role==='doc');
-  setTimeout(()=>{ const i = role==='emp'?$('inputEmp'):$('inputDoc'); if(i) i.focus(); },50);
+  $('panelAdmin').classList.toggle('on', role==='admin');
+  setTimeout(()=>{ const i = role==='emp'?$('inputEmp'):role==='doc'?$('inputDoc'):$('inputAdmin'); if(i) i.focus(); },50);
 }
 function doLoginEmp(){
   const val = $('inputEmp').value.trim();
@@ -574,11 +609,20 @@ function doLoginDoc(){
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({role:'doc',dni:val}));
   showDocView();
 }
+function doLoginAdmin(){
+  const val = $('inputAdmin').value.trim();
+  $('errAdmin').textContent = '';
+  if(!val){ $('errAdmin').textContent = 'Ingresa tu DNI.'; return; }
+  if(val !== ADMIN_DNI){ $('errAdmin').textContent = 'DNI de administrador incorrecto.'; return; }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({role:'admin'}));
+  showAdminView();
+}
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY);
   currentDNI = null; currentName = null;
-  $('gateScreen').style.display = ''; $('empView').style.display = 'none'; $('docView').style.display = 'none';
-  $('inputEmp').value = ''; $('inputDoc').value = ''; $('errEmp').textContent = ''; $('errDoc').textContent = '';
+  $('gateScreen').style.display = ''; $('empView').style.display = 'none'; $('docView').style.display = 'none'; $('adminView').style.display = 'none';
+  $('inputEmp').value = ''; $('inputDoc').value = ''; $('inputAdmin').value = '';
+  $('errEmp').textContent = ''; $('errDoc').textContent = ''; $('errAdmin').textContent = '';
   pickRole('emp');
 }
 function tryResume(){
@@ -586,6 +630,7 @@ function tryResume(){
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');
     if(!s) return;
     if(s.role==='doc'){ showDocView(); }
+    else if(s.role==='admin'){ showAdminView(); }
     else if(s.role==='emp' && ROSTER[s.dni]){ currentDNI = s.dni; currentName = s.name||(ROSTER[s.dni]?ROSTER[s.dni].n:s.dni); showEmpView(); }
   }catch(e){}
 }
@@ -602,9 +647,28 @@ function showDocView(){
   $('gateScreen').style.display = 'none'; $('empView').style.display = 'none'; $('docView').style.display = '';
   loadDocData();
 }
+function showAdminView(){
+  $('gateScreen').style.display = 'none'; $('empView').style.display = 'none'; $('docView').style.display = 'none'; $('adminView').style.display = '';
+  loadAdminData();
+}
 
 // ── Cargar flujo de S2 + estado propio ──
 function esc(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+// Dado un array de entries, retorna la versión más reciente para un DNI (o null)
+function latestEntryFor(entries, dni){
+  const mine = entries.filter(e => e.dni === dni);
+  if (!mine.length) return null;
+  return mine.reduce((a,b) => new Date(b.savedAt||0) >= new Date(a.savedAt||0) ? b : a);
+}
+// Dado un array con posibles múltiples versiones por DNI, retorna solo la más reciente de cada DNI
+function latestPerDni(entries){
+  const map = new Map();
+  entries.forEach(e => {
+    const prev = map.get(e.dni);
+    if (!prev || new Date(e.savedAt||0) >= new Date(prev.savedAt||0)) map.set(e.dni, e);
+  });
+  return Array.from(map.values());
+}
 
 // Extrae recursivamente todos los pasos tipo 'rect' de un flujo de S2
 // (incluyendo los que están dentro de ramas de decisión, a cualquier nivel)
@@ -678,7 +742,7 @@ async function cargarDatos(){
     const rec2 = await binRead();
     if(rec2){
       const entries2 = Array.isArray(rec2.entries)?rec2.entries:[];
-      const saved = entries2.find(e=>e.dni===currentDNI);
+      const saved = latestEntryFor(entries2, currentDNI);
       if(saved){
         // Restaurar semáforo CON colores
         if(Array.isArray(saved.semaforo)&&saved.semaforo.length>0){
@@ -818,29 +882,6 @@ function wrapText(text, maxChars){
   if(cur) lines.push(cur);
   return lines.slice(0, 2); // máximo 2 líneas por causa
 }
-function wrapTextFull(text, maxChars){
-  if(!text) return [''];
-  const words = text.split(' ');
-  const lines = [];
-  let cur = '';
-  words.forEach(function(w){
-    // Si la palabra sola es más larga que maxChars, cortarla
-    while(w.length > maxChars){
-      if(cur){ lines.push(cur); cur=''; }
-      lines.push(w.slice(0, maxChars));
-      w = w.slice(maxChars);
-    }
-    if(!w) return;
-    if((cur ? cur+' '+w : w).length <= maxChars){
-      cur = cur ? cur+' '+w : w;
-    } else {
-      if(cur) lines.push(cur);
-      cur = w;
-    }
-  });
-  if(cur) lines.push(cur);
-  return lines;
-}
 
 function renderFishbone(){
   const wrap=$('fishboneWrap');
@@ -856,10 +897,10 @@ function renderFishbone(){
   const LINEH = fontSize * 1.3;
   const MAXCH = maxC<=2 ? 20 : maxC<=4 ? 18 : 16;
   // Longitud de ramita adaptativa
-  const ramLen = maxC<=2 ? 60 : maxC<=4 ? 50 : 42;
+  const ramLen = maxC<=2 ? 52 : maxC<=4 ? 44 : 36;
   // Altura dinámica
   const W=920, H=Math.max(480, 400+maxC*38);
-  const spineY=H/2, tailX=20, headW=128, headH=80;
+  const spineY=H/2, tailX=20, headW=128, headH=72;
   const headX=W-headW-10, spineStart=tailX+14, spineEnd=headX-8;
 
   const cols=[
@@ -873,15 +914,12 @@ function renderFishbone(){
   svg+='<path d="M'+tailX+' '+(spineY-12)+' L'+spineStart+' '+spineY+' L'+tailX+' '+(spineY+12)+'" fill="none" stroke="'+NAVY+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
 
   // Cabeza síntoma
-  const symLines=wrapTextFull(symptom,19);
-  const symLineH=12;
-  const symBlockH=symLines.length*symLineH+8;
-  const dynHeadH=Math.max(80, symBlockH+26);
-  const hx=headX, hy=spineY-dynHeadH/2;
-  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+dynHeadH+'" rx="10" fill="'+RED+'"/>';
+  const hx=headX, hy=spineY-headH/2;
+  svg+='<rect x="'+hx+'" y="'+hy+'" width="'+headW+'" height="'+headH+'" rx="10" fill="'+RED+'"/>';
   svg+='<text x="'+(hx+headW/2)+'" y="'+(hy+13)+'" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" letter-spacing="1" opacity="0.75">SÍNTOMA</text>';
-  const symStartY=hy+26;
-  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*symLineH)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">'+escXml(ln)+'</text>';});
+  const symLines=wrapText(symptom,13).slice(0,3);
+  const symStartY=spineY-((symLines.length-1)*8)+2;
+  symLines.forEach(function(ln,i){svg+='<text x="'+(hx+headW/2)+'" y="'+(symStartY+i*13)+'" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700">'+escXml(ln)+'</text>';});
 
   function drawBone(col){
     const cat=col.cat, top=col.top, ii=col.i;
@@ -1091,61 +1129,37 @@ $('saveCloudBtn').addEventListener('click', async () => {
   if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
 
   const btn = $('saveCloudBtn');
-  btn.disabled=true; btn.innerHTML="<div class=\"claude-btn-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 28 28\" fill=\"none\" style=\"animation:spin-c 1s linear infinite\"><path d=\"M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5\" stroke=\"#FF6B2B\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"#FF6B2B\"/></svg></div><div class=\"claude-btn-text\"><div class=\"claude-btn-main\">Generando análisis...</div><div class=\"claude-btn-sub\">Claude está analizando tu diagnóstico</div></div>";
+  btn.disabled=true; btn.textContent='⏳ Generando análisis...';
   showStatus('Analizando tu diagnóstico con IA...','loading');
 
   const firstName = currentName.trim().split(' ')[0];
   const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
 
-  // ── Análisis 1: por cada M con Claude IA ─────────────────────────────────
+  // ── Análisis 1: por cada M (reglas) ──────────────────────────────────────
   const analisisPorM = {};
-  const mConCausas = M_CATEGORIES.filter(c=>causes[c.m].length>0);
-  for(const cat of mConCausas){
+  M_CATEGORIES.filter(c=>causes[c.m].length>0).forEach(cat=>{
     const m=cat.m;
     const el=document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
-    if(el){ el.classList.add('visible'); dots(el); }
-    const causasTexto=causes[m].map((c,i)=>(i+1)+'. '+c.text+(c.root?' (raíz ★)':'')).join('\n');
-    const ia=await callClaude(
-      'Emprendedora: '+firstName+'\nSíntoma: "'+sintoma+'"\n\nEn la M "'+m+'" identificó:\n'+causasTexto+
-      '\n\nEscribe 2 oraciones directas y personales (máx 55 palabras) sobre qué revelan estas causas para SU negocio. Usa su nombre una vez. No empieces con "En esta categoría". Habla de tú. Acción concreta con verbo.'
-    );
-    const txt=ia||analisisPorMReglas(m,causes[m],sintoma,firstName);
+    const txt=analisisPorMReglas(m,causes[m],sintoma,firstName);
     analisisPorM[m]=txt;
-    if(el) el.innerHTML=renderNeg(txt);
-  }
+    if(el){ el.classList.add('visible'); if(txt) el.innerHTML=txt; }
+  });
 
-  // ── Análisis 2: integrador con Claude IA ──────────────────────────────────
+  // ── Análisis 2: integrador ─────────────────────────────────────────────────
   $('analisisWrap').style.display='block';
-  const gb=$('analisisGlobalBody'); dots(gb);
-  let rootCause='',rootM='';
-  M_CATEGORIES.forEach(c=>causes[c.m].forEach(ca=>{if(ca.root){rootCause=ca.text;rootM=c.m;}}));
-  const todasCausas=M_CATEGORIES.filter(c=>causes[c.m].length>0)
-    .map(c=>c.m+': '+causes[c.m].map(ca=>ca.text+(ca.root?' ★':'')).join(', ')).join('\n');
-  const analisisMTexto=Object.entries(analisisPorM).map(([m,t])=>m+': '+t).join('\n\n');
-  const iaGlobal=await callClaude(
-    'Emprendedora: '+currentName+'\nSíntoma: "'+sintoma+'"\n\nCausas por M:\n'+todasCausas+
-    (rootCause?'\nRaíz marcada: "'+rootCause+'" en '+rootM:'')+
-    '\n\nAnálisis previos (no repetir):\n'+analisisMTexto+
-    '\n\nEscribe análisis integrador de 3-4 oraciones (máx 100 palabras). Conecta las M, explica el patrón detrás del síntoma. Específico. No empieces con el nombre.'
-  );
-  const textoGlobal=iaGlobal||analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
-  gb.innerHTML=renderNeg(textoGlobal);
+  const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisGlobalBody').innerHTML=renderNeg(textoGlobal);
 
-  // ── Análisis 3: cierre potente con Claude IA ──────────────────────────────
-  const cb=$('analisisCierreBody'); dots(cb);
-  const iaCierre=await callClaude(
-    'Análisis por M:\n'+analisisMTexto+'\n\nAnálisis integrador:\n'+textoGlobal+
-    '\n\nEscribe el cierre. Empieza EXACTAMENTE con "'+firstName+'," (nombre+coma). Máx 3 oraciones. Qué resolver primero y qué hacer esta semana. Termina con acción concreta y medible. Tono de mentora cercana.'
-  );
-  const textoCierre=iaCierre||analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
-  cb.innerHTML=renderNeg(textoCierre);
+  // ── Análisis 3: cierre ────────────────────────────────────────────────────
+  const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
+  $('analisisCierreBody').innerHTML=renderNeg(textoCierre);
 
     $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 
   // ── Guardar en JSONBin ─────────────────────────────────────────────────────
   showStatus('Guardando en la nube...','loading');
   const rec = await binRead();
-  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.innerHTML="<div class=\"claude-btn-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 28 28\" fill=\"none\"><path d=\"M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5\" stroke=\"#FF6B2B\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"#FF6B2B\"/></svg></div><div class=\"claude-btn-text\"><div class=\"claude-btn-main\">Guardar y generar análisis</div><div class=\"claude-btn-sub\">Diagnóstico personalizado con IA</div></div><div class=\"claude-btn-badge\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 28 28\" fill=\"none\"><path d=\"M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5\" stroke=\"#FF6B2B\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"#FF6B2B\"/></svg><span>Claude</span></div>"; return; }
+  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
   const entries = Array.isArray(rec.entries)?rec.entries:[];
   const rootCount = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].filter(ca=>ca.root).length,0);
   const payload = {
@@ -1158,12 +1172,13 @@ $('saveCloudBtn').addEventListener('click', async () => {
     rootCount, analisisPorM, analisisGlobal:textoGlobal, analisisCierre:textoCierre,
     savedAt:new Date().toISOString()
   };
-  const idx=entries.findIndex(e=>e.dni===currentDNI);
-  if(idx>=0) entries[idx]=payload; else entries.push(payload);
+  // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
+  payload.id = currentDNI + '_' + Date.now();
+  entries.push(payload);
   const ok = await binWrite({entries});
   showStatus(ok?'✅ Diagnóstico y análisis guardados.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);
-  btn.disabled=false; btn.innerHTML="<div class=\"claude-btn-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 28 28\" fill=\"none\"><path d=\"M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5\" stroke=\"#FF6B2B\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"#FF6B2B\"/></svg></div><div class=\"claude-btn-text\"><div class=\"claude-btn-main\">Guardar y generar análisis</div><div class=\"claude-btn-sub\">Diagnóstico personalizado con IA</div></div><div class=\"claude-btn-badge\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 28 28\" fill=\"none\"><path d=\"M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5\" stroke=\"#FF6B2B\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"#FF6B2B\"/></svg><span>Claude</span></div>";
+  btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico';
 });
 function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus').className = 'save-status ' + (cls||''); }
 
@@ -1173,7 +1188,9 @@ async function loadDocData(){
   $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
   const rec=await binRead();
   if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="5" style="padding:16px"><div class="alert-box amber"><b>Error de conexion.</b></div></td></tr>'; return; }
-  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  // El tablero docente muestra 1 fila por emprendedora (su versión más reciente),
+  // aunque en el BIN puedan existir múltiples versiones guardadas por esa persona.
+  docEntries=latestPerDni(Array.isArray(rec.entries)?rec.entries:[]);
 
   const ctrlDnis=new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
   const empEnt=docEntries.filter(e=>!ctrlDnis.has(e.dni));
@@ -1314,6 +1331,291 @@ async function loadDocData(){
   }
 }
 
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────
+
+// Genera y descarga el PDF de UN diagnóstico (usa el estado GLOBAL actual:
+// semSteps/causes/symptomInput/currentName). Reutilizable por admin.
+async function exportDiagnosticoToPdf(personName, versionLabel) {
+  try {
+    const symptom = $('symptomInput').value.trim() || 'Sin s\u00edntoma';
+
+    const hideEls = document.querySelectorAll('.sem-del,.m-input-row,.btn-del');
+    hideEls.forEach(el => el.style.setProperty('display','none','important'));
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:28px',
+      'font-family:Rubik,system-ui,sans-serif',
+      'width:1100px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:10px;border-bottom:2.5px solid #002A8D';
+    hdr.innerHTML =
+      '<div style="font-size:9px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 3 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(symptom) + '</div>' +
+      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName||'') + (versionLabel?' \u00b7 '+esc(versionLabel):'') + ' \u00b7 ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+    wrapper.appendChild(hdr);
+
+    function cloneSection(title, el) {
+      if (!el) return;
+      const sec = document.createElement('div');
+      sec.style.cssText = 'margin-bottom:20px';
+      const h = document.createElement('div');
+      h.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#002A8D;margin-bottom:8px';
+      h.textContent = title;
+      sec.appendChild(h);
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+      sec.appendChild(clone);
+      wrapper.appendChild(sec);
+    }
+
+    cloneSection('Sem\u00e1foro operativo', $('semList'));
+    cloneSection('Ishikawa (6M)', $('mGrid'));
+    const fbBlock = document.createElement('div');
+    fbBlock.appendChild($('fishboneWrap').cloneNode(true));
+    const legendClone = $('fbLegend').cloneNode(true);
+    legendClone.style.cssText = 'margin-top:8px;font-size:12px';
+    fbBlock.appendChild(legendClone);
+    cloneSection('Diagrama espina de pescado', fbBlock);
+    if ($('analisisWrap').style.display !== 'none') {
+      cloneSection('An\u00e1lisis con IA', $('analisisWrap'));
+    }
+
+    document.body.appendChild(wrapper);
+    await new Promise(r => setTimeout(r, 400));
+
+    const realW = Math.max(wrapper.scrollWidth, 1100);
+    const realH = wrapper.scrollHeight;
+
+    const canvas = await html2canvas(wrapper, {
+      scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+      width: realW, height: realH,
+      windowWidth: realW + 100, windowHeight: realH + 100,
+      scrollX: 0, scrollY: 0,
+    });
+
+    document.body.removeChild(wrapper);
+    hideEls.forEach(el => el.style.removeProperty('display'));
+
+    const { jsPDF } = window.jspdf;
+    const imgW = canvas.width, imgH = canvas.height;
+    const aspect = imgH / imgW;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2 - 8;
+    const scaledW = usableW;
+    const scaledH = scaledW * aspect;
+
+    if (scaledH <= usableH) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
+    } else {
+      const pageHpx = Math.floor(imgW * (usableH / usableW));
+      let yOffset = 0, pageNum = 0;
+      while (yOffset < imgH) {
+        if (pageNum > 0) pdf.addPage();
+        const sliceH = Math.min(pageHpx, imgH - yOffset);
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
+        sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
+        const sliceScaledH = (sliceH / imgW) * usableW;
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
+        yOffset += pageHpx; pageNum++;
+      }
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3', margin, pageH - 4);
+      if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
+    }
+
+    const safeName = (personName||'diagnostico').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'diagnostico';
+    const safeVer = versionLabel ? '_'+versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
+    pdf.save('Diagnostico_' + safeName + safeVer + '.pdf');
+    return true;
+  } catch(err) {
+    console.error('PDF error:', err);
+    return false;
+  }
+}
+
+async function loadAdminData() {
+  $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent = '';
+  const rec = await binRead();
+  if (rec === null) {
+    $('adminTableBody').innerHTML = '<div class="alert-box amber"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if (!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list => list.sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0)));
+
+  const withData = ROSTER_EMP_DNIS.filter(dni => byDni.has(dni));
+  const totalVersions = allEntries.filter(e => ROSTER[e.dni] && !ROSTER[e.dni].control).length;
+
+  $('kAdminEmp').textContent = withData.length;
+  $('kAdminVer').textContent = totalVersions;
+
+  const allEmpDnis = ROSTER_EMP_DNIS.slice().sort((a,b) => (ROSTER[a].n||'').localeCompare(ROSTER[b].n||''));
+
+  let html = '';
+  allEmpDnis.forEach(dni => {
+    const versions = byDni.get(dni) || [];
+    const rosterEntry = ROSTER[dni];
+
+    let versionListHtml = '';
+    if (versions.length > 0) {
+      versionListHtml = '<div class="admin-version-list">' +
+        versions.map((v,i) =>
+          '<div class="admin-version-item">' +
+            '<span class="v-num">v'+(i+1)+'</span>' +
+            '<span class="v-name">'+esc(v.symptom||'(sin s\u00edntoma)')+'</span>' +
+            '<span class="v-date">'+fmtDateTime(v.savedAt)+'</span>' +
+          '</div>'
+        ).join('') +
+        '</div>';
+    } else {
+      versionListHtml = '<div class="admin-empty-versions">Sin diagn\u00f3sticos guardados todav\u00eda.</div>';
+    }
+
+    html +=
+      '<div class="admin-emp-card">' +
+      '<div class="admin-emp-head">' +
+        '<div><div class="admin-emp-name">'+esc(rosterEntry.n)+'</div></div>'+
+        '<span class="tag '+(versions.length>0?'green':'gray')+'">'+versions.length+' versi\u00f3n'+(versions.length===1?'':'es')+'</span>'+
+      '</div>' +
+      versionListHtml +
+      (versions.length>0
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(rosterEntry.n.split(' ')[0])+' ('+versions.length+' PDF'+(versions.length===1?'':'s')+')</button>'
+        : '') +
+      '</div>';
+  });
+  $('adminTableBody').innerHTML = html;
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d)) return '-';
+  return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}) + ', ' +
+         d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+}
+
+// Restaura el estado global a partir de UNA versión guardada y renderiza todo.
+function loadEntryIntoState(v) {
+  currentDNI = v.dni;
+  currentName = v.name || rosterName(v.dni) || v.dni;
+  $('symptomInput').value = v.symptom || '';
+  semSteps = Array.isArray(v.semaforo) ? v.semaforo : [];
+  causes = {};
+  M_CATEGORIES.forEach(c => { causes[c.m] = (v.causes && v.causes[c.m]) || []; });
+  renderSem();
+  renderMGrid(); // internamente llama a renderFishbone()
+
+  // Análisis por M
+  M_CATEGORIES.forEach(c => {
+    const el = document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
+    if (el) {
+      if (v.analisisPorM && v.analisisPorM[c.m]) { el.classList.add('visible'); el.innerHTML = renderNeg(v.analisisPorM[c.m]); }
+      else { el.classList.remove('visible'); el.innerHTML=''; }
+    }
+  });
+  // Análisis global/cierre
+  if (v.analisisGlobal || v.analisisCierre) {
+    $('analisisWrap').style.display = 'block';
+    $('analisisGlobalBody').innerHTML = v.analisisGlobal ? renderNeg(v.analisisGlobal) : '';
+    $('analisisCierreBody').innerHTML = v.analisisCierre ? renderNeg(v.analisisCierre) : '';
+  } else {
+    $('analisisWrap').style.display = 'none';
+  }
+}
+
+// Descarga TODAS las versiones guardadas de UNA emprendedora (un PDF por versión).
+async function downloadVersionsFor(dni) {
+  const rec = await binRead();
+  if (!rec) { alert('Error de conexi\u00f3n.'); return; }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  const versions = allEntries.filter(e => e.dni === dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+  if (!versions.length) { alert('Esta emprendedora no tiene diagn\u00f3sticos guardados.'); return; }
+
+  const personName = rosterName(dni) || dni;
+  $('adminBulkStatus').className = 'save-status loading';
+  for (let i = 0; i < versions.length; i++) {
+    const v = versions[i];
+    $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
+    loadEntryIntoState(v);
+    await new Promise(r => setTimeout(r, 200));
+    const label = versions.length > 1 ? ('v' + (i+1)) : '';
+    await exportDiagnosticoToPdf(personName, label);
+    await new Promise(r => setTimeout(r, 500));
+  }
+  resetAdminExportState();
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+versions.length+' PDF(s) descargado(s) de '+personName+'.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
+}
+
+// Descarga TODAS las versiones de TODAS las emprendedoras registradas.
+async function downloadAllVersions() {
+  const rec = await binRead();
+  if (!rec) { alert('Error de conexi\u00f3n.'); return; }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if (!ROSTER[e.dni] || ROSTER[e.dni].control) return;
+    if (!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  if (byDni.size === 0) { alert('A\u00fan no hay diagn\u00f3sticos guardados.'); return; }
+  if (!confirm('Se descargar\u00e1n los PDFs de '+byDni.size+' emprendedora(s). Esto puede tomar un momento. \u00bfContinuar?')) return;
+
+  const btn = $('adminDownloadAllBtn');
+  btn.disabled = true;
+  const dnis = Array.from(byDni.keys());
+  for (let d = 0; d < dnis.length; d++) {
+    const dni = dnis[d];
+    const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+    const personName = rosterName(dni) || dni;
+    for (let i = 0; i < versions.length; i++) {
+      const v = versions[i];
+      $('adminBulkStatus').className = 'save-status loading';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 PDF '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
+      loadEntryIntoState(v);
+      await new Promise(r => setTimeout(r, 200));
+      const label = versions.length > 1 ? ('v' + (i+1)) : '';
+      await exportDiagnosticoToPdf(personName, label);
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+  resetAdminExportState();
+  btn.disabled = false;
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 Descarga completa de '+dnis.length+' emprendedora(s).';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
+}
+$('adminDownloadAllBtn').addEventListener('click', downloadAllVersions);
+
+// Limpia el estado global usado temporalmente para generar PDFs de otras personas
+// (el administrador no tiene un diagnóstico propio).
+function resetAdminExportState() {
+  currentDNI = null; currentName = null;
+  semSteps = []; causes = {};
+  M_CATEGORIES.forEach(c => { causes[c.m] = []; });
+}
+
 function openModal(src,idx){
   const cd=new Set(Object.keys(ROSTER).filter(d=>ROSTER[d].control));
   const at=[...docEntries.filter(e=>!cd.has(e.dni)),...docEntries.filter(e=>cd.has(e.dni))];
@@ -1347,6 +1649,7 @@ $('docPrintBtn').addEventListener('click', () => window.print());
 // ── ENTER en inputs del gate ──
 $('inputEmp').addEventListener('keydown', e => { if(e.key==='Enter') doLoginEmp(); });
 $('inputDoc').addEventListener('keydown', e => { if(e.key==='Enter') doLoginDoc(); });
+$('inputAdmin').addEventListener('keydown', e => { if(e.key==='Enter') doLoginAdmin(); });
 
 // ── OJITOS ──
 function setupEye(bId,iId){
@@ -1360,6 +1663,7 @@ document.addEventListener('click',ev=>{ const r=ev.target.closest('tr.doc-row-cl
 pickRole('emp');
 setupEye('toggleDni','inputEmp');
 setupEye('toggleDoc','inputDoc');
+setupEye('toggleAdmin','inputAdmin');
 tryResume();
 </script>
 </body>

@@ -1397,14 +1397,21 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       cloneSection('An\u00e1lisis con IA', $('analisisWrap'));
     }
 
+    // Colchón final: garantiza que el padding/borde inferior de la última caja
+    // (p.ej. "Sugerencia de consultor") quede completamente capturado, sin recortarse.
+    const bottomSpacer = document.createElement('div');
+    bottomSpacer.style.cssText = 'height:24px';
+    wrapper.appendChild(bottomSpacer);
+
     document.body.appendChild(wrapper);
     await new Promise(r => setTimeout(r, 400));
 
-    // Medir los límites (top/bottom en px CSS, relativos al wrapper) de cada bloque protegido
+    // Medir los límites (top/bottom en px CSS, relativos al wrapper) de cada bloque protegido.
+    // Se suma un margen de seguridad al bottom para cubrir cualquier redondeo al pasar a px de canvas.
     const wrapperTop = wrapper.getBoundingClientRect().top;
     const protectedZones = noSplitEls.map(el => {
       const r = el.getBoundingClientRect();
-      return { top: r.top - wrapperTop, bottom: r.bottom - wrapperTop };
+      return { top: r.top - wrapperTop, bottom: (r.bottom - wrapperTop) + 6 };
     });
 
     const realW = Math.max(wrapper.scrollWidth, 1100);

@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -1226,111 +1227,441 @@ $('flowWrap').addEventListener('blur', e => {
 }, true);
 
 // ── GUARDAR EN NUBE ──────────────────────────────────────────────
-// Genera y descarga el PDF del flujo (usa los steps/arrows GLOBALES actuales).
-// Reutilizable tanto por el botón de la emprendedora como por el panel de administrador.
-async function exportFlowToPdf(processName, personName) {
-    processName = processName || 'Mi proceso';
+// ════════════════════════════════════════════════════════════════════════════
+//  EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que la Sesión 3)
+//  ------------------------------------------------------------------------
+//  Tres problemas de formato que resuelve de raíz, y que no vuelven a aparecer
+//  aunque el flujo crezca, tenga ramas anidadas o textos larguísimos:
+//
+//  1) RECORTE / DESFASE. html2canvas no rasteriza el DOM original: clona el
+//     documento en un iframe y dibuja ESE clon. Pasarle `height` medido afuera
+//     hace que, si el clon maqueta distinto (típico cuando Rubik todavía no
+//     cargó al medir), el canvas recorte el final o deje aire de más, y que
+//     todos los offsets queden corridos. Aquí NO se pasa width/height y los
+//     límites de cada bloque se miden DENTRO del clon vía `onclone`, después
+//     de que sus fuentes están listas. Medición y render, mismo sistema.
+//
+//  2) NODOS PARTIDOS. Antes la página se cortaba cada N píxeles a ciegas, así
+//     que un paso o una rama quedaba mitad en una hoja y mitad en la otra.
+//     Ahora cada nodo con su flecha, y cada bloque de ramas, es un "átomo": la
+//     página solo corta donde no rompe ninguno. Un rombo de decisión viaja
+//     pegado a sus ramas siempre que el par quepa en una hoja.
+//
+//  3) LEGIBILIDAD. La composición se arma a 720 px de ancho (antes 1100), así
+//     el flujo llena la hoja en vez de quedar como una columnita al centro: el
+//     mismo texto sale ~35% más grande. Además el rombo de decisión se dibuja
+//     como SVG, porque html2canvas ignora `clip-path` y el rombo salía como un
+//     rectángulo amarillo.
+//
+//  Para proteger un bloque nuevo a futuro: agrega su clase a
+//  PDF_ATOM_SELECTOR o ponle data-pdf-atom. No hay que tocar el algoritmo.
+// ════════════════════════════════════════════════════════════════════════════
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom],.node,.fork-wrap';
+
+const PDF_CFG = {
+  renderW: 720,     // ancho de composición en px CSS (llena la hoja)
+  scaleMax: 2.5,    // nitidez máxima
+  maxCanvasPx: 22e6,// techo de memoria del lienzo (evita canvas en blanco)
+  marginMm: 12,
+  footerMm: 9,
+  atomPadPx: 10,    // colchón bajo cada bloque
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88],
+  keepMaxFill: 0.85 // un par "decisión + ramas" solo viaja junto si cabe aquí
+};
+
+// CSS de composición: solo vive dentro del wrapper de exportación.
+const PDF_FLOW_CSS = [
+  '.pdf-flow{display:flex;flex-direction:column;align-items:center;width:100%}',
+  '.pdf-flow #flowWrap,.pdf-flow .flow-clone{margin-top:0;width:100%;display:flex;flex-direction:column;align-items:center}',
+  '.pdf-flow .node{max-width:100%;font-size:15px}',
+  '.pdf-flow .node.rect{width:470px;padding:14px 18px;box-shadow:none;border-width:1.5px}',
+  '.pdf-flow .node.oval{padding:13px 30px;font-size:15.5px;min-width:150px}',
+  '.pdf-flow .fork-wrap{max-width:680px;width:100%}',
+  '.pdf-flow .fork,.pdf-flow .merge{max-width:680px}',
+  '.pdf-flow .branch-row{gap:14px}',
+  '.pdf-flow .branch-head{font-size:12px;padding:6px 9px}',
+  '.pdf-flow .branch-step{padding:8px 10px}',
+  '.pdf-flow .branch-step span{font-size:12.5px}',
+  '.pdf-flow .connector{padding:5px 0;min-height:30px}',
+  '.pdf-flow .connector .line{height:18px}',
+  // Una etiqueta de flecha vacía imprimía el placeholder "+ etiqueta"
+  '.pdf-flow .connector .lbl:empty{display:none}',
+  '.pdf-flow .connector .lbl:empty:before{content:none}',
+  '.pdf-flow .branch-fin-node{font-size:12px;padding:7px 18px}',
+  '.pdf-flow .branch-empty{font-size:11.5px}',
+  '.pdf-atom{display:flex;flex-direction:column;align-items:center;width:100%}'
+].join('\n');
+
+// Espera a que Rubik esté realmente disponible: si se mide o rasteriza antes,
+// el texto se maqueta con la fuente de respaldo y todas las alturas se corren.
+async function pdfEsperarTipografia(doc) {
   try {
-    const flowEl = $('flowWrap');
+    const links = Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l => l.sheet ? Promise.resolve() : new Promise(res => {
+      l.addEventListener('load', res, { once: true });
+      l.addEventListener('error', res, { once: true });
+      setTimeout(res, 1500);
+    })));
+  } catch (e) {}
+  try {
+    if (doc.fonts && doc.fonts.load) {
+      await Promise.all(['400','500','600','700'].map(w => doc.fonts.load(w + ' 14px Rubik')));
+    }
+    if (doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+  } catch (e) {}
+}
 
-    // Ocultar controles temporalmente
-    const hideEls = document.querySelectorAll(
-      '.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn'
-    );
-    hideEls.forEach(el => el.style.setProperty('display','none','important'));
+// Quita del clon todo lo que es control de edición, no contenido del flujo.
+function limpiarCloneS2(clone) {
+  const basura = [
+    '.node-controls', '.branch-add', '.branch-add-sub', '.subdec-form',
+    '.branch-fin-btn', '.branch-fin-del', '.add-opt-btn', '.empty-hint',
+    '.del-branch-col', '.no-print', '.branch-step button', '.option-row'
+  ].join(',');
+  clone.querySelectorAll(basura).forEach(el => el.remove());
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('input,textarea,button').forEach(el => el.remove());
+  if (clone.id) clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+}
 
-    // Wrapper off-screen con tamaño real
-    const wrapper = document.createElement('div');
+// html2canvas ignora clip-path: el rombo salía como rectángulo. Se redibuja
+// como SVG, que sí rasteriza bien y además queda más nítido al imprimir.
+function rombosASvgS2(clone) {
+  const conf = [
+    { sel: '.node.decision',     w: 430, h: 168, fs: 14,   ratio: .46 },
+    { sel: '.sub-node-decision', w: 250, h: 104, fs: 11.5, ratio: .48 }
+  ];
+  conf.forEach(cf => {
+    clone.querySelectorAll(cf.sel).forEach(el => {
+      const txt = (el.textContent || '').trim();
+      let fs = cf.fs;
+      if (txt.length > 42) fs = cf.fs - 1.5;
+      if (txt.length > 75) fs = cf.fs - 3;
+      if (txt.length > 115) fs = cf.fs - 4.2;
+      const box = document.createElement('div');
+      box.className = 'pdf-decision';
+      // width:100% + max-width: en una rama angosta el rombo se adapta a la
+      // columna en vez de desbordarla; en el tronco toma su ancho nominal.
+      box.style.cssText = 'position:relative;width:100%;max-width:'+cf.w+'px;height:'+cf.h+'px;' +
+        'display:flex;align-items:center;justify-content:center;margin:2px auto;flex-shrink:0';
+      box.innerHTML =
+        '<svg width="100%" height="100%" viewBox="0 0 '+cf.w+' '+cf.h+'" preserveAspectRatio="none" ' +
+        'style="position:absolute;top:0;left:0" xmlns="http://www.w3.org/2000/svg">' +
+        '<polygon points="'+(cf.w/2)+',3 '+(cf.w-3)+','+(cf.h/2)+' '+(cf.w/2)+','+(cf.h-3)+' 3,'+(cf.h/2)+'" ' +
+        'fill="#FFF6EA" stroke="#E8A800" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>' +
+        '<div style="position:relative;width:'+Math.round(cf.ratio*100)+'%;text-align:center;' +
+        'font-size:'+fs+'px;font-weight:600;color:#C9540B;line-height:1.3;word-break:break-word">' +
+        esc(txt) + '</div>';
+      el.parentNode.replaceChild(box, el);
+    });
+  });
+}
+
+// Agrupa el flujo en bloques atómicos: cada nodo se va con su flecha, y el
+// bloque de ramas viaja completo. La página solo puede cortar ENTRE grupos.
+function agruparFlujoS2(clone) {
+  const hijos = Array.prototype.slice.call(clone.children);
+  const grupos = [];
+  let g = null;
+  hijos.forEach(el => {
+    const esAncla = el.classList.contains('node') ||
+                    el.classList.contains('pdf-decision') ||
+                    el.classList.contains('fork-wrap');
+    if (esAncla || !g) {
+      g = document.createElement('div');
+      g.className = 'pdf-atom';
+      g.setAttribute('data-pdf-atom', '1');
+      // Un rombo debe quedarse con sus ramas siempre que el par quepa en la hoja
+      if (el.classList.contains('pdf-decision')) g.setAttribute('data-pdf-keep', '1');
+      grupos.push(g);
+    }
+    g.appendChild(el);
+  });
+  grupos.forEach(x => clone.appendChild(x));
+}
+
+// Mide los bloques dentro del contenedor ya maquetado. Todo en px CSS
+// relativos al borde superior — el mismo origen que usa el canvas.
+function pdfMedirBloques(root) {
+  const wr = root.getBoundingClientRect();
+  const nodos = Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  // Si un bloque está dentro de otro, solo cuenta el externo.
+  const atomos = nodos.filter(n => !nodos.some(o => o !== n && o.contains(n)));
+
+  const zonas = [], pares = [];
+  atomos.forEach((n, i) => {
+    const r = n.getBoundingClientRect();
+    if (r.height > 0) zonas.push({ top: r.top - wr.top, bottom: r.bottom - wr.top });
+    if (n.hasAttribute && n.hasAttribute('data-pdf-keep') && atomos[i+1]) {
+      const r2 = atomos[i+1].getBoundingClientRect();
+      if (r.height > 0 && r2.height > 0) pares.push({ top: r.top - wr.top, bottom: r2.bottom - wr.top });
+    }
+  });
+
+  // Un título de sección nunca queda huérfano al pie de página.
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'), sec => {
+    const t = sec.querySelector('[data-pdf-title]');
+    if (!t) return;
+    const primero = atomos.filter(a => sec.contains(a))[0];
+    const rt = t.getBoundingClientRect();
+    if (!primero) { const rs = sec.getBoundingClientRect(); if (rs.height>0) zonas.push({top:rs.top-wr.top, bottom:rs.bottom-wr.top}); return; }
+    zonas.push({ top: rt.top - wr.top, bottom: primero.getBoundingClientRect().bottom - wr.top });
+  });
+
+  return { height: wr.height, width: wr.width, zonas: zonas, pares: pares };
+}
+
+// Planificador: devuelve los cortes. Nunca corta dentro de una zona; si una
+// zona es más alta que la página, la entrega completa y esa página se reduce.
+function pdfPlanificarPaginas(imgH, zonas, altoPagPx) {
+  const dentro = p => zonas.some(z => p > z.top + 0.5 && p < z.bottom - 0.5);
+  const candidatos = [];
+  zonas.forEach(z => { candidatos.push(z.top); candidatos.push(z.bottom); });
+  candidatos.push(imgH);
+  candidatos.sort((a, b) => a - b);
+
+  const minSlice = altoPagPx * PDF_CFG.minFill;
+  const paginas = [];
+  let y = 0, guarda = 0;
+
+  while (y < imgH - 1 && guarda++ < 400) {
+    let corte = Math.min(y + altoPagPx, imgH);
+    if (corte < imgH && dentro(corte)) {
+      let mejor = -1;
+      for (let i = 0; i < candidatos.length; i++) {
+        const c = candidatos[i];
+        if (c > corte) break;
+        if (c <= y + minSlice) continue;
+        if (!dentro(c)) mejor = c;
+      }
+      if (mejor > y) corte = mejor;
+      else {
+        // No hay corte válido: hay un bloque más alto que una página entera.
+        // Se lleva completo (la página se reduce al dibujar) en vez de partirlo.
+        let fin = corte;
+        for (let pasada = 0; pasada < 4; pasada++) {
+          const antes = fin;
+          zonas.forEach(z => { if (fin > z.top && fin < z.bottom) fin = z.bottom; });
+          if (fin === antes) break;
+        }
+        corte = Math.min(fin, imgH);
+      }
+    }
+    if (corte <= y) corte = Math.min(y + altoPagPx, imgH);
+    paginas.push({ from: y, to: corte });
+    y = corte;
+  }
+  return paginas;
+}
+
+// Genera y descarga el PDF del flujo (usa los steps/arrows GLOBALES actuales).
+// Reutilizable por la emprendedora y por el panel de administrador.
+// Si asBlob=true devuelve {blob, filename} para empaquetar varios en un ZIP.
+async function exportFlowToPdf(processName, personName, asBlob) {
+  processName = processName || 'Mi proceso';
+  console.log('[PDF] exportador S2 V7-flow');
+
+  const hideEls = document.querySelectorAll(
+    '.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn'
+  );
+  let wrapper = null;
+
+  try {
+    hideEls.forEach(el => el.style.setProperty('display', 'none', 'important'));
+
+    wrapper = document.createElement('div');
     wrapper.style.cssText = [
-      'position:absolute','top:0','left:-9999px',
-      'background:#fff','padding:28px',
-      'font-family:Rubik,system-ui,sans-serif',
-      'width:1100px','box-sizing:border-box','overflow:visible'
+      'position:absolute', 'top:0', 'left:-9999px',
+      'background:#fff', 'padding:26px 24px',
+      'font-family:Rubik,system-ui,\'Segoe UI\',sans-serif',
+      'width:' + PDF_CFG.renderW + 'px', 'box-sizing:border-box', 'overflow:visible'
     ].join(';');
 
-    // Header
+    const estilos = document.createElement('style');
+    estilos.textContent = PDF_FLOW_CSS;
+    wrapper.appendChild(estilos);
+
+    const nPasos = (steps || []).length;
+    const nDec = (steps || []).filter(s => s.type === 'decision').length;
     const hdr = document.createElement('div');
-    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:10px;border-bottom:2.5px solid #002A8D';
+    hdr.setAttribute('data-pdf-atom', '1');
+    hdr.style.cssText = 'margin-bottom:14px;padding-bottom:10px;border-bottom:2.5px solid #002A8D;width:100%';
     hdr.innerHTML =
-      '<div style="font-size:9px;letter-spacing:2px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">Módulo 3 · Gestión de Operaciones · Sesión 2 · BCP × UCSP-CENDES</div>' +
-      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
-      '<div style="font-size:11px;color:#6B7688;margin-top:4px">' + esc(personName||currentName||'') + ' · ' + new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+      '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#7FA0FF;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 2 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
+      '<div style="font-size:19px;font-weight:700;color:#002A8D;line-height:1.2">' + esc(processName) + '</div>' +
+      '<div style="font-size:10.5px;color:#6B7688;margin-top:4px">' +
+        esc(personName || currentName || '') + ' \u00b7 ' +
+        new Date().toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' }) +
+        ' \u00b7 ' + nPasos + ' paso' + (nPasos===1?'':'s') +
+        (nDec ? ' \u00b7 ' + nDec + ' decisi\u00f3n' + (nDec===1?'':'es') : '') +
+      '</div>';
     wrapper.appendChild(hdr);
 
-    // Clonar el flujo completo
-    const clone = flowEl.cloneNode(true);
-    clone.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%;overflow:visible';
-    clone.querySelectorAll('.node-controls,.branch-add,.branch-add-sub,.subdec-form,.branch-fin-btn,.branch-fin-del,.add-opt-btn,.empty-hint').forEach(el => el.remove());
-    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-    wrapper.appendChild(clone);
+    const clone = $('flowWrap').cloneNode(true);
+    clone.className = 'flow-clone';
+    limpiarCloneS2(clone);
+    rombosASvgS2(clone);
+    agruparFlujoS2(clone);
+
+    const cont = document.createElement('div');
+    cont.className = 'pdf-flow';
+    cont.appendChild(clone);
+    wrapper.appendChild(cont);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:18px';
+    wrapper.appendChild(spacer);
 
     document.body.appendChild(wrapper);
 
-    // Esperar render completo
-    await new Promise(r => setTimeout(r, 400));
+    await pdfEsperarTipografia(document);
+    await new Promise(r => setTimeout(r, 250));
 
-    // Medir tamaño REAL del contenido
-    const realW = Math.max(wrapper.scrollWidth, 1100);
-    const realH = wrapper.scrollHeight;
+    const fallback = pdfMedirBloques(wrapper);
 
+    // Escala adaptativa: en flujos muy largos un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del móvil. Se baja la nitidez
+    // solo lo necesario para quedar bajo el techo.
+    let scale = PDF_CFG.scaleMax;
+    const altoCss = Math.max(fallback.height, wrapper.scrollHeight, 1);
+    while (scale > 1.2 && (PDF_CFG.renderW * scale) * (altoCss * scale) > PDF_CFG.maxCanvasPx) scale -= 0.2;
+
+    let metrics = null;
     const canvas = await html2canvas(wrapper, {
-      scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
-      width: realW, height: realH,
-      windowWidth: realW + 100, windowHeight: realH + 100,
+      // Sin width/height: html2canvas mide el CLON y así el canvas nunca
+      // recorta ni deja aire de más al final del contenido.
+      scale: scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: PDF_CFG.renderW + 300,
+      windowHeight: Math.max(1200, altoCss + 300),
       scrollX: 0, scrollY: 0,
+      onclone: async (doc, cloned) => {
+        // html2canvas dibuja ESTE clon: medir aquí garantiza que los cortes
+        // coincidan exactamente con lo que se rasteriza.
+        await pdfEsperarTipografia(doc);
+        await new Promise(r => setTimeout(r, 80));
+        try { metrics = pdfMedirBloques(cloned); } catch (e) { metrics = null; }
+      }
     });
 
-    document.body.removeChild(wrapper);
-    hideEls.forEach(el => el.style.removeProperty('display'));
+    const med = (metrics && metrics.height > 0) ? metrics : fallback;
 
-    // Construir PDF
     const { jsPDF } = window.jspdf;
     const imgW = canvas.width, imgH = canvas.height;
-    const aspect = imgH / imgW;
-    const landscape = aspect < 0.9;
-    const pdf = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 10;
+    const margin = PDF_CFG.marginMm;
     const usableW = pageW - margin * 2;
-    const usableH = pageH - margin * 2 - 8;
+    const usableH = pageH - margin * 2 - PDF_CFG.footerMm;
 
-    const scaledW = usableW;
-    const scaledH = scaledW * aspect;
+    const sy = med.height > 0 ? (imgH / med.height) : scale;
+    const altoPagBase = imgW * (usableH / usableW);
 
-    if (scaledH <= usableH) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, scaledW, scaledH);
+    const zonas = med.zonas
+      .map(z => ({ top: z.top * sy, bottom: z.bottom * sy }))
+      .filter(z => z.bottom > z.top + 1);
+
+    // Pares "decisión + ramas": solo se fuerzan a viajar juntos si el par cabe
+    // holgado en una hoja; si no, se deja que la página corte entre ambos.
+    (med.pares || []).forEach(p => {
+      const top = p.top * sy, bottom = p.bottom * sy;
+      if (bottom - top <= altoPagBase * PDF_CFG.keepMaxFill) zonas.push({ top: top, bottom: bottom });
+    });
+    zonas.sort((a, b) => a.top - b.top);
+
+    // Colchón inferior por bloque, limitado al 60% del espacio libre hasta el
+    // siguiente: si dos zonas se fusionaran, desaparecería el punto de corte
+    // que hay entre ellas y la página volvería a partir un nodo.
+    const padPx = PDF_CFG.atomPadPx * sy;
+    zonas.forEach(z => {
+      let sigTop = imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente (sin margen entre
+      // ellos, como los nodos del flujo) el hueco es 0 y el colchon debe ser 0.
+      // Con > el hueco salia "infinito", cada zona invadia a la siguiente, todas
+      // se fusionaban en una sola y el documento terminaba en una unica pagina
+      // gigante reescalada.
+      zonas.forEach(o => { if (o.top >= z.bottom && o.top < sigTop) sigTop = o.top; });
+      z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
+      if (z.bottom > imgH) z.bottom = imgH;
+    });
+
+    if (imgH <= altoPagBase) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG',
+        margin, margin, usableW, (imgH / imgW) * usableW);
     } else {
-      const pageHpx = Math.floor(imgW * (usableH / usableW));
-      let yOffset = 0, pageNum = 0;
-      while (yOffset < imgH) {
-        if (pageNum > 0) pdf.addPage();
-        const sliceH = Math.min(pageHpx, imgH - yOffset);
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = imgW; sliceCanvas.height = sliceH;
-        sliceCanvas.getContext('2d').drawImage(canvas, 0, yOffset, imgW, sliceH, 0, 0, imgW, sliceH);
-        const sliceScaledH = (sliceH / imgW) * usableW;
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceScaledH);
-        yOffset += pageHpx; pageNum++;
+      // Compactación: se elige el factor MÁS GRANDE que logre el menor número
+      // de páginas, para que no sobre una hoja casi vacía al final.
+      let mejor = null;
+      PDF_CFG.shrinkSteps.forEach(k => {
+        const pg = pdfPlanificarPaginas(imgH, zonas, altoPagBase / k);
+        if (!mejor || pg.length < mejor.paginas.length) mejor = { k: k, paginas: pg };
+      });
+      const k = mejor.k, paginas = mejor.paginas;
+
+      paginas.forEach((p, i) => {
+        if (i === paginas.length - 1) return;
+        if (zonas.some(z => p.to > z.top + 0.5 && p.to < z.bottom - 0.5)) {
+          console.warn('[PDF] corte revisado en p\u00e1gina ' + (i + 1));
+        }
+      });
+
+      for (let i = 0; i < paginas.length; i++) {
+        if (i > 0) pdf.addPage();
+        const p = paginas[i];
+        const sliceH = Math.max(1, Math.round(p.to - p.from));
+        const slice = document.createElement('canvas');
+        slice.width = imgW; slice.height = sliceH;
+        const ctx = slice.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, imgW, sliceH);
+        ctx.drawImage(canvas, 0, p.from, imgW, sliceH, 0, 0, imgW, sliceH);
+
+        let drawW = usableW * k;
+        let drawH = (sliceH / imgW) * drawW;
+        if (drawH > usableH) { const f = usableH / drawH; drawW *= f; drawH = usableH; }
+        const x = margin + (usableW - drawW) / 2;   // centrado horizontal
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
       }
     }
 
     const totalPages = pdf.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
-      pdf.text('Programa BCP · UCSP-CENDES · Módulo 3', margin, pageH - 4);
-      if (totalPages > 1) pdf.text('Pág. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 2', margin, pageH - 5);
+      if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 5, { align: 'right' });
     }
 
-    const safeName = processName.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]/g,'').trim().slice(0,40) || 'flujo';
-    pdf.save('Flujo_' + safeName + '.pdf');
+    const safeName = processName.replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g, '').trim().slice(0, 50) || 'flujo';
+    const filename = 'Flujo_' + safeName + '.pdf';
+    if (asBlob) return { blob: pdf.output('blob'), filename: filename };
+    pdf.save(filename);
     return true;
 
-  } catch(err) {
+  } catch (err) {
     console.error('PDF error:', err);
-    return false;
+    return asBlob ? null : false;
+  } finally {
+    if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+    hideEls.forEach(el => el.style.removeProperty('display'));
   }
 }
+
+// Dispara UNA sola descarga de un blob (PDF suelto o ZIP empaquetado).
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
 
 $('printBtn').addEventListener('click', async () => {
   const btn = $('printBtn');
@@ -1634,20 +1965,39 @@ async function downloadVersionsFor(dni) {
   const savedSteps = steps, savedArrows = arrows; // preservar estado (admin no tiene flujo propio)
   const personName = rosterName(dni) || dni;
   $('adminBulkStatus').className = 'save-status loading';
+
+  // Se generan como blobs y se entregan en UNA sola descarga: los navegadores
+  // bloquean varias descargas automaticas disparadas desde un mismo clic.
+  const archivos = [];
   for (let i = 0; i < versions.length; i++) {
     const v = versions[i];
-    $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' — '+personName+'...';
+    $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
     steps  = Array.isArray(v.steps)  ? v.steps  : [];
     arrows = Array.isArray(v.arrows) ? v.arrows : [];
     renderFlow();
     await new Promise(r => setTimeout(r, 200)); // dejar que el DOM se asiente antes de capturar
     const label = versions.length > 1 ? (' - v' + (i+1)) : '';
-    await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName);
-    await new Promise(r => setTimeout(r, 500)); // pausa entre descargas para que el navegador no las bloquee
+    const res = await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName, true);
+    if (res) archivos.push(res);
   }
   steps = savedSteps; arrows = savedArrows; renderFlow();
+
+  if (!archivos.length) {
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan PDF.';
+    return;
+  }
+  if (archivos.length === 1) {
+    triggerBlobDownload(archivos[0].blob, archivos[0].filename);
+  } else {
+    $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs...';
+    const zip = new JSZip();
+    archivos.forEach(f => zip.file(f.filename, f.blob));
+    const blob = await zip.generateAsync({ type:'blob' });
+    triggerBlobDownload(blob, 'Flujos_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
   $('adminBulkStatus').className = 'save-status ok';
-  $('adminBulkStatus').textContent = '✅ '+versions.length+' PDF(s) descargado(s) de '+personName+'.';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' PDF(s) descargado(s) de '+personName+'.';
   setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
 }
 
@@ -1663,12 +2013,13 @@ async function downloadAllVersions() {
     byDni.get(e.dni).push(e);
   });
   if (byDni.size === 0) { alert('Aún no hay flujos guardados.'); return; }
-  if (!confirm('Se descargarán los PDFs de '+byDni.size+' emprendedora(s). Esto puede tomar un momento. ¿Continuar?')) return;
+  if (!confirm('Se descargarán los PDFs de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. ¿Continuar?')) return;
 
   const savedSteps = steps, savedArrows = arrows;
   const btn = $('adminDownloadAllBtn');
   btn.disabled = true;
   const dnis = Array.from(byDni.keys());
+  const archivos = [];
   for (let d = 0; d < dnis.length; d++) {
     const dni = dnis[d];
     const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
@@ -1676,20 +2027,32 @@ async function downloadAllVersions() {
     for (let i = 0; i < versions.length; i++) {
       const v = versions[i];
       $('adminBulkStatus').className = 'save-status loading';
-      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' — PDF '+(i+1)+'/'+versions.length+' — '+personName+'...';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 PDF '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
       steps  = Array.isArray(v.steps)  ? v.steps  : [];
       arrows = Array.isArray(v.arrows) ? v.arrows : [];
       renderFlow();
       await new Promise(r => setTimeout(r, 200));
       const label = versions.length > 1 ? (' - v' + (i+1)) : '';
-      await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName);
-      await new Promise(r => setTimeout(r, 500));
+      const res = await exportFlowToPdf((v.processName || 'Mi proceso') + ' - ' + personName + label, personName, true);
+      if (res) archivos.push(res);
     }
   }
   steps = savedSteps; arrows = savedArrows; renderFlow();
   btn.disabled = false;
+
+  if (!archivos.length) {
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan PDF.';
+    return;
+  }
+  // Todo en UN solo ZIP: una descarga, sin bloqueos del navegador.
+  $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs en un ZIP...';
+  const zip = new JSZip();
+  archivos.forEach(f => zip.file(f.filename, f.blob));
+  const blob = await zip.generateAsync({ type:'blob' });
+  triggerBlobDownload(blob, 'Flujos_S2_todas.zip');
   $('adminBulkStatus').className = 'save-status ok';
-  $('adminBulkStatus').textContent = '✅ Descarga completa de '+dnis.length+' emprendedora(s).';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' PDF(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
   setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
 }
 $('adminDownloadAllBtn').addEventListener('click', downloadAllVersions);

@@ -1515,7 +1515,7 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
     const totalPages = pdf.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
-      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3', margin, pageH - 4);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 v5', margin, pageH - 4);
       if (totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 4, {align:'right'});
     }
 

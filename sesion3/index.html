@@ -207,8 +207,42 @@ input[type=password]{-webkit-appearance:none}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+/* ── BOTÓN IA + BLOQUES DE ANÁLISIS FINO (S3) ── */
+@keyframes shimmer-s3{0%{background-position:200% center}100%{background-position:-200% center}}
+.claude-btn-s3{background:linear-gradient(135deg,#002A8D 0%,#1a1a6e 40%,#3d1a78 70%,#002A8D 100%);background-size:300% auto;animation:shimmer-s3 4s linear infinite;border:none;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;width:100%;margin-bottom:10px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,.35);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;font-family:inherit;text-align:left}
+.claude-btn-s3:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,.45)}
+.claude-btn-s3:disabled{opacity:.72;cursor:progress;transform:none}
+.cb3-icon{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid rgba(255,255,255,.3)}
+.cb3-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px;flex:1;min-width:0}
+.cb3-main{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;line-height:1.2}
+.cb3-sub{font-size:10px;color:rgba(255,255,255,.65);letter-spacing:.5px;font-weight:500}
+.cb3-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.12);border-radius:20px;padding:4px 10px;flex-shrink:0}
+.cb3-badge span{font-size:10px;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.4px}
+
+.punto-partida{background:linear-gradient(135deg,#FFF7F0,#FEF2E8);border:1.5px solid #F3C79B;border-left:4px solid #EC6607;border-radius:12px;padding:18px 20px;margin-bottom:12px;display:none}
+.punto-partida.visible{display:block}
+.pp-label{font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#B34500;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.pp-body{font-size:13.5px;color:#1C2536;line-height:1.75}
+.pp-body b{color:#B34500;font-weight:700}
+
+.preguntas-box{background:#fff;border:1.5px solid #002A8D;border-radius:14px;padding:20px;margin-bottom:12px;display:none}
+.preguntas-box.visible{display:block}
+.pq-label{font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#002A8D;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.pq-label::before{content:"";display:inline-block;width:18px;height:3px;background:#002A8D;border-radius:2px}
+.pq-intro{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:13px}
+.pq-item{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.pq-item:first-of-type{border-top:none;padding-top:2px}
+.pq-n{width:23px;height:23px;border-radius:50%;background:#002A8D;color:#fff;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.pq-txt{flex:1;min-width:0}
+.pq-q{font-size:13.5px;color:#1C2536;line-height:1.5;font-weight:500}
+.pq-meta{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:4px}
+.pq-meta b{color:#002A8D;font-weight:700}
+.ia-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.6px;color:#EC6607;background:#FFF2E6;border-radius:20px;padding:2px 8px;margin-left:auto;text-transform:uppercase}
+
 @media print{
 *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.punto-partida,.preguntas-box{break-inside:avoid;page-break-inside:avoid}
+.punto-partida.visible,.preguntas-box.visible{display:block!important}
 body{max-width:none!important;margin:0!important;padding:0!important;background:#fff!important}
 .no-print{display:none!important}
 #gateScreen,#docView,#detailModal{display:none!important}
@@ -389,11 +423,30 @@ function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
       <div class="fb-legend" id="fbLegend"></div>
     </div>
 
+    <!-- BOTÓN ANÁLISIS IA -->
+    <button class="claude-btn-s3 no-print" id="btnAnalisisIA">
+      <div class="cb3-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div>
+      <div class="cb3-text">
+        <div class="cb3-main">Analizar mi Ishikawa con IA</div>
+        <div class="cb3-sub">Lectura fina de TUS causas &middot; por d&oacute;nde empezar</div>
+      </div>
+      <div class="cb3-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>
+    </button>
+
     <!-- ANÁLISIS IA -->
     <div id="analisisWrap" style="display:none;margin-bottom:4px">
       <div class="analisis-global">
         <div class="ag-label">🔍 Análisis de tu Ishikawa</div>
         <div id="analisisGlobalBody" class="ag-body"></div>
+      </div>
+      <div class="punto-partida" id="puntoPartidaWrap">
+        <div class="pp-label">&#127919; Por d&oacute;nde empezar a revisar</div>
+        <div id="puntoPartidaBody" class="pp-body"></div>
+      </div>
+      <div class="preguntas-box" id="preguntasWrap">
+        <div class="pq-label">Preguntas que te tienes que hacer esta semana</div>
+        <div class="pq-intro">Salen de tus propias causas. Resp&oacute;ndelas con datos de tu operaci&oacute;n, no de memoria.</div>
+        <div id="preguntasBody"></div>
       </div>
       <div class="analisis-cierre">
         <div class="ac-eyebrow">★ Sugerencia de consultor</div>
@@ -740,6 +793,7 @@ async function cargarDatos(){
 
   // 1. Intentar restaurar desde JSONBin (fuente de verdad con colores y causas)
   let restoredFromCloud = false;
+  let savedParaAnalisis = null;
   try{
     const rec2 = await binRead();
     if(rec2){
@@ -759,18 +813,9 @@ async function cargarDatos(){
           causes={};
           M_CATEGORIES.forEach(c=>{causes[c.m]=saved.causes[c.m]||[];});
         }
-        // Restaurar análisis IA
-        if(saved.analisisPorM){
-          M_CATEGORIES.forEach(c=>{
-            const el=document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-            if(el&&saved.analisisPorM[c.m]){el.classList.add('visible');el.innerHTML=renderNeg(saved.analisisPorM[c.m]);}
-          });
-        }
-        if(saved.analisisGlobal||saved.analisisCierre){
-          $('analisisWrap').style.display='block';
-          if(saved.analisisGlobal) $('analisisGlobalBody').innerHTML=renderNeg(saved.analisisGlobal);
-          if(saved.analisisCierre) $('analisisCierreBody').innerHTML=renderNeg(saved.analisisCierre);
-        }
+        // El análisis se repinta al final, DESPUÉS de renderMGrid():
+        // si se hiciera aquí, renderMGrid lo borraría al reconstruir las tarjetas.
+        savedParaAnalisis = saved;
       }
     }
   }catch(e){console.error('restore cloud',e);}
@@ -789,6 +834,7 @@ async function cargarDatos(){
     }catch(e){}
   }
   renderMGrid();
+  restaurarAnalisisS3(savedParaAnalisis);
 }
 
 // ── SEMAFORO ──
@@ -1103,19 +1149,6 @@ function analisisCierreReglas(firstName, sintoma, causes, MCATS){
   txt += 'El Ishikawa no es el fin — es el mapa. <b>Ahora toca actuar.</b>';
   return txt;
 }
-async function callClaude(prompt){
-  try{
-    const r=await fetch('https://claude-proxy-bcp.apsalinas.workers.dev',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,
-        system:'Eres una mentora de negocios experta, cálida y directa. Trabajas con microempresarias en Arequipa, Perú. Hablas de tú. Usas los datos EXACTOS que te dan. Das consejos accionables para esta semana. Resalta 1-2 frases clave entre **asteriscos dobles**.',
-        messages:[{role:'user',content:prompt}]})
-    });
-    if(!r.ok){const t=await r.text();console.error('API',r.status,t);return null;}
-    const d=await r.json();
-    return d.content&&d.content[0]?d.content[0].text:null;
-  }catch(e){console.error('callClaude',e);return null;}
-}
 
 // Convierte **texto** en <b>texto</b> con color azul navy
 function renderNeg(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
@@ -1125,38 +1158,328 @@ function renderConNegritas(texto, el){
 
 function dots(el){ el.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>'; }
 
+// ════════════════════════════════════════════════════════════════════════════
+//  ANÁLISIS CON IA (Claude) · Sesión 3
+//  Objetivo: cero generalidades. El análisis debe citar SUS pasos y SUS causas,
+//  decirle por dónde entrar a revisar y qué preguntas hacerse — todo derivado
+//  de su propio Ishikawa. Si la IA falla, cae al motor de reglas y nadie se
+//  queda sin análisis ni sin poder guardar.
+// ════════════════════════════════════════════════════════════════════════════
+
+const CLAUDE_PROXY = 'https://claude-proxy-bcp.apsalinas.workers.dev';
+
+const SYS_S3 = [
+  'Eres consultora senior de operaciones. Acompanas a microempresarias de Arequipa, Peru, en el programa "Contigo Emprendedor" del BCP.',
+  'Acabas de leer el semaforo de proceso y el diagrama de Ishikawa de UNA emprendedora concreta. Le hablas de tu, con respeto y sin paternalismo.',
+  '',
+  'REGLAS INNEGOCIABLES:',
+  '1. Cita TEXTUALMENTE entre comillas los pasos de su semaforo y sus causas. Nunca las resumas en abstracto.',
+  '2. Usa los sustantivos de SU negocio tal como ella los escribio (herramientas, canales, sedes, productos). Si escribio "WhatsApp", di WhatsApp.',
+  '3. PROHIBIDO: coaching generico, "es importante que", "el primer paso es identificar", "te recomiendo analizar", motivacion vacia, y cualquier consejo que serviria igual para otro negocio.',
+  '4. Prohibido repetir su causa raiz sin agregar informacion nueva. Si la mencionas, es para decirle algo que ella todavia no vio.',
+  '5. Prefiere lo verificable: cantidades, tiempos, dias, nombres de pasos. Si no tienes el dato, dile donde contarlo.',
+  '6. Cada bloque debe decir algo DISTINTO. Nada de plantillas repetidas entre categorias.',
+  '7. Espanol peruano neutro y claro, sin tecnicismos de ingenieria. Sin emojis.',
+  '8. Responde SOLO con el JSON pedido. Sin bloques de codigo, sin texto antes ni despues.'
+].join('\n');
+
+async function callClaudeS3(prompt, maxTokens){
+  try{
+    const r = await fetch(CLAUDE_PROXY,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens: maxTokens || 1000,
+        system: SYS_S3,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!r.ok){ console.error('API S3', r.status, await r.text()); return null; }
+    const d = await r.json();
+    return (d.content && d.content[0]) ? d.content[0].text : null;
+  }catch(e){ console.error('callClaudeS3', e); return null; }
+}
+
+// Extrae el JSON aunque el modelo lo envuelva en texto o en ```json
+function parseJSONS3(txt){
+  if(!txt) return null;
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+  if(a < 0 || b <= a) return null;
+  try{ return JSON.parse(txt.slice(a, b+1)); }
+  catch(e){ console.warn('JSON IA no parseable', e); return null; }
+}
+
+// Expediente completo que recibe Claude: sin esto el analisis sale generico.
+function dossierS3(firstName){
+  const sintoma = $('symptomInput').value.trim() || '(no escribio sintoma)';
+  const LBL = { red:'ROJO - se traba', amber:'AMBAR - a veces falla', '':'VERDE - fluye' };
+  const pasos = semSteps.map((s,i)=> (i+1)+'. ['+(LBL[s.light]||LBL[''])+'] '+s.text).join('\n');
+  const rojos  = semSteps.filter(s=>s.light==='red').map(s=>'"'+s.text+'"');
+  const ambars = semSteps.filter(s=>s.light==='amber').map(s=>'"'+s.text+'"');
+
+  let cats = '';
+  M_CATEGORIES.forEach(c=>{
+    const arr = causes[c.m] || [];
+    if(!arr.length){ cats += '\n'+c.m+': (no escribio causas aqui)'; return; }
+    cats += '\n'+c.m+' ('+arr.length+'):';
+    arr.forEach(ca=>{ cats += '\n   - "'+ca.text+'"' + (ca.root ? '   <-- ELLA LA MARCO COMO CAUSA RAIZ' : ''); });
+  });
+
+  const total = M_CATEGORIES.reduce((n,c)=>n+(causes[c.m]||[]).length,0);
+  const raices = M_CATEGORIES.reduce((acc,c)=>acc.concat((causes[c.m]||[]).filter(x=>x.root).map(x=>'"'+x.text+'" ('+c.m+')')),[]);
+
+  // Senales calculadas: le dan al modelo ganchos concretos y evitan que
+  // se quede en la lectura obvia del Ishikawa.
+  const sen = [];
+  const conCausas = M_CATEGORIES.filter(c=>(causes[c.m]||[]).length>0);
+  const mMax = conCausas.slice().sort((a,b)=>(causes[b.m].length)-(causes[a.m].length))[0];
+  if(mMax) sen.push('La M con mas causas es '+mMax.m+' ('+causes[mMax.m].length+' de '+total+').');
+  if(raices.length===0) sen.push('NO marco ninguna causa raiz: no priorizo.');
+  else if(raices.length>=3) sen.push('Marco '+raices.length+' raices, casi una por categoria: eso NO es priorizar. Hay que ayudarla a quedarse con una sola y decirle con que criterio.');
+  const iRojo = semSteps.findIndex(s=>s.light==='red');
+  const ambarAntes = semSteps.slice(0, iRojo<0?0:iRojo).filter(s=>s.light==='amber');
+  if(iRojo>=0){
+    sen.push('Su unico/primer paso ROJO es el numero '+(iRojo+1)+' de '+semSteps.length+'.');
+    if(ambarAntes.length) sen.push('ANTES de ese rojo ya hay '+ambarAntes.length+' paso(s) en ambar: '+ambarAntes.map(s=>'"'+s.text+'"').join(', ')+'. Puede que el rojo sea consecuencia de lo que ya venia mal.');
+  }
+  if(ambars.length && iRojo<0) sen.push('No hay rojos, solo ambares: el problema es de consistencia, no de bloqueo total.');
+
+  return 'EMPRENDEDORA: '+firstName+
+    '\nSINTOMA QUE ELLA DESCRIBIO: "'+sintoma+'"'+
+    '\n\nSEMAFORO DE SU PROCESO ('+semSteps.length+' pasos, en el orden real en que ocurren):\n'+(pasos||'(vacio)')+
+    '\n\nPasos en ROJO: '+(rojos.length?rojos.join(', '):'ninguno')+
+    '\nPasos en AMBAR: '+(ambars.length?ambars.join(', '):'ninguno')+
+    '\n\nSUS CAUSAS EN EL ISHIKAWA 6M ('+total+' en total):'+cats+
+    '\n\nCausa(s) que ella marco como raiz: '+(raices.length?raices.join('; '):'ninguna todavia')+
+    (sen.length ? '\n\nSENALES QUE YA DETECTE (uselas, no las repitas textual):\n- '+sen.join('\n- ') : '');
+}
+
+function promptLecturaS3(dossier){
+  return dossier +
+  '\n\n=== TAREA A ===\nDevuelve SOLO este JSON:\n' +
+  '{"porM":{"<nombre exacto de la M>":"<texto>"},"lectura":"<texto>"}\n\n' +
+  'porM: una entrada por cada M que TENGA causas, con el nombre exacto tal como aparece arriba. Cada texto de 30 a 45 palabras y debe:\n' +
+  '  (a) citar entre comillas al menos una causa suya de esa M;\n' +
+  '  (b) conectarla con el paso concreto del semaforo que se traba por eso;\n' +
+  '  (c) cerrar con lo primero que debe REVISAR en esa M: algo que pueda mirar, contar o abrir hoy mismo, no una intencion.\n' +
+  '  Cada M debe abrir distinto y aportar algo que las otras no dicen.\n\n' +
+  'lectura: de 80 a 100 palabras. Es tu lectura del conjunto, NO un resumen ni un conteo. Di:\n' +
+  '  (a) cuales de sus causas son en realidad consecuencia de otras, y por que;\n' +
+  '  (b) donde se concentra el peso real del problema y si eso coincide o NO con la raiz que ella marco;\n' +
+  '  (c) que le esta faltando ver.\n' +
+  '  Empieza directo, sin saludo. Resalta con **asteriscos** un maximo de 2 frases.';
+}
+
+function promptAccionS3(dossier, firstName){
+  return dossier +
+  '\n\n=== TAREA B ===\nDevuelve SOLO este JSON:\n' +
+  '{"puntoPartida":"<texto>","preguntas":[{"q":"<pregunta>","dato":"<donde mirar>","revela":"<que te dice>"}],"cierre":"<texto>"}\n\n' +
+  'puntoPartida: de 45 a 65 palabras. Dile EXACTAMENTE por donde entrar a revisar su proceso: nombra entre comillas el paso del semaforo por el que debe empezar y explica por que ese y no otro (usa el orden real de los pasos: lo que se rompe antes arrastra a lo de despues). Cierra diciendo que debe observar en ese paso durante los proximos dias. Resalta con **asteriscos** el paso elegido.\n\n' +
+  'preguntas: exactamente 4, nacidas de SUS causas, no de teoria. Cada objeto:\n' +
+  '  q: pregunta cerrada y contable, maximo 20 palabras, que ella responde con un numero o un si/no mirando su operacion real. Debe apoyarse en algo que ella escribio.\n' +
+  '  dato: maximo 12 palabras, donde o como consigue ese dato esta semana.\n' +
+  '  revela: maximo 14 palabras, que confirma o descarta la respuesta.\n' +
+  '  Las 4 deben atacar causas DISTINTAS y venir ordenadas de la mas barata de responder a la mas costosa.\n\n' +
+  'cierre: de 55 a 75 palabras. Empieza EXACTAMENTE con "'+firstName+'," (nombre y coma). Es tu veredicto de consultora: el problema de fondo en una frase, la UNICA cosa que hace esta semana, y como sabra el viernes si funciono (senal o numero concreto). Resalta con **asteriscos** la accion principal.';
+}
+
+// Normaliza los nombres de las 6M que devuelve el modelo (tildes/mayusculas)
+function normalizarPorM(obj){
+  const out = {};
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  M_CATEGORIES.forEach(c=>{
+    const k = Object.keys(obj).find(kk => norm(kk) === norm(c.m));
+    if(k && obj[k]) out[c.m] = '\uD83D\uDCA1 ' + String(obj[k]).trim();
+  });
+  return out;
+}
+
+// ── Motor de reglas: red de seguridad si la IA no responde ──────────────────
+const PREG_M_REGLAS = {
+  'Mano de obra':'\u00bfCu\u00e1ntas veces esta semana ese paso lo hizo alguien sin una gu\u00eda escrita al lado?',
+  'M\u00e9todo':'\u00bfEn cu\u00e1ntos de tus \u00faltimos 10 casos se sigui\u00f3 el proceso igual, paso por paso?',
+  'Materiales':'\u00bfCu\u00e1ntas veces esta semana empezaste el trabajo con el insumo incompleto o desactualizado?',
+  'M\u00e1quina':'\u00bfCu\u00e1ntas veces fall\u00f3 o se perdi\u00f3 informaci\u00f3n por la herramienta que usas hoy?',
+  'Medio':'\u00bfEn qu\u00e9 franja del d\u00eda se acumulan los casos que se te caen?',
+  'Medici\u00f3n':'\u00bfQu\u00e9 n\u00famero tienes hoy que te avise de este problema antes de que ocurra?'
+};
+
+function analisisReglasS3(firstName, sintoma){
+  const porM = {};
+  M_CATEGORIES.filter(c=>(causes[c.m]||[]).length>0).forEach(cat=>{
+    porM[cat.m] = analisisPorMReglas(cat.m, causes[cat.m], sintoma, firstName);
+  });
+  const primerRojo = semSteps.find(s=>s.light==='red') || semSteps.find(s=>s.light==='amber');
+  const raiz = M_CATEGORIES.reduce((r,c)=> r || (causes[c.m]||[]).find(x=>x.root), null);
+  let pp = '';
+  if(primerRojo) pp = 'Entra por **"'+primerRojo.text+'"**: es el primer punto de tu flujo que marcaste como problema, y todo lo que viene despu\u00e9s arrastra lo que ah\u00ed se rompe. Durante los pr\u00f3ximos d\u00edas anota cada vez que ese paso se traba y qu\u00e9 estabas haciendo justo antes.';
+  else if(raiz) pp = 'Entra por la causa que marcaste como ra\u00edz: **"'+raiz.text+'"**. Durante los pr\u00f3ximos d\u00edas anota cada vez que aparece y qu\u00e9 la dispar\u00f3.';
+  else pp = 'Marca primero un paso en rojo o una causa ra\u00edz: sin ese punto de entrada, revisar todo a la vez no te va a dar se\u00f1al.';
+
+  const conCausas = M_CATEGORIES.filter(c=>(causes[c.m]||[]).length>0);
+  const preguntas = conCausas.slice(0,4).map(c=>{
+    const ca = (causes[c.m].find(x=>x.root) || causes[c.m][0]);
+    return {
+      q: PREG_M_REGLAS[c.m] || ('\u00bfCon qu\u00e9 frecuencia real ocurre "'+ca.text+'"?'),
+      dato: 'Cu\u00e9ntalo sobre tu propia causa: "'+ca.text+'".',
+      revela: 'Si ocurre seguido, deja de ser excepci\u00f3n: es tu regla.'
+    };
+  });
+
+  return {
+    porM: porM,
+    global: analisisGlobalReglas(firstName, sintoma, causes, M_CATEGORIES),
+    puntoPartida: pp,
+    preguntas: preguntas,
+    cierre: analisisCierreReglas(firstName, sintoma, causes, M_CATEGORIES),
+    fuente: 'reglas'
+  };
+}
+
+// ── Pintado en pantalla ─────────────────────────────────────────────────────
+let analisisS3 = null;
+
+function pintarAnalisisS3(a){
+  M_CATEGORIES.forEach(c=>{
+    const el = document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
+    if(!el) return;
+    const t = a.porM && a.porM[c.m];
+    if(t){ el.classList.add('visible'); el.innerHTML = renderNeg(t); }
+    else { el.classList.remove('visible'); el.innerHTML = ''; }
+  });
+
+  $('analisisWrap').style.display = 'block';
+  $('analisisGlobalBody').innerHTML = renderNeg(a.global || '');
+
+  const pp = $('puntoPartidaWrap');
+  if(a.puntoPartida){ pp.classList.add('visible'); $('puntoPartidaBody').innerHTML = renderNeg(a.puntoPartida); }
+  else { pp.classList.remove('visible'); $('puntoPartidaBody').innerHTML=''; }
+
+  const pw = $('preguntasWrap');
+  if(a.preguntas && a.preguntas.length){
+    pw.classList.add('visible');
+    $('preguntasBody').innerHTML = a.preguntas.map((p,i)=>
+      '<div class="pq-item"><div class="pq-n">'+(i+1)+'</div><div class="pq-txt">'+
+      '<div class="pq-q">'+esc(p.q||'')+'</div>'+
+      (p.dato   ? '<div class="pq-meta"><b>D\u00f3nde mirar:</b> '+esc(p.dato)+'</div>' : '')+
+      (p.revela ? '<div class="pq-meta"><b>Qu\u00e9 te dice:</b> '+esc(p.revela)+'</div>' : '')+
+      '</div></div>').join('');
+  } else { pw.classList.remove('visible'); $('preguntasBody').innerHTML=''; }
+
+  $('analisisCierreBody').innerHTML = renderNeg(a.cierre || '');
+}
+
+// Reconstruye el analisis desde una version guardada (nube / panel admin)
+function restaurarAnalisisS3(v){
+  const tiene = v && (v.analisisGlobal || v.analisisCierre || v.puntoPartida ||
+                     (v.analisisPorM && Object.keys(v.analisisPorM).length) ||
+                     (Array.isArray(v.preguntas) && v.preguntas.length));
+  if(!tiene){
+    analisisS3 = null;
+    $('analisisWrap').style.display = 'none';
+    $('puntoPartidaWrap').classList.remove('visible');
+    $('preguntasWrap').classList.remove('visible');
+    M_CATEGORIES.forEach(c=>{
+      const el = document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
+      if(el){ el.classList.remove('visible'); el.innerHTML=''; }
+    });
+    return;
+  }
+  analisisS3 = {
+    porM: v.analisisPorM || {},
+    global: v.analisisGlobal || '',
+    puntoPartida: v.puntoPartida || '',
+    preguntas: Array.isArray(v.preguntas) ? v.preguntas : [],
+    cierre: v.analisisCierre || '',
+    fuente: v.analisisFuente || 'reglas'
+  };
+  pintarAnalisisS3(analisisS3);
+}
+
+// Genera el analisis. usarIA=true consulta a Claude (2 llamadas en paralelo).
+async function generarAnalisisS3(usarIA){
+  const firstName = (currentName||'').trim().split(' ')[0] || 'Emprendedora';
+  const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
+  const base = analisisReglasS3(firstName, sintoma);
+
+  if(!usarIA){ analisisS3 = base; pintarAnalisisS3(base); return base; }
+
+  const dossier = dossierS3(firstName);
+  const [txtA, txtB] = await Promise.all([
+    callClaudeS3(promptLecturaS3(dossier), 1100),
+    callClaudeS3(promptAccionS3(dossier, firstName), 1100)
+  ]);
+  const A = parseJSONS3(txtA), B = parseJSONS3(txtB);
+
+  const porMIA = (A && A.porM) ? normalizarPorM(A.porM) : {};
+  const a = {
+    porM: Object.keys(porMIA).length ? porMIA : base.porM,
+    global: (A && A.lectura) ? String(A.lectura).trim() : base.global,
+    puntoPartida: (B && B.puntoPartida) ? String(B.puntoPartida).trim() : base.puntoPartida,
+    preguntas: (B && Array.isArray(B.preguntas) && B.preguntas.length) ? B.preguntas.slice(0,5) : base.preguntas,
+    cierre: (B && B.cierre) ? String(B.cierre).trim() : base.cierre,
+    fuente: (A || B) ? 'ia' : 'reglas'
+  };
+  analisisS3 = a;
+  pintarAnalisisS3(a);
+  return a;
+}
+
+
+// ── BOTÓN: ANALIZAR CON IA ──────────────────────────────────────────────────
+$('btnAnalisisIA').addEventListener('click', async () => {
+  if(!semSteps.length){ showStatus('Marca al menos un paso en el semáforo antes de analizar.','err'); return; }
+  const totalC = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
+  if(!totalC){ showStatus('Agrega al menos una causa en tu Ishikawa antes de analizar.','err'); return; }
+
+  const btn  = $('btnAnalisisIA');
+  const main = btn.querySelector('.cb3-main');
+  const sub  = btn.querySelector('.cb3-sub');
+  const sub0 = sub.textContent;
+
+  btn.disabled = true;
+  main.textContent = 'Leyendo tus ' + totalC + ' causas...';
+  sub.textContent  = 'Claude está cruzando tu semáforo con tus 6M';
+
+  // Esqueleto de carga: la emprendedora ve que algo está pasando
+  $('analisisWrap').style.display = 'block';
+  dots($('analisisGlobalBody'));
+  $('puntoPartidaWrap').classList.add('visible'); dots($('puntoPartidaBody'));
+  $('preguntasWrap').classList.add('visible');    dots($('preguntasBody'));
+  dots($('analisisCierreBody'));
+  $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
+
+  const a = await generarAnalisisS3(true);
+
+  btn.disabled = false;
+  main.textContent = 'Volver a analizar con IA';
+  sub.textContent  = sub0;
+  if(a.fuente !== 'ia'){
+    showStatus('No pude conectar con la IA — te dejé el análisis base. Vuelve a intentar en un momento.','err');
+  } else {
+    showStatus('✅ Análisis listo. Revísalo y luego guarda tu diagnóstico.','ok');
+    setTimeout(()=>showStatus('',''),6000);
+  }
+});
+
 $('saveCloudBtn').addEventListener('click', async () => {
   if(!semSteps.length){ showStatus('Marca al menos un paso en el semáforo.', 'err'); return; }
   const totalC = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
   if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
 
   const btn = $('saveCloudBtn');
-  btn.disabled=true; btn.textContent='⏳ Generando análisis...';
-  showStatus('Analizando tu diagnóstico con IA...','loading');
+  btn.disabled=true;
+  const sintoma = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
 
-  const firstName = currentName.trim().split(' ')[0];
-  const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
-
-  // ── Análisis 1: por cada M (reglas) ──────────────────────────────────────
-  const analisisPorM = {};
-  M_CATEGORIES.filter(c=>causes[c.m].length>0).forEach(cat=>{
-    const m=cat.m;
-    const el=document.getElementById('analisisM_'+m.replace(/\s/g,'_'));
-    const txt=analisisPorMReglas(m,causes[m],sintoma,firstName);
-    analisisPorM[m]=txt;
-    if(el){ el.classList.add('visible'); if(txt) el.innerHTML=txt; }
-  });
-
-  // ── Análisis 2: integrador ─────────────────────────────────────────────────
-  $('analisisWrap').style.display='block';
-  const textoGlobal=analisisGlobalReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisGlobalBody').innerHTML=renderNeg(textoGlobal);
-
-  // ── Análisis 3: cierre ────────────────────────────────────────────────────
-  const textoCierre=analisisCierreReglas(firstName,sintoma,causes,M_CATEGORIES);
-  $('analisisCierreBody').innerHTML=renderNeg(textoCierre);
-
+  // Si todavía no analizó con el botón de IA, se genera aquí antes de guardar:
+  // así nadie guarda un diagnóstico sin su lectura.
+  let a = analisisS3;
+  if(!a){
+    btn.textContent='\u23f3 Generando análisis con IA...';
+    showStatus('Leyendo tu Ishikawa con IA...','loading');
+    a = await generarAnalisisS3(true);
     $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
+  }
 
   // ── Guardar en JSONBin ─────────────────────────────────────────────────────
   showStatus('Guardando en la nube...','loading');
@@ -1171,7 +1494,9 @@ $('saveCloudBtn').addEventListener('click', async () => {
     amberCount:semSteps.filter(s=>s.light==='amber').length,
     totalSteps:semSteps.length,
     hasRoot:Object.values(causes).some(arr=>arr.some(c=>c.root)),
-    rootCount, analisisPorM, analisisGlobal:textoGlobal, analisisCierre:textoCierre,
+    rootCount,
+    analisisPorM:a.porM, analisisGlobal:a.global, analisisCierre:a.cierre,
+    puntoPartida:a.puntoPartida, preguntas:a.preguntas, analisisFuente:a.fuente,
     savedAt:new Date().toISOString()
   };
   // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
@@ -1365,7 +1690,7 @@ async function loadDocData(){
 //  No hay que tocar el algoritmo.
 // ════════════════════════════════════════════════════════════════
 
-const PDF_ATOM_SELECTOR = '[data-pdf-atom],.sem-step,.m-card,.analisis-global,.analisis-cierre';
+const PDF_ATOM_SELECTOR = '[data-pdf-atom],.sem-step,.m-card,.analisis-global,.punto-partida,.preguntas-box,.analisis-cierre';
 
 const PDF_CFG = {
   renderW: 1100,   // ancho de composición en px CSS
@@ -1760,22 +2085,8 @@ function loadEntryIntoState(v) {
   renderSem();
   renderMGrid(); // internamente llama a renderFishbone()
 
-  // Análisis por M
-  M_CATEGORIES.forEach(c => {
-    const el = document.getElementById('analisisM_'+c.m.replace(/\s/g,'_'));
-    if (el) {
-      if (v.analisisPorM && v.analisisPorM[c.m]) { el.classList.add('visible'); el.innerHTML = renderNeg(v.analisisPorM[c.m]); }
-      else { el.classList.remove('visible'); el.innerHTML=''; }
-    }
-  });
-  // Análisis global/cierre
-  if (v.analisisGlobal || v.analisisCierre) {
-    $('analisisWrap').style.display = 'block';
-    $('analisisGlobalBody').innerHTML = v.analisisGlobal ? renderNeg(v.analisisGlobal) : '';
-    $('analisisCierreBody').innerHTML = v.analisisCierre ? renderNeg(v.analisisCierre) : '';
-  } else {
-    $('analisisWrap').style.display = 'none';
-  }
+  // Análisis completo (por M, lectura, punto de partida, preguntas y cierre)
+  restaurarAnalisisS3(v);
 }
 
 // Dispara UNA sola descarga de un blob (PDF suelto o ZIP empaquetado).

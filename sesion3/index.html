@@ -1378,9 +1378,11 @@ async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
       clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
       sec.appendChild(clone);
       wrapper.appendChild(sec);
-      // Si el bloque trae sub-cajas propias (p.ej. análisis global + cierre), cada una
-      // se protege por separado; si no, se protege el bloque completo.
-      const subBoxes = clone.querySelectorAll('.analisis-global, .analisis-cierre');
+      // Si el bloque trae sub-cajas propias que deben protegerse por separado
+      // (p.ej. análisis global + cierre, o cada tarjeta de las 6M con su propio
+      // análisis), cada una se protege individualmente. Así la página puede
+      // cortar limpiamente ENTRE tarjetas, pero nunca DENTRO de una.
+      const subBoxes = clone.querySelectorAll('.analisis-global, .analisis-cierre, .m-card');
       if (subBoxes.length) subBoxes.forEach(b => noSplitEls.push(b));
       else noSplitEls.push(sec);
     }

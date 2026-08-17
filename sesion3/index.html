@@ -1341,6 +1341,7 @@ async function loadDocData(){
 // para poder empaquetar varios PDFs en un solo ZIP (evita que el navegador
 // bloquee múltiples descargas automáticas disparadas desde un mismo clic).
 async function exportDiagnosticoToPdf(personName, versionLabel, asBlob) {
+  console.log('[PDF] version del exportador: V5-nocorta');
   try {
     const symptom = $('symptomInput').value.trim() || 'Sin s\u00edntoma';
 

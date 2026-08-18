@@ -537,6 +537,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
     <div class="kpi-grid">
       <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
       <div class="kpi-box purple"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+      <div class="kpi-box green"><div class="kpi-val" id="kAdminSolver">-</div><div class="kpi-lbl">Versiones con Excel Solver adjunto</div></div>
     </div>
     <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODOS los PDFs (todas las emprendedoras)</button>
     <div id="adminBulkStatus" class="save-status"></div>
@@ -948,6 +949,11 @@ async function procesarArchivoSolver(file){
   try{
     if(typeof ExcelJS==='undefined'){resEl.textContent='Error: librería no disponible.';return;}
     const buf=await file.arrayBuffer();
+    // Se conserva el archivo TAL CUAL lo subio, para que el admin descargue el
+    // original y no una reconstruccion.
+    solverFile = (buf.byteLength <= SOLVER_MAX_BYTES)
+      ? { name: file.name || 'solver.xlsx', size: buf.byteLength, b64: bufToB64(buf) }
+      : null;
     const wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf);
     const ws=wb.getWorksheet(1)||wb.worksheets[0];
     if(!ws){resEl.textContent='No se pudo leer el archivo.';return;}
@@ -1621,6 +1627,26 @@ $('printBtn').addEventListener('click', async () => {
 
 // ── PANEL ADMINISTRADOR ─────────────────────────────────────────────────────
 
+// Lee el BIN secundario de archivos Solver UNA sola vez por descarga.
+async function leerAlmacenSolver(recPrincipal){
+  const id = recPrincipal && recPrincipal.solverBinId;
+  if(!id) return {};
+  solverBinIdCache = id;
+  const rec = await binReadId(id);
+  return (rec && rec.files) ? rec.files : {};
+}
+
+// Devuelve {filename, b64} del Solver de UNA version, o null si no tiene.
+function archivoSolverDe(version, almacen, personName, label){
+  const ficha = version && version.solverFile;
+  if(!ficha || !ficha.id) return null;
+  const arch = almacen[ficha.id];
+  if(!arch || !arch.b64) return null;
+  const base = String(personName||'').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'solver';
+  const ext = (ficha.name && ficha.name.indexOf('.xls') >= 0) ? ficha.name.slice(ficha.name.lastIndexOf('.')) : '.xlsx';
+  return { filename: 'Solver_' + base.replace(/\s+/g,'_') + (label ? '_' + label : '') + ext, b64: arch.b64 };
+}
+
 async function loadAdminData(){
   $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
   $('adminBulkStatus').textContent = '';
@@ -1642,8 +1668,10 @@ async function loadAdminData(){
   const conDatos = empDnis.filter(d => byDni.has(d));
   const totalVersiones = allEntries.filter(e => ROSTER[e.dni] && !TEST_DNIS.has(e.dni)).length;
 
+  const conSolver = allEntries.filter(e => ROSTER[e.dni] && !TEST_DNIS.has(e.dni) && e.solverFile && e.solverFile.id).length;
   $('kAdminEmp').textContent = conDatos.length;
   $('kAdminVer').textContent = totalVersiones;
+  $('kAdminSolver').textContent = conSolver;
 
   const ordenados = empDnis.slice().sort((a,b) => (ROSTER[a]||'').localeCompare(ROSTER[b]||''));
 
@@ -1656,8 +1684,10 @@ async function loadAdminData(){
       ? '<div class="admin-version-list">' + versions.map((v,i) => {
           const acc = v.action ? ({eliminar:'Eliminar',automatizar:'Automatizar',simplificar:'Simplificar',elim:'Eliminar',auto:'Automatizar',simp:'Simplificar'}[v.action]||v.action) : '';
           const desc = (v.cuello || '') + (acc ? ' \u2014 ' + acc : '') || '(sin plan registrado)';
+          const chip = (v.solverFile && v.solverFile.id)
+            ? '<span class="tag purple" style="flex-shrink:0">Solver</span>' : '';
           return '<div class="admin-version-item"><span class="v-num">v'+(i+1)+'</span>' +
-                 '<span class="v-name">'+esc(desc)+'</span>' +
+                 '<span class="v-name">'+esc(desc)+'</span>' + chip +
                  '<span class="v-date">'+fmtDateTime(v.savedAt)+'</span></div>';
         }).join('') + '</div>'
       : '<div class="admin-empty-versions">Sin res\u00famenes guardados todav\u00eda.</div>';
@@ -1683,6 +1713,7 @@ function loadEntryIntoStateS4(v){
   try{ if(typeof markAction === 'function' && action) markAction(action); }catch(e){}
   products = Array.isArray(v.products) ? v.products.slice() : [];
   solverResults = Array.isArray(v.solverResults) ? v.solverResults : [];
+  solverFile = null;   // el adjunto se toma del almacen por id, no del estado
   if($('actionPlan'))   $('actionPlan').value   = v.actionPlan || '';
   if($('recursoName'))  $('recursoName').value  = v.recursoName || '';
   if($('recursoTotal')) $('recursoTotal').value = v.recursoTotal || '';
@@ -1707,6 +1738,9 @@ async function downloadVersionsFor(dni){
   const personName = ROSTER[dni] || dni;
   $('adminBulkStatus').className = 'save-status loading';
 
+  // Los archivos Solver viven en el BIN secundario: se lee UNA sola vez.
+  const almacen = await leerAlmacenSolver(rec);
+
   const archivos = [];
   for(let i = 0; i < versions.length; i++){
     $('adminBulkStatus').textContent = 'Generando PDF '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
@@ -1715,6 +1749,8 @@ async function downloadVersionsFor(dni){
     const label = versions.length > 1 ? ('v'+(i+1)) : '';
     const res = await exportResumenS4ToPdf(personName, label, true);
     if(res) archivos.push(res);
+    const xls = archivoSolverDe(versions[i], almacen, personName, label);
+    if(xls) archivos.push(xls);
   }
   limpiarEstadoAdminS4();
 
@@ -1728,7 +1764,7 @@ async function downloadVersionsFor(dni){
   } else {
     $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs...';
     const zip = new JSZip();
-    archivos.forEach(f => zip.file(f.filename, f.blob));
+    archivos.forEach(f => f.b64 ? zip.file(f.filename, f.b64, {base64:true}) : zip.file(f.filename, f.blob));
     triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Optimizacion_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
   }
   $('adminBulkStatus').className = 'save-status ok';
@@ -1755,10 +1791,15 @@ async function downloadAllVersionsS4(){
   const dnis = Array.from(byDni.keys());
   const archivos = [];
 
+  // Los archivos Solver viven en el BIN secundario: se lee UNA sola vez.
+  const almacen = await leerAlmacenSolver(rec);
+
   for(let d = 0; d < dnis.length; d++){
     const dni = dnis[d];
     const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
     const personName = ROSTER[dni] || dni;
+    // Una carpeta por emprendedora: con 25 personas un ZIP plano es inmanejable.
+    const carpeta = String(personName).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().replace(/\s+/g,'_') || dni;
     for(let i = 0; i < versions.length; i++){
       $('adminBulkStatus').className = 'save-status loading';
       $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 PDF '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
@@ -1766,7 +1807,9 @@ async function downloadAllVersionsS4(){
       await new Promise(r => setTimeout(r, 200));
       const label = versions.length > 1 ? ('v'+(i+1)) : '';
       const res = await exportResumenS4ToPdf(personName, label, true);
-      if(res) archivos.push(res);
+      if(res) archivos.push({ filename: carpeta+'/'+res.filename, blob: res.blob });
+      const xls = archivoSolverDe(versions[i], almacen, personName, label);
+      if(xls) archivos.push({ filename: carpeta+'/'+xls.filename, b64: xls.b64 });
     }
   }
   limpiarEstadoAdminS4();
@@ -1779,7 +1822,7 @@ async function downloadAllVersionsS4(){
   }
   $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' PDFs en un ZIP...';
   const zip = new JSZip();
-  archivos.forEach(f => zip.file(f.filename, f.blob));
+  archivos.forEach(f => f.b64 ? zip.file(f.filename, f.b64, {base64:true}) : zip.file(f.filename, f.blob));
   triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Optimizacion_S4_todas.zip');
   $('adminBulkStatus').className = 'save-status ok';
   $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' PDF(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
@@ -1789,7 +1832,7 @@ async function downloadAllVersionsS4(){
 // El admin no tiene datos propios: se limpia el estado prestado tras exportar.
 function limpiarEstadoAdminS4(){
   currentDNI = null; currentName = null;
-  action = null; products = []; solverResults = [];
+  action = null; products = []; solverResults = []; solverFile = null;
   ['actionPlan','recursoName','recursoTotal'].forEach(id => { if($(id)) $(id).value = ''; });
   ['analisisPlanS4','analisisMixS4Main','diagnosticoS4MainBody'].forEach(id => { if($(id)) $(id).innerHTML = ''; });
   if($('cuelloText'))  $('cuelloText').textContent = '';
@@ -1826,6 +1869,78 @@ async function callClaudeS4(prompt){
 function renderNegS4(txt){return(txt||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
 function dotsS4El(el){el.innerHTML='<div class="dots-s4"><span></span><span></span><span></span></div>';}
 
+// ════════════════════════════════════════════════════════════════════════════
+//  ALMACÉN DE ARCHIVOS SOLVER
+//  ------------------------------------------------------------------------
+//  El .xlsx que sube la participante se guarda tal cual, para que el admin
+//  pueda descargar el archivo REAL de cada versión (no una reconstrucción).
+//
+//  Por qué en un BIN aparte y no en el principal: el xlsx pesa ~11 KB en
+//  base64. Con 25 emprendedoras x 3 versiones el BIN principal pasaría de
+//  ~244 KB a ~1.08 MB. Y ese BIN se lee en cada login y en cada guardado, y
+//  binWrite() reescribe el registro COMPLETO: cada participante estaría
+//  subiendo 1 MB desde el celular cada vez que guarda. En un taller con wifi
+//  compartido eso se cae. Aquí el BIN principal solo guarda el nombre del
+//  archivo y su id; los bytes viven en un BIN secundario que únicamente lee
+//  el administrador al descargar.
+//
+//  El BIN secundario se crea SOLO la primera vez que alguien sube un Solver,
+//  usando la Master Key que la app ya tiene. Su id queda anotado en el BIN
+//  principal (solverBinId), así que no hay nada que configurar a mano.
+// ════════════════════════════════════════════════════════════════════════════
+
+const SOLVER_MAX_BYTES = 600 * 1024;  // tope por archivo (el de la app pesa ~9 KB)
+let solverFile = null;                // {name, size, b64} del archivo cargado
+let solverBinIdCache = null;
+
+function bufToB64(buf){
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  const chunk = 0x8000;   // por trozos: apply() con arrays enormes revienta la pila
+  for(let i = 0; i < bytes.length; i += chunk){
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+async function binReadId(id){
+  try{
+    const r = await fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', { headers: HEADERS_R });
+    if(!r.ok) return null;
+    const j = await r.json();
+    return j.record || null;
+  }catch(e){ return null; }
+}
+async function binWriteId(id, d){
+  try{
+    const r = await fetch('https://api.jsonbin.io/v3/b/' + id, { method:'PUT', headers: HEADERS_W, body: JSON.stringify(d) });
+    return r.ok;
+  }catch(e){ return false; }
+}
+async function crearBinSolver(){
+  try{
+    const r = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': BIN_KEY,
+                 'X-Bin-Name':'BCP_S4_archivos_solver', 'X-Bin-Private':'true' },
+      body: JSON.stringify({ files: {} })
+    });
+    if(!r.ok) return null;
+    const j = await r.json();
+    return (j.metadata && j.metadata.id) || null;
+  }catch(e){ return null; }
+}
+
+// Guarda el archivo en el BIN secundario. Best-effort: si falla, la
+// emprendedora NO pierde su diagnóstico — solo se queda sin el adjunto.
+async function guardarArchivoSolver(binId, fileId, archivo){
+  if(!binId || !fileId || !archivo) return false;
+  const rec = await binReadId(binId);
+  const files = (rec && rec.files) ? rec.files : {};
+  files[fileId] = { name: archivo.name, size: archivo.size, b64: archivo.b64, savedAt: new Date().toISOString() };
+  return await binWriteId(binId, { files: files });
+}
+
 // ── UPLOAD SOLVER ─────────────────────────────────────────────────────────────
 let solverResults=[];
 document.addEventListener('change',async function(e){
@@ -1836,6 +1951,11 @@ document.addEventListener('change',async function(e){
   try{
     if(typeof ExcelJS==='undefined'){resEl.textContent='Error: librería Excel no disponible.';return;}
     const buf=await file.arrayBuffer();
+    // Se conserva el archivo TAL CUAL lo subio, para que el admin descargue el
+    // original y no una reconstruccion.
+    solverFile = (buf.byteLength <= SOLVER_MAX_BYTES)
+      ? { name: file.name || 'solver.xlsx', size: buf.byteLength, b64: bufToB64(buf) }
+      : null;
     const wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf);
     const ws=wb.getWorksheet(1)||wb.worksheets[0];
     if(!ws){resEl.textContent='No se pudo leer el archivo.';return;}
@@ -1926,11 +2046,26 @@ $('saveCloudBtn').addEventListener('click', async ()=>{
   // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
   payload.savedAt = new Date().toISOString();
   payload.id      = currentDNI + '_' + Date.now();
+
+  // Archivo Solver: en el BIN principal solo va la ficha (nombre, peso, id).
+  // Los bytes van al BIN secundario, que se crea solo la primera vez.
+  let solverBinId = rec.solverBinId || null;
+  if(solverFile){
+    if(!solverBinId) solverBinId = await crearBinSolver();
+    payload.solverFile = { id: payload.id, name: solverFile.name, size: solverFile.size };
+  }
   entries.push(payload);
 
-  const ok=await binWrite({entries});
+  const ok=await binWrite(solverBinId ? {entries, solverBinId} : {entries});
   showStatus(ok?'✅ Guardado y análisis generado.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(()=>showStatus('',''),5000);
+
+  // Adjunto: best-effort DESPUÉS del guardado principal. Si esto falla, ella
+  // ya tiene su diagnóstico a salvo; solo se queda sin el archivo adjunto.
+  if(ok && solverFile && solverBinId){
+    const guardado = await guardarArchivoSolver(solverBinId, payload.id, solverFile);
+    if(!guardado) console.warn('[Solver] no se pudo adjuntar el archivo de esta versión');
+  }
   btn.disabled=false;
   btn.innerHTML=btnHtmlOriginal;
 });

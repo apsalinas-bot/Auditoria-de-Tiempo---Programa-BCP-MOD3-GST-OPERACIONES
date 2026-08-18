@@ -1915,7 +1915,8 @@ const PDF_S8_CSS = [
   '.pdf-s8 .leg-i{display:flex;align-items:center;gap:6px;font-size:11px}',
   '.pdf-s8 .leg-d{width:9px;height:9px;border-radius:3px;flex-shrink:0}',
   '.pdf-s8 .leg-n{flex:1;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-  '.pdf-s8 .leg-v{font-weight:700;color:#002A8D;flex-shrink:0}',
+  '.pdf-s8 .leg-v{font-weight:700;color:#0F172A;flex-shrink:0;font-size:10.5px}',
+  '.pdf-s8 .leg-p{font-weight:800;color:#002A8D;flex-shrink:0;min-width:30px;text-align:right}',
   /* Barra apilada de origen */
   '.pdf-s8 .stack{display:flex;height:26px;border-radius:7px;overflow:hidden;background:#F1F5F9}',
   '.pdf-s8 .stack-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}',
@@ -2216,6 +2217,55 @@ async function rasterizarPdfS8(bodyHtml, headerHtml, filename, asBlob){
 // en la vista de administrador el tablero de la emprendedora ni siquiera esta
 // montado en pantalla.
 
+// Etiquetas de datos dibujadas a mano. Chart.js 4 no las trae de fabrica y
+// chartjs-plugin-datalabels seria otra dependencia por CDN: para dos tipos de
+// grafico sale mas barato (y mas controlable) pintarlas en el canvas.
+// OJO con los tamanos de fuente: el lienzo se genera a 2x con
+// devicePixelRatio:1, asi que todos los px de aqui son px de dispositivo
+// (22 px aqui se ven como 11 px en el PDF).
+const plugEtiquetasBarra = {
+  id:'etiquetasBarra',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    const datos=chart.data.datasets[0].data;
+    ctx.save();
+    ctx.font='700 21px Rubik, Arial, sans-serif';
+    ctx.fillStyle='#0F172A';
+    ctx.textAlign='center';
+    ctx.textBaseline='bottom';
+    chart.getDatasetMeta(0).data.forEach((barra,i)=>{
+      const v=Number(datos[i])||0;
+      if(v<=0) return;                       // no se rotulan los meses sin venta
+      ctx.fillText('S/ '+Math.round(v).toLocaleString('es-PE'), barra.x, barra.y-9);
+    });
+    ctx.restore();
+  }
+};
+
+const plugEtiquetasDona = {
+  id:'etiquetasDona',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    const datos=chart.data.datasets[0].data;
+    const total=datos.reduce((a,b)=>a+(Number(b)||0),0);
+    if(!total) return;
+    ctx.save();
+    ctx.font='800 20px Rubik, Arial, sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    chart.getDatasetMeta(0).data.forEach((arco,i)=>{
+      const pct=Math.round((Number(datos[i])||0)/total*100);
+      if(pct<9) return;                      // porcion muy fina: la etiqueta no cabe
+      const pr=arco.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'],true);
+      const ang=(pr.startAngle+pr.endAngle)/2;
+      const r=pr.innerRadius+(pr.outerRadius-pr.innerRadius)/2;
+      ctx.fillStyle='#fff';
+      ctx.fillText(pct+'%', pr.x+Math.cos(ang)*r, pr.y+Math.sin(ang)*r);
+    });
+    ctx.restore();
+  }
+};
+
 function chartPngS8(cfg, w, h){
   try{
     if(typeof Chart==='undefined') return '';
@@ -2361,16 +2411,21 @@ function construirReporteS8(db, persona){
 
   // ── Tendencia de ventas
   const haySerie=M.serieVal.some(v=>v>0);
+  const maxSerie=Math.max.apply(null,M.serieVal);
   const gTend=haySerie?chartPngS8({
     type:'bar',
     data:{labels:M.serieLbl,datasets:[{data:M.serieVal,
-      backgroundColor:M.serieVal.map(v=>v===Math.max.apply(null,M.serieVal)&&v>0?'#2563EB':'rgba(37,99,235,.22)'),
+      backgroundColor:M.serieVal.map(v=>v===maxSerie&&v>0?'#2563EB':'rgba(37,99,235,.22)'),
       borderRadius:8,borderSkipped:false}]},
-    options:{plugins:{legend:{display:false}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:22},color:'#64748B'}},
-              y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.06)'},
-                 ticks:{font:{size:20},color:'#64748B',callback:v=>'S/'+v}}}}
-  },700,230):'';
+    plugins:[plugEtiquetasBarra],
+    options:{layout:{padding:{top:14}},plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:22},color:'#64748B',padding:6}},
+              // 18% de aire arriba: si no, la etiqueta de la barra mas alta
+              // queda pegada al borde o se recorta.
+              y:{beginAtZero:true,suggestedMax:maxSerie*1.18,grid:{color:'rgba(0,0,0,.06)'},border:{display:false},
+                 ticks:{font:{size:20},color:'#94A3B8',padding:8,maxTicksLimit:6,
+                        callback:v=>'S/ '+Number(v).toLocaleString('es-PE')}}}}
+  },700,235):'';
   if(gTend){
     h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Tendencia de ventas \u00b7 \u00faltimos 6 meses</div>'+
        '<div class="panel"'+A+'>'+gTend+'</div></div>';
@@ -2381,15 +2436,17 @@ function construirReporteS8(db, persona){
     const donut=(datos,colores,w)=>chartPngS8({
       type:'doughnut',
       data:{labels:datos.map(d=>d.n),datasets:[{data:datos.map(d=>d.v),backgroundColor:colores,
-        borderColor:'#fff',borderWidth:4}]},
-      options:{cutout:'58%',plugins:{legend:{display:false}}}
+        borderColor:'#fff',borderWidth:5}]},
+      plugins:[plugEtiquetasDona],
+      options:{cutout:'56%',plugins:{legend:{display:false}}}
     },w,w);
     const colCanal=M.porCanal.map((d,i)=>CAN[d.n]||CAT[i%CAT.length]);
     const colProd =M.porProd.map((d,i)=>CAT[i%CAT.length]);
     const leyenda=(datos,cols)=>'<div class="leg">'+datos.slice(0,6).map((d,i)=>
       '<div class="leg-i"><span class="leg-d" style="background:'+cols[i]+'"></span>'+
       '<span class="leg-n">'+escS8(d.n)+'</span>'+
-      '<span class="leg-v">'+Math.round(d.v/M.total*100)+'%</span></div>').join('')+'</div>';
+      '<span class="leg-v">'+solS8(d.v)+'</span>'+
+      '<span class="leg-p">'+Math.round(d.v/M.total*100)+'%</span></div>').join('')+'</div>';
 
     h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Mezcla comercial</div>'+
        '<div class="grid2">'+

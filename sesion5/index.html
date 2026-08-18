@@ -885,7 +885,12 @@ function construirResumenS5(personName){
   var H=padTop+pirCats.length*levelH+(pirCats.length-1)*gap+6;
   var maxH=120,minH=32,topH=11;
   function halfAt(idx){return pirCats.length===1?85:minH+(maxH-minH)*(idx/(pirCats.length-1));}
-  var svgPir='<svg viewBox="0 0 '+W+' '+H+'" width="200" style="display:block;margin:0 auto 6px" xmlns="http://www.w3.org/2000/svg">';
+  // width Y height explicitos: html2canvas rasteriza el SVG serializandolo como
+  // imagen, y un SVG con ancho pero sin alto se colapsa a cero al convertirlo
+  // (en pantalla el navegador lo deducia del viewBox, en el PDF no). Sin esto
+  // la piramide sale en blanco en el PDF.
+  var pirW=200, pirH=Math.round(pirW*H/W);
+  var svgPir='<svg viewBox="0 0 '+W+' '+H+'" width="'+pirW+'" height="'+pirH+'" preserveAspectRatio="xMidYMid meet" style="display:block;margin:0 auto 6px;width:'+pirW+'px;height:'+pirH+'px" xmlns="http://www.w3.org/2000/svg">';
   var lblPir=''; var yy=padTop;
   pirCats.forEach(function(d,idx){
     var wTop=idx===0?topH:halfAt(idx-1), wBot=halfAt(idx);
@@ -990,22 +995,18 @@ function construirResumenS5(personName){
   var analisis1ok=analisis1&&!analisis1.includes('dots-s5');
   var diagBody=$('diagnosticoS5Body')?$('diagnosticoS5Body').innerHTML:'';
   // Quitar la tabla reorden-wrap del diagBody (ya aparece arriba)
+  // Se quita la tabla de reorden del diagnostico porque ya aparece en su propia
+  // seccion. Antes esto se hacia buscando '</div></div>' con indexOf y contando
+  // caracteres: cuando el texto de la IA venia DESPUES de la tabla (que es
+  // siempre), el calculo se pasaba de largo y borraba el diagnostico completo.
+  // Ahora se recorta con el DOM, que no depende de como este serializado el HTML.
   var diagText=diagBody;
-  var rwStart=diagText.indexOf('<div class="reorden-wrap">');
-  if(rwStart>=0){
-    // Buscar el cierre </div> que corresponde al reorden-wrap
-    // La tabla siempre termina con </div></div></div> al final del bloque
-    // Usamos el marcador de clase nota para encontrar el fin
-    var notaEnd=diagText.indexOf('</div></div>',rwStart);
-    if(notaEnd>=0){
-      // Avanzar hasta el cierre del wrapper externo
-      var closeEnd=diagText.indexOf('</div>',notaEnd+12);
-      if(closeEnd>=0) diagText=diagText.substring(0,rwStart)+diagText.substring(closeEnd+6);
-      else diagText=diagText.substring(0,rwStart);
-    } else {
-      diagText=diagText.substring(0,rwStart);
-    }
-  }
+  try{
+    var tmpDiag=document.createElement('div');
+    tmpDiag.innerHTML=diagBody;
+    Array.prototype.slice.call(tmpDiag.querySelectorAll('.reorden-wrap')).forEach(function(n){ n.parentNode.removeChild(n); });
+    diagText=tmpDiag.innerHTML;
+  }catch(e){}
   diagText=diagText.trim();
   var diagOk=diagText&&!diagText.includes('dots-s5');
 

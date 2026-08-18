@@ -6,6 +6,9 @@
 <title>Manuales para no enloquecer &middot; S6 &middot; BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -40,6 +43,16 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
 .rc-icon.emp{background:var(--coral)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--navy)}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
 .role-card.selected .rc-label{color:var(--navy)}
@@ -246,12 +259,14 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 <body>
 <script>
 const BIN_ID     = '6a6fb7a9f5f4af5e29e274aa';
+const ADMIN_DNI  = '70003700';
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOCENTE_PW = '70003700';
 const BIN_ID_S3  = '6a6bfa73f5f4af5e29d83006';  // semaforo de S3 (pasos con colores)
 </script>
 <script>
-const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca", "46884965": "Silvia Uscca Condori"};
+const ROSTER = {"40165543": "KAREN PILAR AQUINO SALAS", "73765671": "Nelida Lizbeth Ari Mamani", "29722177": "Sandra Lourdes Calderon Cornejo", "41623431": "Ana Maria Cane Garcia", "45352138": "Marisabel Yesenia Casanova Quezada", "70403483": "Yulisa Choquehuanca Huamani", "46761514": "Maria Lucero Condori Rivera", "75892740": "Andrea Cordova Juarez", "43748147": "Luz Marina Cuello Cora", "29651879": "Selene Gloria Esquia Becerra", "45941843": "Isabel Lizbeth Fuentes Sucantaype", "70571367": "Yomelly Bertha Gordillo Vilca", "74486847": "Edith Ysabel Guzman Mamani", "72891102": "Sol Maria Humpiri Pari", "72942216": "Flor de Maria Hurtado Condorena", "40013470": "Kathia Lucia Lizarraga Macedo", "47685045": "Ruth Raquel Nunez Ccoscco", "43668612": "Maria del Pilar Ochoa Velarde", "29616486": "Monica Paola Pajuelo Macedo", "40826509": "Jessica Jacqueline Palomino de la Cruz", "72463147": "Jenyfer Steysi Pineda Zapana", "41929947": "Silvana Angela Riveros Chavez", "72772991": "Jessica Jenny Romero Torres", "29646340": "Patricia del Pilar Tinta Chambi", "74943408": "Dayana Vargas Arizaca", "46884965": "Silvia Uscca Condori", "71509678": "Franchesca Quezada Cabrera", "74250220": "Beatriz Palacios Espinoza"};
+const TEST_DNIS = new Set(['71509678','74250220']); // Franchesca (Aprenda) y Beatriz (BCP) — cuentas de prueba, no cuentan en el tablero docente
 const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para empresas", "tarea": "armado y prueba de una computadora", "desc": "el proceso técnico que garantiza que la PC funcione"}, "73765671": {"nombre": "Nelida Lizbeth", "rubro": "Venta de ropa, zapatos, bazar", "tarea": "confección de una bata de lencería", "desc": "el proceso de costura que define la calidad"}, "29722177": {"nombre": "Sandra Lourdes", "rubro": "Pastelería, catering y eventos", "tarea": "montaje de un evento de catering", "desc": "tu proceso estrella de montaje paso a paso"}, "41623431": {"nombre": "Ana María", "rubro": "Producción de eventos", "tarea": "producción de un evento", "desc": "la coordinación que hace que todo salga perfecto"}, "45352138": {"nombre": "Marisabel Yesenia", "rubro": "Construcción", "tarea": "despacho de un pedido de material", "desc": "el proceso de preparar y entregar el pedido"}, "70403483": {"nombre": "Yulisa", "rubro": "Importación y comercialización de ropa de cama", "tarea": "recepción y control de cobertores importados", "desc": "cómo revisas la calidad al recibir mercadería"}, "46761514": {"nombre": "María Lucero", "rubro": "Artesanía", "tarea": "elaboración de un instrumento ancestral", "desc": "tu proceso artesanal clave"}, "75892740": {"nombre": "Andrea", "rubro": "Salud", "tarea": "preparación de un servicio funerario", "desc": "el protocolo que brinda un servicio impecable"}, "43748147": {"nombre": "Luz Marina", "rubro": "Servicios para empresas floristería", "tarea": "armado de un arreglo floral", "desc": "tu técnica de armado que fideliza clientes"}, "29651879": {"nombre": "Selene Gloria", "rubro": "Ferretería, construcción", "tarea": "atención y venta en tienda", "desc": "el proceso de atención que cierra la venta"}, "45941843": {"nombre": "Isabel Lizbeth", "rubro": "Artesanía", "tarea": "ensamblaje de una máquina de manualidades", "desc": "el proceso técnico de ensamblaje"}, "70571367": {"nombre": "Yomelly Bertha", "rubro": "Venta de frutas, verduras, flores", "tarea": "preparación de una tanda de snacks", "desc": "tu receta y proceso de producción"}, "74486847": {"nombre": "Edith Ysabel", "rubro": "Venta de ropa, zapatos, bazar", "tarea": "exhibición y venta de prendas", "desc": "cómo organizas y vendes tu ropa"}, "72891102": {"nombre": "SOL MARIA", "rubro": "Servicios de mantenimiento técnico", "tarea": "atención y venta de repuestos", "desc": "el proceso de identificar y vender el repuesto correcto"}, "72942216": {"nombre": "Flor de María", "rubro": "Construcción", "tarea": "despacho de material de construcción", "desc": "el proceso de preparar y entregar el lote"}, "40013470": {"nombre": "KATHIA LUCIA", "rubro": "Pesca", "tarea": "elaboración de una caja de conservas", "desc": "tu proceso de producción y envasado"}, "47685045": {"nombre": "Ruth Raquel", "rubro": "Bodega", "tarea": "reposición y atención en el minimarket", "desc": "cómo mantienes surtido y atiendes"}, "43668612": {"nombre": "María del Pilar", "rubro": "Educación", "tarea": "dictado de una clase de cocina", "desc": "tu metodología de enseñanza paso a paso"}, "29616486": {"nombre": "Mónica Paola", "rubro": "Servicios para empresas", "tarea": "gestión de un servicio de personal", "desc": "el proceso de coordinar y asignar personal"}, "40826509": {"nombre": "Jessica Jacqueline", "rubro": "Construcción", "tarea": "despacho de un pedido de ladrillos", "desc": "el proceso de preparar y entregar"}, "72463147": {"nombre": "Jenyfer Steysi", "rubro": "Servicios para empresas", "tarea": "entrega de un servicio empresarial", "desc": "tu metodología de trabajo con clientes"}, "41929947": {"nombre": "Silvana Angela", "rubro": "Turismo y hotelería", "tarea": "preparación de una habitación de hospedaje", "desc": "tu estándar de limpieza y preparación"}, "72772991": {"nombre": "Jessica Jenny", "rubro": "Servicios para empresas", "tarea": "desarrollo de una asesoría MYPE", "desc": "tu proceso de asesoría paso a paso"}, "29646340": {"nombre": "Patricia del Pilar", "rubro": "Servicios para empresas", "tarea": "entrega de un servicio profesional", "desc": "tu metodología de trabajo"}, "74943408": {"nombre": "Dayana", "rubro": "Turismo y hotelería", "tarea": "preparación de una habitación de hospedaje", "desc": "tu estándar de limpieza y preparación"}, "46884965": {"nombre": "Silvia", "rubro": "Alba Ingeniería y Servicios", "tarea": "diagnóstico y reparación de un equipo", "desc": "el proceso técnico que sigues para diagnosticar y resolver una falla"}};
 </script>
 
@@ -275,6 +290,10 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
           <div class="rc-icon doc">&#9783;</div>
           <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div><span class="rc-label">Administrador</span><span class="rc-sub">Descargar PDF y Word de cada versi&oacute;n</span></div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
@@ -297,6 +316,17 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative;width:100%">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric" style="padding-right:44px">
+          <button type="button" class="pw-eye-btn" id="eyeAdmin" onclick="toggleEye('inputAdmin','eyeAdmin')" title="Mostrar/ocultar">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
       </div>
     </div>
     <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
@@ -486,6 +516,30 @@ const TAREAS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para e
   </div>
 </div>
 
+<!-- ════ VISTA ADMINISTRADOR ════ -->
+<div id="adminView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#7a2d10 100%)">
+    <div class="eyebrow">Administrador &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 6</div>
+    <h1>Descarga de <span style="color:#FFB088">Manuales</span></h1>
+    <p>Procedimiento estandarizado y resumen de cada emprendedora.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODO (PDF + Word de todas)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
 <div id="detailModal"><div class="modal-box">
   <button class="modal-close" onclick="closeModal()">&#x2715;</button>
   <div class="modal-name" id="modalName">-</div>
@@ -520,9 +574,11 @@ async function binWrite(d){ try{ const r=await fetch(BIN_URL,{method:'PUT',heade
 function pickRole(role){
   $('cardEmp').classList.toggle('selected',role==='emp');
   $('cardDoc').classList.toggle('selected',role==='doc');
+  $('cardAdmin').classList.toggle('selected',role==='admin');
   $('panelEmp').classList.toggle('on',role==='emp');
   $('panelDoc').classList.toggle('on',role==='doc');
-  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+  $('panelAdmin').classList.toggle('on',role==='admin');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):role==='doc'?$('inputDoc'):$('inputAdmin'); if(i)i.focus(); },50);
 }
 var EYE_OPEN='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 var EYE_OFF='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -547,14 +603,45 @@ function doLoginDoc(){
   sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
   showDocView();
 }
+function doLoginAdmin(){
+  const v=$('inputAdmin').value.trim(); $('errAdmin').textContent='';
+  if(!v){ $('errAdmin').textContent='Ingresa tu DNI.'; return; }
+  if(v!==ADMIN_DNI){ $('errAdmin').textContent='DNI de administrador incorrecto.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'admin'}));
+  showAdminView();
+}
+function showAdminView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='';
+  loadAdminData();
+}
+
+// ── Versionado: cada guardado crea una version nueva, no pisa la anterior ──
+function latestEntryFor(entries, dni){
+  const mine = entries.filter(e => e.dni === dni);
+  if(!mine.length) return null;
+  return mine.reduce((a,b) => new Date(b.savedAt||0) >= new Date(a.savedAt||0) ? b : a);
+}
+function latestPerDni(entries){
+  const map = new Map();
+  entries.forEach(e => {
+    const prev = map.get(e.dni);
+    if(!prev || new Date(e.savedAt||0) >= new Date(prev.savedAt||0)) map.set(e.dni, e);
+  });
+  return Array.from(map.values());
+}
+
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
-  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
-  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; $('inputAdmin').value='';
+  $('errEmp').textContent=''; $('errDoc').textContent=''; $('errAdmin').textContent='';
+  pickRole('emp');
 }
 function tryResume(){
   try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
-    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+    if(s.role==='doc'){ showDocView(); }
+    else if(s.role==='admin'){ showAdminView(); }
+    else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
   }catch(e){}
 }
 function showEmpView(){
@@ -796,7 +883,7 @@ function save(){
 // desde el botón de la emprendedora (con su sesión actual) como desde el panel
 // docente (con cualquier registro ya guardado), para que ambos produzcan
 // exactamente el mismo documento estandarizado.
-function buildProcedureDoc(entry){
+function buildProcedureDoc(entry, asBlob){
   const tarea = (entry.tarea||'').trim();
   const secciones = entry.secciones || {};
   const kpiSugerido = entry.kpiSugerido || { indicador:'', meta:'', frecuencia:'' };
@@ -1042,8 +1129,15 @@ function buildProcedureDoc(entry){
     '</body></html>';
 
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
+  const base=String(currentName||'procedimiento').split(' ')[0]||'procedimiento';
+  const filename='POE_'+base+(entry.__verLabel?('_'+entry.__verLabel):'')+'_S6.doc';
+  // asBlob=true: lo devuelve para meterlo en el ZIP del administrador en vez
+  // de disparar una descarga suelta (el navegador bloquea las descargas multiples).
+  if(asBlob) return { blob:blob, filename:filename };
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='POE_'+(currentName.split(' ')[0]||'procedimiento')+'_S6.doc'; a.click();
+  a.download=filename; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  return true;
 }
 
 $('wordBtn').addEventListener('click', ()=>{
@@ -1060,7 +1154,601 @@ $('wordBtn').addEventListener('click', ()=>{
   setTimeout(()=>showStatus('',''),4000);
 });
 
-$('printBtn').addEventListener('click', ()=>window.print());
+
+// ════════════════════════════════════════════════════════════════════════════
+//  EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2, S3, S4 y S5)
+//  ------------------------------------------------------------------------
+//  Antes el boton "Descargar / imprimir (PDF)" hacia window.print() de la
+//  pantalla completa: salia la app entera con botones, campos de formulario y
+//  controles, no un documento. Ahora se compone un resumen aparte y se
+//  rasteriza con html2canvas + jsPDF:
+//   · NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+//     asi el lienzo nunca recorta el final ni deja aire de mas.
+//   · Los limites de cada bloque se miden DENTRO del clon via `onclone`, ya con
+//     la tipografia cargada: medicion y render en el mismo sistema.
+//   · Cada caja (tarea, cada seccion del procedimiento, prueba de fuego, KPI,
+//     SIPOC, analisis, proximos pasos) es un "atomo": la pagina solo corta
+//     donde no rompe ninguno.
+//   · Los titulos de seccion viajan pegados a su primer bloque.
+//
+//  Se construye desde un objeto `entry` (mismo shape que se guarda en la nube),
+//  igual que buildProcedureDoc: asi la emprendedora y el administrador generan
+//  exactamente el mismo documento, sin depender del estado de la pantalla.
+// ════════════════════════════════════════════════════════════════════════════
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
+
+const PDF_CFG = {
+  renderW: 820,
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6,
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
+
+const PDF_S6_CSS = [
+  '.pdf-s6{font-family:Rubik,system-ui,"Segoe UI",sans-serif;font-size:12.5px;color:#1C2536;line-height:1.65}',
+  '.pdf-s6 .sec{margin-bottom:16px}',
+  '.pdf-s6 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#C2431A;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #E2E7F0}',
+  '.pdf-s6 .box{border:1px solid #E2E7F0;border-radius:10px;padding:13px 16px;margin-bottom:10px}',
+  '.pdf-s6 .tarea{background:#FFF1EA;border:1.5px solid #E85D2F;border-radius:10px;padding:14px 16px;margin-bottom:10px}',
+  '.pdf-s6 .tarea .lb{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#C2431A;margin-bottom:4px}',
+  '.pdf-s6 .tarea .tx{font-size:16px;font-weight:700;color:#7C2200}',
+  '.pdf-s6 .tarea .sub{font-size:11.5px;color:#A34A22;margin-top:5px}',
+  '.pdf-s6 .sec-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}',
+  '.pdf-s6 .sec-num{width:22px;height:22px;border-radius:6px;background:#E85D2F;color:#fff;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+  '.pdf-s6 .sec-name{font-size:13px;font-weight:700;color:#1C2536}',
+  '.pdf-s6 .sec-body{font-size:12.5px;line-height:1.75;white-space:pre-wrap;color:#1C2536}',
+  '.pdf-s6 .vacio{font-size:12px;color:#9AACBE;font-style:italic}',
+  '.pdf-s6 .kpi{background:#002A8D;border-radius:10px;padding:15px 17px;margin-bottom:10px;color:#E4EAFF}',
+  '.pdf-s6 .kpi .t{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9FB6FF;margin-bottom:8px}',
+  '.pdf-s6 .kpi .ind{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}',
+  '.pdf-s6 .kpi .row{font-size:11.5px;color:#C6D2F5;padding:1px 0}',
+  '.pdf-s6 .kpi .row b{color:#fff}',
+  '.pdf-s6 table{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.pdf-s6 th{background:#001C5E;color:#fff;padding:7px 9px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px}',
+  '.pdf-s6 td{padding:7px 9px;border:1px solid #E2E7F0;vertical-align:top}',
+  '.pdf-s6 .analisis{background:#FFF1EA;border-left:3px solid #E85D2F;padding:12px 15px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.75;margin-bottom:10px}',
+  '.pdf-s6 .analisis b{color:#C2431A;font-weight:700}',
+  '.pdf-s6 .pasos{background:linear-gradient(135deg,#1a0a00,#3d1500);border-radius:12px;padding:19px;color:#FFD4A8}',
+  '.pdf-s6 .pasos .ey{font-size:8.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#FF8C42;margin-bottom:5px}',
+  '.pdf-s6 .pasos h2{font-size:15.5px;font-weight:700;color:#fff;margin-bottom:10px}',
+  '.pdf-s6 .pasos .bo{font-size:12.5px;color:#FFD4A8;line-height:1.8}',
+  '.pdf-s6 .pasos .bo b{color:#fff;font-weight:700}',
+  '.pdf-s6 .chip{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;margin-right:6px}',
+  '.pdf-s6 .chip.ok{background:#E6F8EE;color:#2F9E5F}',
+  '.pdf-s6 .chip.no{background:#FFF4E0;color:#B37700}'
+].join('\n');
+
+async function pdfEsperarTipografia(doc){
+  try{
+    const links = Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l => l.sheet ? Promise.resolve() : new Promise(res => {
+      l.addEventListener('load', res, { once:true });
+      l.addEventListener('error', res, { once:true });
+      setTimeout(res, 1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts && doc.fonts.load){
+      await Promise.all(['400','500','600','700'].map(w => doc.fonts.load(w + ' 14px Rubik')));
+    }
+    if(doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
+
+function pdfMedirBloques(root){
+  const wr = root.getBoundingClientRect();
+  const nodos = Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  const atomos = nodos.filter(n => !nodos.some(o => o !== n && o.contains(n)));
+
+  const zonas = [];
+  atomos.forEach(n => {
+    const r = n.getBoundingClientRect();
+    if(r.height > 0) zonas.push({ top:r.top - wr.top, bottom:r.bottom - wr.top });
+  });
+
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'), sec => {
+    const t = sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero = atomos.filter(a => sec.contains(a))[0];
+    const rt = t.getBoundingClientRect();
+    if(!primero){
+      const rs = sec.getBoundingClientRect();
+      if(rs.height > 0) zonas.push({ top:rs.top - wr.top, bottom:rs.bottom - wr.top });
+      return;
+    }
+    zonas.push({ top:rt.top - wr.top, bottom:primero.getBoundingClientRect().bottom - wr.top });
+  });
+
+  return { height:wr.height, width:wr.width, zonas:zonas };
+}
+
+function pdfPlanificarPaginas(imgH, zonas, altoPagPx){
+  const dentro = p => zonas.some(z => p > z.top + 0.5 && p < z.bottom - 0.5);
+  const candidatos = [];
+  zonas.forEach(z => { candidatos.push(z.top); candidatos.push(z.bottom); });
+  candidatos.push(imgH);
+  candidatos.sort((a,b) => a - b);
+
+  const minSlice = altoPagPx * PDF_CFG.minFill;
+  const paginas = [];
+  let y = 0, guarda = 0;
+
+  while(y < imgH - 1 && guarda++ < 400){
+    let corte = Math.min(y + altoPagPx, imgH);
+    if(corte < imgH && dentro(corte)){
+      let mejor = -1;
+      for(let i = 0; i < candidatos.length; i++){
+        const c = candidatos[i];
+        if(c > corte) break;
+        if(c <= y + minSlice) continue;
+        if(!dentro(c)) mejor = c;
+      }
+      if(mejor > y) corte = mejor;
+      else {
+        let fin = corte;
+        for(let pasada = 0; pasada < 4; pasada++){
+          const antes = fin;
+          zonas.forEach(z => { if(fin > z.top && fin < z.bottom) fin = z.bottom; });
+          if(fin === antes) break;
+        }
+        corte = Math.min(fin, imgH);
+      }
+    }
+    if(corte <= y) corte = Math.min(y + altoPagPx, imgH);
+    paginas.push({ from:y, to:corte });
+    y = corte;
+  }
+  return paginas;
+}
+
+// Arma un `entry` con el estado actual de la pantalla (para la emprendedora).
+function entryActualS6(){
+  return {
+    dni: currentDNI, name: currentName,
+    tarea: $('tareaInput') ? $('tareaInput').value.trim() : '',
+    secciones: secciones,
+    kpiSugerido: kpiSugerido, caracterizacion: caracterizacion,
+    responsable: $('responsableInput') ? $('responsableInput').value.trim() : '',
+    indicador: $('indicadorInput') ? $('indicadorInput').value.trim() : '',
+    validador: $('validadorInput') ? $('validadorInput').value.trim() : '',
+    feedback: $('feedbackInput') ? $('feedbackInput').value.trim() : '',
+    fuegoPassed: $('chkPassed') ? $('chkPassed').checked : false,
+    pasoElegido: (chosenIdx>=0 && steps[chosenIdx]) ? steps[chosenIdx].text : '',
+    stepsCount: steps.length,
+    redCount: steps.filter(function(s){ return s.light==='red'; }).length,
+    analisisIA: textoLimpioS6('analisisPoeS6'),
+    proximosPasos: textoLimpioS6('diagnosticoS6Body')
+  };
+}
+
+// Devuelve el HTML de un bloque de analisis, o '' si solo tiene el spinner.
+function textoLimpioS6(id){
+  const el = $(id);
+  if(!el) return '';
+  const html = el.innerHTML || '';
+  if(!html.trim() || html.indexOf('dots-s6') >= 0) return '';
+  return html;
+}
+
+// Documento del resumen, en bloques atomicos.
+function construirResumenS6(entry){
+  const e = entry || {};
+  const sec = e.secciones || {};
+  const kpi = e.kpiSugerido || {};
+  const car = e.caracterizacion || {};
+  const A = ' data-pdf-atom="1"';
+  const nombre = e.name || '';
+
+  // renderNegS6 convierte **negritas**; el contenido guardado ya viene en HTML.
+  const neg = t => (typeof renderNegS6 === 'function' ? renderNegS6(t) : esc(t||''));
+
+  let h = '<div class="pdf-s6">';
+
+  // ── Tarea documentada
+  h += '<div class="tarea"'+A+'><div class="lb">Tarea clave documentada</div>' +
+       '<div class="tx">' + esc(e.tarea || '(sin tarea definida)') + '</div>' +
+       (e.pasoElegido ? '<div class="sub">Paso del flujograma que eligi\u00f3 documentar: \u201c' + esc(e.pasoElegido) + '\u201d</div>' : '') +
+       '</div>';
+
+  // ── Las 4 secciones del procedimiento
+  h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">El procedimiento paso a paso</div>';
+  (typeof SECTIONS !== 'undefined' ? SECTIONS : []).forEach(function(s, i){
+    const v = (sec[s.key] || '').trim();
+    h += '<div class="box"'+A+'>' +
+         '<div class="sec-head"><div class="sec-num">'+(i+1)+'</div>' +
+         '<div class="sec-name">' + esc(String(s.title).replace(/^\d+\.\s*/,'')) + '</div></div>' +
+         (v ? '<div class="sec-body">' + esc(v) + '</div>'
+            : '<div class="vacio">Esta secci\u00f3n qued\u00f3 sin completar.</div>') +
+         '</div>';
+  });
+  h += '</div>';
+
+  // ── Prueba de fuego + responsable
+  const tieneFuego = e.fuegoPassed || e.validador || e.feedback || e.responsable || e.indicador;
+  if(tieneFuego){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Prueba de fuego y responsable</div>' +
+         '<div class="box"'+A+'>' +
+         '<div style="margin-bottom:9px">' +
+           '<span class="chip ' + (e.fuegoPassed ? 'ok">\u2713 Alguien lo sigui\u00f3 sin preguntar' : 'no">A\u00fan sin probar') + '</span>' +
+         '</div>' +
+         (e.validador ? '<div style="font-size:12px;margin-bottom:5px"><b>Qui\u00e9n lo prob\u00f3:</b> ' + esc(e.validador) + '</div>' : '') +
+         (e.feedback  ? '<div style="font-size:12px;margin-bottom:5px"><b>Lo que no se entendi\u00f3:</b> ' + esc(e.feedback) + '</div>' : '') +
+         (e.responsable ? '<div style="font-size:12px;margin-bottom:5px"><b>Responsable del proceso:</b> ' + esc(e.responsable) + '</div>' : '') +
+         (e.indicador ? '<div style="font-size:12px"><b>Su idea de indicador:</b> ' + esc(e.indicador) + '</div>' : '') +
+         '</div></div>';
+  }
+
+  // ── KPI + SIPOC
+  if(kpi.indicador || car.proveedor || car.entrada || car.salida || car.cliente){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Indicador y caracterizaci\u00f3n del proceso</div>';
+    if(kpi.indicador){
+      h += '<div class="kpi"'+A+'><div class="t">Indicador sugerido para este proceso</div>' +
+           '<div class="ind">' + esc(kpi.indicador) + '</div>' +
+           '<div class="row"><b>Meta:</b> ' + esc(kpi.meta || 'Por definir') + '</div>' +
+           '<div class="row"><b>Frecuencia de medici\u00f3n:</b> ' + esc(kpi.frecuencia || 'Mensual') + '</div></div>';
+    }
+    if(car.proveedor || car.entrada || car.salida || car.cliente){
+      h += '<div class="box"'+A+'><table>' +
+           '<thead><tr><th>Proveedor</th><th>Entrada</th><th>Salida</th><th>Cliente</th></tr></thead>' +
+           '<tbody><tr>' +
+           '<td>' + esc(car.proveedor || '\u2014') + '</td>' +
+           '<td>' + esc(car.entrada   || '\u2014') + '</td>' +
+           '<td>' + esc(car.salida    || '\u2014') + '</td>' +
+           '<td>' + esc(car.cliente   || '\u2014') + '</td>' +
+           '</tr></tbody></table></div>';
+    }
+    h += '</div>';
+  }
+
+  // ── Análisis IA
+  if(e.analisisIA){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Oportunidades de mejora en tu documentaci\u00f3n</div>' +
+         '<div class="analisis"'+A+'>' + neg(e.analisisIA) + '</div></div>';
+  }
+
+  // ── Próximos pasos
+  if(e.proximosPasos){
+    h += '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Qu\u00e9 hacer ahora</div>' +
+         '<div class="pasos"'+A+'><div class="ey">\u25c6 Diagn\u00f3stico de consultor</div>' +
+         '<h2>Tus pr\u00f3ximos pasos</h2><div class="bo">' + neg(e.proximosPasos) + '</div></div></div>';
+  }
+
+  h += '</div>';
+  return { html:h, nombre:nombre };
+}
+
+async function exportResumenS6ToPdf(entry, versionLabel, asBlob){
+  console.log('[PDF] exportador S6 V7-flow');
+  let wrapper = null;
+  try{
+    const doc = construirResumenS6(entry);
+
+    wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      'font-family:Rubik,system-ui,\'Segoe UI\',sans-serif',
+      'width:' + PDF_CFG.renderW + 'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const estilos = document.createElement('style');
+    estilos.textContent = PDF_S6_CSS;
+    wrapper.appendChild(estilos);
+
+    const hdr = document.createElement('div');
+    hdr.setAttribute('data-pdf-atom','1');
+    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #E85D2F';
+    hdr.innerHTML =
+      '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#F0A080;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 6 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">Manuales para <span style="color:#E85D2F">no enloquecer</span></div>' +
+      '<div style="font-size:10.5px;color:#6B7688;margin-top:4px">' + esc(doc.nombre) +
+        (versionLabel ? ' \u00b7 ' + esc(versionLabel) : '') + ' \u00b7 ' +
+        new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+    wrapper.appendChild(hdr);
+
+    const cuerpo = document.createElement('div');
+    cuerpo.innerHTML = doc.html;
+    wrapper.appendChild(cuerpo);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:18px';
+    wrapper.appendChild(spacer);
+
+    document.body.appendChild(wrapper);
+
+    await pdfEsperarTipografia(document);
+    await new Promise(r => setTimeout(r, 250));
+
+    const fallback = pdfMedirBloques(wrapper);
+
+    // Escala adaptativa: con secciones muy largas un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del movil.
+    let scale = PDF_CFG.scaleMax;
+    const altoCss = Math.max(fallback.height, wrapper.scrollHeight, 1);
+    while(scale > 1.2 && (PDF_CFG.renderW * scale) * (altoCss * scale) > PDF_CFG.maxCanvasPx) scale -= 0.2;
+
+    let metrics = null;
+    const canvas = await html2canvas(wrapper, {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: PDF_CFG.renderW + 300,
+      windowHeight: Math.max(1200, altoCss + 300),
+      scrollX: 0, scrollY: 0,
+      onclone: async (d, cloned) => {
+        await pdfEsperarTipografia(d);
+        await new Promise(r => setTimeout(r, 80));
+        try{ metrics = pdfMedirBloques(cloned); }catch(err){ metrics = null; }
+      }
+    });
+
+    const med = (metrics && metrics.height > 0) ? metrics : fallback;
+
+    const { jsPDF } = window.jspdf;
+    const imgW = canvas.width, imgH = canvas.height;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = PDF_CFG.marginMm;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2 - PDF_CFG.footerMm;
+
+    const sy = med.height > 0 ? (imgH / med.height) : scale;
+    const altoPagBase = imgW * (usableH / usableW);
+
+    const zonas = med.zonas
+      .map(z => ({ top:z.top * sy, bottom:z.bottom * sy }))
+      .filter(z => z.bottom > z.top + 1)
+      .sort((a,b) => a.top - b.top);
+
+    const padPx = PDF_CFG.atomPadPx * sy;
+    zonas.forEach(z => {
+      let sigTop = imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchon debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o => { if(o.top >= z.bottom && o.top < sigTop) sigTop = o.top; });
+      z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
+      if(z.bottom > imgH) z.bottom = imgH;
+    });
+
+    if(imgH <= altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG',
+        margin, margin, usableW, (imgH / imgW) * usableW);
+    } else {
+      let mejor = null;
+      PDF_CFG.shrinkSteps.forEach(k => {
+        const pg = pdfPlanificarPaginas(imgH, zonas, altoPagBase / k);
+        if(!mejor || pg.length < mejor.paginas.length) mejor = { k:k, paginas:pg };
+      });
+      const k = mejor.k, paginas = mejor.paginas;
+
+      paginas.forEach((p,i) => {
+        if(i === paginas.length - 1) return;
+        if(zonas.some(z => p.to > z.top + 0.5 && p.to < z.bottom - 0.5)) console.warn('[PDF] corte revisado en p\u00e1gina ' + (i+1));
+      });
+
+      for(let i = 0; i < paginas.length; i++){
+        if(i > 0) pdf.addPage();
+        const p = paginas[i];
+        const sliceH = Math.max(1, Math.round(p.to - p.from));
+        const slice = document.createElement('canvas');
+        slice.width = imgW; slice.height = sliceH;
+        const ctx = slice.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, imgW, sliceH);
+        ctx.drawImage(canvas, 0, p.from, imgW, sliceH, 0, 0, imgW, sliceH);
+
+        let drawW = usableW * k;
+        let drawH = (sliceH / imgW) * drawW;
+        if(drawH > usableH){ const f = usableH / drawH; drawW *= f; drawH = usableH; }
+        const x = margin + (usableW - drawW) / 2;
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
+      }
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for(let p = 1; p <= totalPages; p++){
+      pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 6', margin, pageH - 5);
+      if(totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 5, { align:'right' });
+    }
+
+    const safeName = String(doc.nombre || 'manual').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45) || 'manual';
+    const safeVer = versionLabel ? '_' + versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
+    const filename = 'Manual_' + safeName + safeVer + '.pdf';
+    if(asBlob) return { blob:pdf.output('blob'), filename:filename };
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:', err);
+    return asBlob ? null : false;
+  }finally{
+    if(wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+function triggerBlobDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+$('printBtn').addEventListener('click', async () => {
+  const tarea = $('tareaInput').value.trim();
+  if(!tarea){ showStatus('Elige o escribe primero tu tarea clave.','err'); return; }
+  const btn = $('printBtn');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '&#9203; Generando PDF...';
+  const ok = await exportResumenS6ToPdf(entryActualS6(), '', false);
+  btn.disabled = false; btn.innerHTML = orig;
+  if(!ok) showStatus('No se pudo generar el PDF. Intenta de nuevo.','err');
+});
+
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────────────────
+
+async function loadAdminData(){
+  $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent = '';
+  const rec = await binRead();
+  if(rec === null){
+    $('adminTableBody').innerHTML = '<div class="alert-box amber"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list => list.sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0)));
+
+  const empDnis = Object.keys(ROSTER).filter(d => !TEST_DNIS.has(d));
+  const conDatos = empDnis.filter(d => byDni.has(d));
+  const totalVersiones = allEntries.filter(e => ROSTER[e.dni] && !TEST_DNIS.has(e.dni)).length;
+
+  $('kAdminEmp').textContent = conDatos.length;
+  $('kAdminVer').textContent = totalVersiones;
+
+  const ordenados = empDnis.slice().sort((a,b) => (ROSTER[a]||'').localeCompare(ROSTER[b]||''));
+
+  let html = '';
+  ordenados.forEach(dni => {
+    const versions = byDni.get(dni) || [];
+    const nombre = ROSTER[dni] || dni;
+
+    const lista = versions.length
+      ? '<div class="admin-version-list">' + versions.map((v,i) => {
+          const desc = (v.tarea || '(sin tarea)') + ' \u00b7 ' + (v.sectionCount||0) + '/4 secciones';
+          const chip = v.fuegoPassed ? '<span class="tag green" style="flex-shrink:0">prueba \u2713</span>' : '';
+          return '<div class="admin-version-item"><span class="v-num">v'+(i+1)+'</span>' +
+                 '<span class="v-name">'+esc(desc)+'</span>' + chip +
+                 '<span class="v-date">'+fmtFechaHora(v.savedAt)+'</span></div>';
+        }).join('') + '</div>'
+      : '<div class="admin-empty-versions">Sin procedimientos guardados todav\u00eda.</div>';
+
+    html += '<div class="admin-emp-card">' +
+      '<div class="admin-emp-head"><div><div class="admin-emp-name">'+esc(nombre)+'</div></div>' +
+      '<span class="tag '+(versions.length?'green':'gray')+'">'+versions.length+' '+(versions.length===1?'versi\u00f3n':'versiones')+'</span></div>' +
+      lista +
+      (versions.length
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(String(nombre).split(' ')[0])+' (PDF + Word)</button>'
+        : '') +
+      '</div>';
+  });
+  $('adminTableBody').innerHTML = html;
+}
+
+// Genera PDF + Word de UNA version. Ambos se construyen desde el `entry`,
+// asi que el administrador no necesita "prestar" el estado de la pantalla.
+async function archivosDeVersionS6(entry, label){
+  const out = [];
+  const pdf = await exportResumenS6ToPdf(entry, label, true);
+  if(pdf) out.push(pdf);
+  try{
+    const conLabel = Object.assign({}, entry, { __verLabel: label || '' });
+    const word = buildProcedureDoc(conLabel, true);
+    if(word && word.blob) out.push(word);
+  }catch(e){ console.warn('[Word] no se pudo generar el de esta versi\u00f3n', e); }
+  return out;
+}
+
+async function downloadVersionsFor(dni){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const versions = all.filter(e => e.dni === dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+  if(!versions.length){ alert('Esta emprendedora no tiene procedimientos guardados.'); return; }
+
+  const personName = ROSTER[dni] || dni;
+  $('adminBulkStatus').className = 'save-status loading';
+
+  const archivos = [];
+  for(let i = 0; i < versions.length; i++){
+    $('adminBulkStatus').textContent = 'Generando '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
+    const label = versions.length > 1 ? ('v'+(i+1)) : '';
+    const fs = await archivosDeVersionS6(versions[i], label);
+    fs.forEach(f => archivos.push(f));
+  }
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  if(archivos.length === 1){
+    triggerBlobDownload(archivos[0].blob, archivos[0].filename);
+  } else {
+    $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' archivos...';
+    const zip = new JSZip();
+    archivos.forEach(f => zip.file(f.filename, f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Manual_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' archivo(s) descargado(s) de '+personName+'.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
+}
+
+async function downloadAllVersionsS6(){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const byDni = new Map();
+  all.forEach(e => {
+    if(!ROSTER[e.dni] || TEST_DNIS.has(e.dni)) return;
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  if(byDni.size === 0){ alert('A\u00fan no hay procedimientos guardados.'); return; }
+  if(!confirm('Se descargar\u00e1n los PDF y Word de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?')) return;
+
+  const btn = $('adminDownloadAllBtn');
+  btn.disabled = true;
+  const dnis = Array.from(byDni.keys());
+  const archivos = [];
+
+  for(let d = 0; d < dnis.length; d++){
+    const dni = dnis[d];
+    const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+    const personName = ROSTER[dni] || dni;
+    // Una carpeta por emprendedora: con 25 personas y 2 archivos por version,
+    // un ZIP plano es inmanejable.
+    const carpeta = String(personName).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().replace(/\s+/g,'_') || dni;
+    for(let i = 0; i < versions.length; i++){
+      $('adminBulkStatus').className = 'save-status loading';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 versi\u00f3n '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
+      const label = versions.length > 1 ? ('v'+(i+1)) : '';
+      const fs = await archivosDeVersionS6(versions[i], label);
+      fs.forEach(f => archivos.push({ filename: carpeta+'/'+f.filename, blob: f.blob }));
+    }
+  }
+  btn.disabled = false;
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' archivos en un ZIP...';
+  const zip = new JSZip();
+  archivos.forEach(f => zip.file(f.filename, f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Manuales_S6_todas.zip');
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' archivo(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
+}
+
+$('adminDownloadAllBtn').addEventListener('click', downloadAllVersionsS6);
 
 let clearArmed=false;
 $('clearBtn').addEventListener('click', ()=>{
@@ -1100,11 +1788,12 @@ $('saveCloudBtn').addEventListener('click', async function(){
   const filled=filledSections();
   if(!tarea){ showStatus('Elige o escribe primero tu tarea clave.','err'); return; }
   if(filled<2){ showStatus('Completa al menos 2 secciones del procedimiento.','err'); return; }
-  btnS6Loading(); showStatus('Guardando y generando an\u00e1lisis...','loading');
+  btnS6Loading(); showStatus('Generando tu an\u00e1lisis con IA...','loading');
 
-  const rec=await binRead();
-  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); btnS6Original(); return; }
-  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  // La lectura del BIN va AL FINAL, pegada a la escritura. Aqui van TRES
+  // llamadas a Claude en medio (30-45 s): si se leyera ahora y se escribiera
+  // despues, todo guardado de otra emprendedora ocurrido en ese lapso quedaria
+  // pisado, porque el BIN es un solo documento y binWrite reescribe todo.
   const responsable=$('responsableInput').value.trim();
   const indicador=$('indicadorInput').value.trim();
   const payload={
@@ -1117,9 +1806,6 @@ $('saveCloudBtn').addEventListener('click', async function(){
     responsable:responsable, indicador:indicador,
     savedAt:new Date().toISOString()
   };
-  const idx=entries.findIndex(e=>e.dni===currentDNI);
-  if(idx>=0) entries[idx]=payload; else entries.push(payload);
-
   const firstName=currentName.trim().split(' ')[0];
   const rubro=(currentDNI && TAREAS[currentDNI])?(TAREAS[currentDNI].rubro||''):'';
 
@@ -1237,6 +1923,22 @@ $('saveCloudBtn').addEventListener('click', async function(){
   save();
   payload.kpiSugerido=kpiSugerido;
   payload.caracterizacion=caracterizacion;
+  // El paso elegido del semaforo no estaba en el payload, asi que el PDF del
+  // administrador no podia mostrarlo. Se guarda su texto (no el array completo).
+  payload.pasoElegido = (chosenIdx>=0 && steps[chosenIdx]) ? steps[chosenIdx].text : '';
+
+  // ── Guardar: lectura y escritura pegadas, ventana minima ──
+  showStatus('Guardando en la nube...','loading');
+  const rec=await binRead();
+  if(rec===null){
+    showStatus('Error de conexi\u00f3n. Tu an\u00e1lisis sigue en pantalla \u2014 vuelve a tocar Guardar.','err');
+    btnS6Original(); return;
+  }
+  const entries=Array.isArray(rec.entries)?rec.entries:[];
+  // Cada guardado crea una VERSION NUEVA (no se sobrescribe la anterior).
+  payload.savedAt = new Date().toISOString();
+  payload.id      = currentDNI + '_' + Date.now();
+  entries.push(payload);
 
   const ok=await binWrite({entries});
   var msgOk='\u2705 Guardado y an\u00e1lisis generado.';
@@ -1252,7 +1954,9 @@ async function loadDocData(){
   $('docAlerts').innerHTML=''; $('docPending').innerHTML='';
   const rec=await binRead();
   if(rec===null){ $('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexi\u00f3n.</b> Verifica BIN_ID e internet.</div></td></tr>'; return; }
-  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  // Una fila por emprendedora: su version mas reciente.
+  docEntries=latestPerDni(Array.isArray(rec.entries)?rec.entries:[]);
+  docEntries=docEntries.filter(e=>!TEST_DNIS.has(e.dni));
   const total=docEntries.length, pct=Math.round(total/25*100);
   const completas=docEntries.filter(e=>e.complete).length;
   const fuego=docEntries.filter(e=>e.fuegoPassed).length;
@@ -1285,7 +1989,7 @@ async function loadDocData(){
     $('docTableBody').innerHTML=rows;
   }
   const reg=new Set(docEntries.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d)&&!TEST_DNIS.has(d));
   if(pend.length===0) $('docPending').innerHTML='<div class="alert-box green"><b>\u00a1Todas escribieron su procedimiento!</b></div>';
   else { let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
     pend.forEach(([,nm])=>{ ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(nm.split(' ')[0])+'</span>'; }); ph+='</div>'; $('docPending').innerHTML=ph; }

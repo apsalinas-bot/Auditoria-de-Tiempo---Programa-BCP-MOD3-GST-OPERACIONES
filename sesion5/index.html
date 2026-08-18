@@ -7,7 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -43,6 +45,16 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
 .rc-icon.emp{background:var(--teal)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--navy)}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 6px 24px rgba(0,20,80,.08)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
 .role-card.selected .rc-label{color:var(--navy)}
@@ -194,6 +206,7 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
 <!-- CLAVES -->
 <script>
 const BIN_ID     = '6a6f4d59da38895dfeafbd92';
+const ADMIN_DNI  = '70003700';
 const BIN_KEY    = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOCENTE_PW = '70003700';
 </script>
@@ -222,6 +235,10 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
           <div class="rc-icon doc">&#9783;</div>
           <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div><span class="rc-label">Administrador</span><span class="rc-sub">Descargar PDF y Excel de cada versi&oacute;n</span></div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contrase&ntilde;a)</span>
@@ -240,6 +257,15 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative;width:100%">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric" style="padding-right:44px">
+          <button type="button" class="pw-eye-btn" id="eyeAdmin" onclick="toggleEye('inputAdmin','eyeAdmin')" title="Mostrar/ocultar"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
       </div>
     </div>
     <div class="foot">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3: Gesti&oacute;n de Operaciones</div>
@@ -394,6 +420,30 @@ const INSUMOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para 
   </div>
 </div>
 
+<!-- ════ VISTA ADMINISTRADOR ════ -->
+<div id="adminView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#0a5a5a 100%)">
+    <div class="eyebrow">Administrador &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 5</div>
+    <h1>Descarga de <span style="color:#5FD4D4">Inventarios</span></h1>
+    <p>Matriz ABC, puntos de reorden y diagn&oacute;stico de cada emprendedora.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box teal"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODO (PDF + Excel de todas)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
 <div id="detailModal"><div class="modal-box">
   <button class="modal-close" onclick="closeModal()">&#x2715;</button>
   <div class="modal-name" id="modalName">-</div>
@@ -422,9 +472,11 @@ async function binWrite(d){ try{ const r=await fetch(BIN_URL,{method:'PUT',heade
 function pickRole(role){
   $('cardEmp').classList.toggle('selected',role==='emp');
   $('cardDoc').classList.toggle('selected',role==='doc');
+  $('cardAdmin').classList.toggle('selected',role==='admin');
   $('panelEmp').classList.toggle('on',role==='emp');
   $('panelDoc').classList.toggle('on',role==='doc');
-  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):$('inputDoc'); if(i)i.focus(); },50);
+  $('panelAdmin').classList.toggle('on',role==='admin');
+  setTimeout(()=>{ const i=role==='emp'?$('inputEmp'):role==='doc'?$('inputDoc'):$('inputAdmin'); if(i)i.focus(); },50);
 }
 function doLoginEmp(){
   const v=$('inputEmp').value.trim(); $('errEmp').textContent='';
@@ -440,14 +492,52 @@ function doLoginDoc(){
   sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc',dni:v}));
   showDocView();
 }
+function doLoginAdmin(){
+  const v=$('inputAdmin').value.trim(); $('errAdmin').textContent='';
+  if(!v){ $('errAdmin').textContent='Ingresa tu DNI.'; return; }
+  if(v!==ADMIN_DNI){ $('errAdmin').textContent='DNI de administrador incorrecto.'; return; }
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'admin'}));
+  showAdminView();
+}
+function showAdminView(){
+  $('gateScreen').style.display='none'; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='';
+  loadAdminData();
+}
+
+// ── Versionado: cada guardado crea una version nueva, no pisa la anterior ──
+function latestEntryFor(entries, dni){
+  const mine = entries.filter(e => e.dni === dni);
+  if(!mine.length) return null;
+  return mine.reduce((a,b) => new Date(b.savedAt||0) >= new Date(a.savedAt||0) ? b : a);
+}
+function latestPerDni(entries){
+  const map = new Map();
+  entries.forEach(e => {
+    const prev = map.get(e.dni);
+    if(!prev || new Date(e.savedAt||0) >= new Date(prev.savedAt||0)) map.set(e.dni, e);
+  });
+  return Array.from(map.values());
+}
+function fmtDateTime(iso){
+  if(!iso) return '-';
+  const d = new Date(iso);
+  if(isNaN(d)) return '-';
+  return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}) + ', ' +
+         d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+}
+
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY); currentDNI=null; currentName=null;
-  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none';
-  $('inputEmp').value=''; $('inputDoc').value=''; pickRole('emp');
+  $('gateScreen').style.display=''; $('empView').style.display='none'; $('docView').style.display='none'; $('adminView').style.display='none';
+  $('inputEmp').value=''; $('inputDoc').value=''; $('inputAdmin').value='';
+  $('errEmp').textContent=''; $('errDoc').textContent=''; $('errAdmin').textContent='';
+  pickRole('emp');
 }
 function tryResume(){
   try{ const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); if(!s) return;
-    if(s.role==='doc'){ showDocView(); } else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
+    if(s.role==='doc'){ showDocView(); }
+    else if(s.role==='admin'){ showAdminView(); }
+    else if(s.role==='emp'&&ROSTER[s.dni]){ currentDNI=s.dni; currentName=s.name||ROSTER[s.dni]; showEmpView(); }
   }catch(e){}
 }
 function showEmpView(){
@@ -472,7 +562,7 @@ async function cargarDatos(){
     try{
       const rec=await binRead();
       if(rec && Array.isArray(rec.entries)){
-        const entry=rec.entries.find(function(e){return e.dni===currentDNI;});
+        const entry=latestEntryFor(rec.entries, currentDNI);
         if(entry && Array.isArray(entry.insumos) && entry.insumos.length>0){
           own=entry;
           // Persistir localmente para la próxima vez
@@ -765,8 +855,9 @@ function save(){
 }
 
 // PDF
-$('printBtn').addEventListener('click', function(){
-  var nombre = currentName || '';
+// Arma el documento del resumen S5 a partir del estado GLOBAL actual.
+function construirResumenS5(personName){
+  var nombre = personName || currentName || '';
   var planATxt = $('planA') ? $('planA').value.trim() : '';
   var planCTxt = $('planC') ? $('planC').value.trim() : '';
   var total = abcData.reduce(function(s,it){return s+it.value;},0);
@@ -837,7 +928,7 @@ $('printBtn').addEventListener('click', function(){
   var leyendas='<div style="display:flex;flex-direction:column;gap:7px;margin-top:10px">';
   if(groupA.length){
     var vA=groupA.reduce(function(s,i){return s+i.value;},0);
-    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #0E8C8C;background:#E3F5F5">'
+    leyendas+='<div data-pdf-atom="1" style="border-radius:8px;padding:9px 11px;border-left:4px solid #0E8C8C;background:#E3F5F5">'
       +'<div style="font-size:11.5px;font-weight:700;color:#0A6A6A;margin-bottom:2px">Grupo A \u2014 tus insumos cr\u00edticos</div>'
       +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5">Son <b>'+groupA.length+' insumo(s)</b> que concentran el <b>'+pctA+'% de tu dinero</b> (S/ '+vA.toFixed(0)+'). Nunca deben faltar.</div>'
       +'<div style="font-size:9.5px;color:#0A6A6A;margin-top:3px;font-style:italic">'+groupA.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
@@ -845,7 +936,7 @@ $('printBtn').addEventListener('click', function(){
   }
   if(groupB.length){
     var vB=groupB.reduce(function(s,i){return s+i.value;},0);
-    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #E8A800;background:#FFF8E1">'
+    leyendas+='<div data-pdf-atom="1" style="border-radius:8px;padding:9px 11px;border-left:4px solid #E8A800;background:#FFF8E1">'
       +'<div style="font-size:11.5px;font-weight:700;color:#8A6D00;margin-bottom:2px">Grupo B \u2014 importancia intermedia</div>'
       +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5"><b>'+groupB.length+' insumo(s)</b> con el <b>'+pctB+'%</b> (S/ '+vB.toFixed(0)+'). Contr\u00f3lalos con menos intensidad que los A.</div>'
       +'<div style="font-size:9.5px;color:#8A6D00;margin-top:3px;font-style:italic">'+groupB.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
@@ -853,13 +944,14 @@ $('printBtn').addEventListener('click', function(){
   }
   if(groupC.length){
     var vC=groupC.reduce(function(s,i){return s+i.value;},0);
-    leyendas+='<div style="border-radius:8px;padding:9px 11px;border-left:4px solid #8AACBD;background:#F1F5F9">'
+    leyendas+='<div data-pdf-atom="1" style="border-radius:8px;padding:9px 11px;border-left:4px solid #8AACBD;background:#F1F5F9">'
       +'<div style="font-size:11.5px;font-weight:700;color:#5B6F80;margin-bottom:2px">Grupo C \u2014 bajo valor</div>'
       +'<div style="font-size:10.5px;color:#1C2536;line-height:1.5"><b>'+groupC.length+' insumo(s)</b> con el <b>'+pctC+'%</b> (S/ '+vC.toFixed(0)+'). Compra solo lo necesario.</div>'
       +'<div style="font-size:9.5px;color:#5B6F80;margin-top:3px;font-style:italic">'+groupC.map(function(i){return esc(i.name);}).join(' \u00b7 ')+'</div>'
       +'</div>';
   }
   leyendas+='</div>';
+  var leyendasAtom = leyendas;
 
   // Tabla ABC
   var abcRows = abcData.map(function(it){
@@ -933,138 +1025,582 @@ $('printBtn').addEventListener('click', function(){
       +'</tr>';
   }).join('');
 
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>S5 Inventario \u2013 '+esc(nombre)+'</title>'
-    +'<style>'
-    +'*{box-sizing:border-box;margin:0;padding:0}'
-    +'body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1C2536;background:#fff}'
-    +'.page{padding:14px 18px 10px}'
-    +'.page-break{page-break-after:always;break-after:page}'
-    +'.avoid{page-break-inside:avoid;break-inside:avoid}'
-    +'.header{background:#002A8D;color:#fff;padding:11px 14px;border-radius:8px;margin-bottom:12px}'
-    +'.header .ey{font-size:8px;color:#7FA0FF;margin-bottom:2px}'
-    +'.header h1{font-size:16px;font-weight:700;margin-bottom:2px}'
-    +'.header h1 span{color:#5FD4D4}'
-    +'.header p{font-size:10px;color:#C6D2F5}'
-    +'.section{margin-bottom:10px;padding:10px 12px;border:1px solid #C8D4E8;border-radius:8px}'
-    +'.sec-label{font-size:8.5px;font-weight:700;color:#0A6A6A;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #C8D4E8;display:block}'
-    +'.bridge{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:8px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.55;margin-bottom:10px}'
-    +'.analisis{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:9px 11px;border-radius:0 8px 8px 0;font-size:11px;line-height:1.6}'
-    +'.analisis b{color:#0A6A6A}'
-    +'table{width:100%;border-collapse:collapse;font-size:10.5px}'
-    +'th{background:#0E8C8C;color:#fff;padding:5px 6px;text-align:left;font-size:9.5px;white-space:nowrap}'
-    +'td{padding:5px 6px;border-bottom:1px solid #C8D4E8;vertical-align:middle}'
-    +'tr:last-child td{border-bottom:none}'
-    +'.diag{background:#001a1a;border-radius:10px;padding:14px;margin-top:10px}'
-    +'.diag-ey{font-size:8px;font-weight:700;color:#5FD4D4;margin-bottom:4px}'
-    +'.diag h2{font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}'
-    +'.diag-body{font-size:11px;color:#A8E6E6;line-height:1.75}'
-    +'.diag-body b{color:#fff}'
-    +'.nota{font-size:9px;color:#6B7688;margin-top:4px;line-height:1.4}'
-    +'.footer{text-align:center;font-size:9px;color:#9AACBE;padding-top:7px;border-top:1px solid #E2E7F0;margin-top:10px}'
-    +'@page{margin:1cm;size:A4 portrait}'+'.page-break{page-break-after:always;break-after:page;height:0;padding:0;margin:0}'+'.page-break-before{page-break-before:always;break-before:page;height:0;padding:0;margin:0}'+'.avoid{page-break-inside:avoid;break-inside:avoid}'+'.page{padding:14px 18px 10px}'+'.header,.diag,.analisis,[style*="background:#0E8C8C"],[style*="background:#E8A800"],[style*="background:#8AACBD"],[style*="background:#002A8D"],[style*="background:#001a1a"],[style*="background:#E3F5F5"],[style*="background:#FFF8E1"],[style*="background:#F1F5F9"],th,td {-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
-    +'</style></head><body>'
+  // ── Documento del resumen, en bloques atómicos ──────────────────────────
+  // Un solo encabezado (antes se repetía en cada "página" forzada) y cada caja
+  // marcada con data-pdf-atom para que el paginador no la parta nunca.
+  var A = ' data-pdf-atom="1"';
+  var html = '<div class="pdf-s5">'
 
-    // ══ PÁG 1: Paso 1 (insumos) + Paso 2 (Matriz ABC) ══════════════════════
-    +'<div class="page">'
-    +'<div class="header">'
-    +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES</div>'
-    +'<h1>Insumos e <span>Inventario</span></h1>'
-    +'<p>'+esc(nombre)+'</p>'
-    +'</div>'
+    + '<div class="bridge"'+A+'>&#128260; <b>En la Sesi\u00f3n 4</b> dejaste tu proceso \u00e1gil. Hoy ordenamos tus insumos para que nunca te falte lo cr\u00edtico y liberes el dinero atrapado en lo que no rota.</div>'
 
-    // Puente S4→S5
-    +'<div class="bridge">\uD83D\uDD04 <b>En la Sesi\u00f3n 4</b> dejaste tu proceso \u00e1gil. Hoy ordenamos tus insumos para que nunca te falte lo cr\u00edtico y liberes el dinero atrapado en lo que no rota.</div>'
+    // ── Paso 1: lista de insumos
+    + '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Paso 1 &middot; Lista de insumos y productos de inventario</div>'
+    + '<div class="box"'+A+'><table>'
+    + '<thead><tr><th>#</th><th>Insumo</th><th style="text-align:right">Costo unit.</th><th style="text-align:right">Cant./mes</th><th style="text-align:right">Valor/mes</th><th style="text-align:right">Lead time</th><th style="text-align:right">M\u00e1x/mes</th><th style="text-align:right">Costo pedido</th></tr></thead>'
+    + '<tbody>'+insRows+'</tbody></table></div></div>'
 
-    // Paso 1: Lista de insumos
-    +'<div class="section avoid">'
-    +'<span class="sec-label">PASO 1 · Lista de insumos y productos de inventario</span>'
-    +'<table>'
-    +'<thead><tr><th>#</th><th>Insumo</th><th style="text-align:right">Costo unit.</th><th style="text-align:right">Cant./mes</th><th style="text-align:right">Valor/mes</th><th style="text-align:right">Lead time</th><th style="text-align:right">M\u00e1x/mes</th><th style="text-align:right">Costo pedido</th></tr></thead>'
-    +'<tbody>'+insRows+'</tbody>'
-    +'</table>'
-    +'</div>'
+    // ── Paso 2: Matriz ABC
+    + '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Paso 2 &middot; Tu Matriz ABC &mdash; as\u00ed se reparte tu dinero</div>'
+    + '<div class="box"'+A+'>'
+      + '<p style="font-size:11.5px;color:#6B7688;margin-bottom:8px">Total en inventario: <b style="color:#002A8D">S/ '+total.toFixed(0)+'</b> al mes</p>'
+      + barraABC
+    + '</div>'
+    + '<div class="box"'+A+' style="background:#F7F9FC">'
+      + '<div style="text-align:center;font-size:12px;font-weight:700;color:#002A8D;margin-bottom:2px">Tu pir\u00e1mide de inventario</div>'
+      + '<div style="text-align:center;font-size:10px;color:#6B7688;margin-bottom:6px">Cr\u00edticos (A) &middot; Intermedios (B) &middot; Bajo valor (C)</div>'
+      + svgPir + pirLeg
+    + '</div>'
+    + '<div class="box"'+A+'>'+insList+'</div>'
+    + leyendasAtom
+    + '</div>'
 
-    // Paso 2: Matriz ABC
-    +'<div class="section">'
-    +'<span class="sec-label">PASO 2 · Tu Matriz ABC — Así se reparte tu dinero</span>'
-    +'<p style="font-size:10.5px;color:#6B7688;margin-bottom:7px">Total en inventario: <strong style="color:#002A8D">S/ '+total.toFixed(0)+'</strong> al mes</p>'
-    +barraABC
-    +'<div style="background:#F7F9FC;border:1px solid #C8D4E8;border-radius:8px;padding:10px;margin-bottom:8px">'
-    +'<div style="text-align:center;font-size:11px;font-weight:700;color:#002A8D;margin-bottom:2px">Tu pir\u00e1mide de inventario</div>'
-    +'<div style="text-align:center;font-size:9px;color:#6B7688;margin-bottom:5px">Cr\u00edticos (A) \u00b7 Intermedios (B) \u00b7 Bajo valor (C)</div>'
-    +svgPir
-    +pirLeg
-    +'</div>'
-    +insList
-    +leyendas
-    +'</div>'
+    // ── Paso 3: plan de acción
+    + ((planATxt||planCTxt)
+      ? '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Paso 3 &middot; Tu plan de acci\u00f3n</div>'
+        + '<div class="box"'+A+'>'
+        + (planATxt?'<p style="font-size:12px;margin-bottom:9px"><b style="color:#0A6A6A">Insumos A (cr\u00edticos) &mdash; \u00bfc\u00f3mo asegurar que nunca falten?</b><br><span style="font-size:11.5px">'+esc(planATxt)+'</span></p>':'')
+        + (planCTxt?'<p style="font-size:12px"><b style="color:#6B7688">Insumos C (poco valor) &mdash; \u00bfc\u00f3mo liberar ese dinero?</b><br><span style="font-size:11.5px">'+esc(planCTxt)+'</span></p>':'')
+        + '</div></div>'
+      : '')
 
-    +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
-    +'</div>'
+    // ── Análisis IA de la matriz
+    + (analisis1ok
+      ? '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">An\u00e1lisis de tu Matriz ABC</div>'
+        + '<div class="analisis"'+A+'>'+analisis1+'</div></div>'
+      : '')
 
-    // ══ PÁG 2: Paso 3 + Análisis + Reorden + Diagnóstico (todo junto, sin page-break intermedio) ══
-    +'<div class="page-break-before"></div>'
-    +'<div class="page">'
-    +'<div class="header">'
-    +'<div class="ey">M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES \u2014 continuaci\u00f3n</div>'
-    +'<h1>Insumos e <span>Inventario</span></h1>'
-    +'<p>'+esc(nombre)+'</p>'
-    +'</div>'
+    // ── Reorden + EOQ
+    + (reordenRows
+      ? '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">&#128204; Puntos de reorden, stock de seguridad y cantidad a pedir (EOQ)</div>'
+        + '<div class="box"'+A+'><table>'
+        + '<thead><tr><th>Insumo</th><th>Cat</th><th style="text-align:right">Uso/d\u00eda</th><th style="text-align:right">Lead time</th><th style="text-align:right">Stock seg.</th><th style="text-align:right">Pedir cuando queden</th><th style="text-align:right">Cantidad (EOQ)</th><th style="text-align:right">Valor pedido</th><th style="text-align:right">Frec./mes</th></tr></thead>'
+        + '<tbody>'+reordenRows+'</tbody></table>'
+        + '<div class="nota">SS=(m\u00e1x-prom)/30\u00d7LT &middot; Pedir cuando queden=uso/d\u00eda\u00d7LT+SS &middot; EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)</div>'
+        + '</div></div>'
+      : '')
 
-    // Paso 3: Plan
-    +(planATxt||planCTxt?'<div class="section avoid">'
-      +'<span class="sec-label">Paso 3 \u00b7 Tu plan de acci\u00f3n</span>'
-      +(planATxt?'<p style="font-size:11.5px;margin-bottom:8px"><strong style="color:#0A6A6A">Insumos A (cr\u00edticos) \u2014 \u00bfc\u00f3mo asegurar que nunca falten?</strong><br><span style="font-size:11px;color:#1C2536">'+esc(planATxt)+'</span></p>':'')
-      +(planCTxt?'<p style="font-size:11.5px"><strong style="color:#6B7688">Insumos C (poco valor) \u2014 \u00bfc\u00f3mo liberar ese dinero?</strong><br><span style="font-size:11px;color:#1C2536">'+esc(planCTxt)+'</span></p>':'')
-      +'</div>':'')
+    // ── Diagnóstico de consultor
+    + (diagOk
+      ? '<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Diagn\u00f3stico de consultor</div>'
+        + '<div class="diag"'+A+'><div class="diag-ey">&#9670; Diagn\u00f3stico de consultor</div>'
+        + '<h2>Tu plan de inventario esta semana</h2><div class="diag-body">'+diagText+'</div></div></div>'
+      : '')
 
-    // Análisis IA
-    +(analisis1ok?'<div class="section avoid"><span class="sec-label">An\u00e1lisis de tu Matriz ABC</span><div class="analisis">'+analisis1+'</div></div>':'')
+    + '</div>';
 
-    // Reorden + EOQ (si tiene datos)
-    +(reordenRows?'<div class="section avoid">'
-      +'<span class="sec-label">&#128204; Puntos de reorden, stock de seguridad y cantidad a pedir (EOQ)</span>'
-      +'<div style="overflow-x:auto"><table>'
-      +'<thead><tr><th>Insumo</th><th>Cat</th><th style="text-align:right">Uso/dia</th><th style="text-align:right">Lead time</th><th style="text-align:right">Stock seg.</th><th style="text-align:right">Pedir cuando queden</th><th style="text-align:right">Cantidad (EOQ)</th><th style="text-align:right">Valor pedido</th><th style="text-align:right">Frec./mes</th></tr></thead>'
-      +'<tbody>'+reordenRows+'</tbody>'
-      +'</table></div>'
-      +'<div class="nota">SS=(max-prom)/30\u00d7LT \u00b7 Pedir cuando queden=uso/dia\u00d7LT+SS \u00b7 EOQ=\u221a(2\u00d7demanda anual\u00d7costo pedido/costo mantener 20%)</div>'
-      +'</div>':'')
+  return { html: html, nombre: nombre };
+}
 
-    // Diagnóstico IA (lo más valioso — siempre al final de esta misma hoja)
-    +(diagOk
-      ?'<div class="diag avoid"><div class="diag-ey">\u25c6 Diagn\u00f3stico de consultor</div><h2>Tu plan de inventario esta semana</h2><div class="diag-body">'+diagText+'</div></div>'
-      :(analisis1ok?'':'')
-    )
+// ════════════════════════════════════════════════════════════════════════════
+//  EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2, S3 y S4)
+//  ------------------------------------------------------------------------
+//  Antes esto abría una pestaña con un Blob y llamaba a window.print(): en
+//  móvil el navegador la bloquea, y aunque pase, la emprendedora termina en el
+//  diálogo de impresión del sistema en vez de con un PDF descargado (el
+//  fallback incluso le bajaba un .html, que no le sirve de nada). Además los
+//  saltos iban forzados a mano, así que la tabla de reorden o la pirámide se
+//  partían y sobraban hojas casi vacías.
+//
+//  Ahora se compone fuera de pantalla y se rasteriza con html2canvas + jsPDF:
+//   · NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+//     así el lienzo nunca recorta el final ni deja aire de más.
+//   · Los límites de cada bloque se miden DENTRO del clon vía `onclone`, ya con
+//     la tipografía cargada: medición y render en el mismo sistema.
+//   · Cada caja (tabla de insumos, barra ABC, pirámide, lista, cada leyenda
+//     A/B/C, plan, análisis, reorden, diagnóstico) es un "átomo" y la página
+//     solo corta donde no rompe ninguno.
+//   · Los títulos de sección viajan pegados a su primer bloque.
+//
+//  Para proteger un bloque nuevo: agrega su clase a PDF_ATOM_SELECTOR o ponle
+//  data-pdf-atom. No hay que tocar el algoritmo.
+// ════════════════════════════════════════════════════════════════════════════
 
-    +'<div class="footer">Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 S5 &nbsp;|&nbsp; '+esc(nombre)+'</div>'
-    +'</div>'
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
 
-    +'</body></html>';
+const PDF_CFG = {
+  renderW: 820,
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6,
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
 
-  // Descarga directa del HTML con el CSS perfecto — abrir en nueva pestaña para imprimir como PDF
-  var pdfBtn=$("printBtn");
-  pdfBtn.disabled=true; pdfBtn.innerHTML="&#9203; Preparando...";
+const PDF_S5_CSS = [
+  '.pdf-s5{font-family:Rubik,system-ui,"Segoe UI",sans-serif;font-size:12.5px;color:#1C2536;line-height:1.6}',
+  '.pdf-s5 .sec{margin-bottom:16px}',
+  '.pdf-s5 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#0A6A6A;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #C8D4E8}',
+  '.pdf-s5 .box{border:1px solid #C8D4E8;border-radius:10px;padding:13px 15px;margin-bottom:10px}',
+  '.pdf-s5 .bridge{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:11px 14px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.6;margin-bottom:16px}',
+  '.pdf-s5 .analisis{background:#E3F5F5;border-left:3px solid #0E8C8C;padding:12px 14px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.7}',
+  '.pdf-s5 .analisis b{color:#0A6A6A;font-weight:700}',
+  '.pdf-s5 table{width:100%;border-collapse:collapse;font-size:11px}',
+  '.pdf-s5 th{background:#0E8C8C;color:#fff;padding:6px 7px;text-align:left;font-size:10px;font-weight:600;white-space:nowrap}',
+  '.pdf-s5 td{padding:6px 7px;border-bottom:1px solid #C8D4E8;vertical-align:middle}',
+  '.pdf-s5 tr:last-child td{border-bottom:none}',
+  '.pdf-s5 .diag{background:#001a1a;border-radius:12px;padding:18px}',
+  '.pdf-s5 .diag-ey{font-size:8.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#5FD4D4;margin-bottom:5px}',
+  '.pdf-s5 .diag h2{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}',
+  '.pdf-s5 .diag-body{font-size:12px;color:#A8E6E6;line-height:1.8}',
+  '.pdf-s5 .diag-body b{color:#fff;font-weight:700}',
+  '.pdf-s5 .nota{font-size:9.5px;color:#6B7688;margin-top:6px;line-height:1.5}',
+  // La tabla de reorden viene incrustada dentro del diagnóstico en pantalla;
+  // en el PDF ya aparece en su propia sección, así que aquí se oculta.
+  '.pdf-s5 .reorden-wrap{display:none}'
+].join('\n');
 
-  var blob=new Blob([html],{type:"text/html;charset=utf-8"});
-  var url=URL.createObjectURL(blob);
-  var win=window.open(url,"_blank");
-  if(win){
-    win.onload=function(){
-      setTimeout(function(){
-        win.print();
-        win.onafterprint=function(){ win.close(); URL.revokeObjectURL(url); };
-      },600);
-    };
-  } else {
-    // Fallback: descarga directa del HTML
-    var a=document.createElement("a"); a.href=url;
-    a.download="S5_Inventario_"+nombre.replace(/\s+/g,"_")+".html";
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+async function pdfEsperarTipografia(doc){
+  try{
+    const links = Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l => l.sheet ? Promise.resolve() : new Promise(res => {
+      l.addEventListener('load', res, { once:true });
+      l.addEventListener('error', res, { once:true });
+      setTimeout(res, 1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts && doc.fonts.load){
+      await Promise.all(['400','500','600','700'].map(w => doc.fonts.load(w + ' 14px Rubik')));
+    }
+    if(doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
+
+function pdfMedirBloques(root){
+  const wr = root.getBoundingClientRect();
+  const nodos = Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  const atomos = nodos.filter(n => !nodos.some(o => o !== n && o.contains(n)));
+
+  const zonas = [];
+  atomos.forEach(n => {
+    const r = n.getBoundingClientRect();
+    if(r.height > 0) zonas.push({ top:r.top - wr.top, bottom:r.bottom - wr.top });
+  });
+
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'), sec => {
+    const t = sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero = atomos.filter(a => sec.contains(a))[0];
+    const rt = t.getBoundingClientRect();
+    if(!primero){
+      const rs = sec.getBoundingClientRect();
+      if(rs.height > 0) zonas.push({ top:rs.top - wr.top, bottom:rs.bottom - wr.top });
+      return;
+    }
+    zonas.push({ top:rt.top - wr.top, bottom:primero.getBoundingClientRect().bottom - wr.top });
+  });
+
+  return { height:wr.height, width:wr.width, zonas:zonas };
+}
+
+function pdfPlanificarPaginas(imgH, zonas, altoPagPx){
+  const dentro = p => zonas.some(z => p > z.top + 0.5 && p < z.bottom - 0.5);
+  const candidatos = [];
+  zonas.forEach(z => { candidatos.push(z.top); candidatos.push(z.bottom); });
+  candidatos.push(imgH);
+  candidatos.sort((a,b) => a - b);
+
+  const minSlice = altoPagPx * PDF_CFG.minFill;
+  const paginas = [];
+  let y = 0, guarda = 0;
+
+  while(y < imgH - 1 && guarda++ < 400){
+    let corte = Math.min(y + altoPagPx, imgH);
+    if(corte < imgH && dentro(corte)){
+      let mejor = -1;
+      for(let i = 0; i < candidatos.length; i++){
+        const c = candidatos[i];
+        if(c > corte) break;
+        if(c <= y + minSlice) continue;
+        if(!dentro(c)) mejor = c;
+      }
+      if(mejor > y) corte = mejor;
+      else {
+        let fin = corte;
+        for(let pasada = 0; pasada < 4; pasada++){
+          const antes = fin;
+          zonas.forEach(z => { if(fin > z.top && fin < z.bottom) fin = z.bottom; });
+          if(fin === antes) break;
+        }
+        corte = Math.min(fin, imgH);
+      }
+    }
+    if(corte <= y) corte = Math.min(y + altoPagPx, imgH);
+    paginas.push({ from:y, to:corte });
+    y = corte;
   }
-  pdfBtn.disabled=false; pdfBtn.innerHTML="&#128438; Descargar PDF resumen";
+  return paginas;
+}
+
+async function exportResumenS5ToPdf(personName, versionLabel, asBlob){
+  console.log('[PDF] exportador S5 V7-flow');
+  let wrapper = null;
+  try{
+    const doc = construirResumenS5(personName);
+
+    wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      'font-family:Rubik,system-ui,\'Segoe UI\',sans-serif',
+      'width:' + PDF_CFG.renderW + 'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const estilos = document.createElement('style');
+    estilos.textContent = PDF_S5_CSS;
+    wrapper.appendChild(estilos);
+
+    const hdr = document.createElement('div');
+    hdr.setAttribute('data-pdf-atom','1');
+    hdr.style.cssText = 'margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #0E8C8C';
+    hdr.innerHTML =
+      '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#5FD4D4;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 5 \u00b7 BCP \u00d7 UCSP-CENDES</div>' +
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">Insumos e <span style="color:#0E8C8C">Inventario</span></div>' +
+      '<div style="font-size:10.5px;color:#6B7688;margin-top:4px">' + esc(doc.nombre) +
+        (versionLabel ? ' \u00b7 ' + esc(versionLabel) : '') + ' \u00b7 ' +
+        new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}) + '</div>';
+    wrapper.appendChild(hdr);
+
+    const cuerpo = document.createElement('div');
+    cuerpo.innerHTML = doc.html;
+    wrapper.appendChild(cuerpo);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'height:18px';
+    wrapper.appendChild(spacer);
+
+    document.body.appendChild(wrapper);
+
+    await pdfEsperarTipografia(document);
+    await new Promise(r => setTimeout(r, 250));
+
+    const fallback = pdfMedirBloques(wrapper);
+
+    // Escala adaptativa: con muchos insumos un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del móvil.
+    let scale = PDF_CFG.scaleMax;
+    const altoCss = Math.max(fallback.height, wrapper.scrollHeight, 1);
+    while(scale > 1.2 && (PDF_CFG.renderW * scale) * (altoCss * scale) > PDF_CFG.maxCanvasPx) scale -= 0.2;
+
+    let metrics = null;
+    const canvas = await html2canvas(wrapper, {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: PDF_CFG.renderW + 300,
+      windowHeight: Math.max(1200, altoCss + 300),
+      scrollX: 0, scrollY: 0,
+      onclone: async (d, cloned) => {
+        await pdfEsperarTipografia(d);
+        await new Promise(r => setTimeout(r, 80));
+        try{ metrics = pdfMedirBloques(cloned); }catch(e){ metrics = null; }
+      }
+    });
+
+    const med = (metrics && metrics.height > 0) ? metrics : fallback;
+
+    const { jsPDF } = window.jspdf;
+    const imgW = canvas.width, imgH = canvas.height;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = PDF_CFG.marginMm;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2 - PDF_CFG.footerMm;
+
+    const sy = med.height > 0 ? (imgH / med.height) : scale;
+    const altoPagBase = imgW * (usableH / usableW);
+
+    const zonas = med.zonas
+      .map(z => ({ top:z.top * sy, bottom:z.bottom * sy }))
+      .filter(z => z.bottom > z.top + 1)
+      .sort((a,b) => a.top - b.top);
+
+    const padPx = PDF_CFG.atomPadPx * sy;
+    zonas.forEach(z => {
+      let sigTop = imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchón debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o => { if(o.top >= z.bottom && o.top < sigTop) sigTop = o.top; });
+      z.bottom += Math.max(0, Math.min(padPx, (sigTop - z.bottom) * 0.6));
+      if(z.bottom > imgH) z.bottom = imgH;
+    });
+
+    if(imgH <= altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG',
+        margin, margin, usableW, (imgH / imgW) * usableW);
+    } else {
+      let mejor = null;
+      PDF_CFG.shrinkSteps.forEach(k => {
+        const pg = pdfPlanificarPaginas(imgH, zonas, altoPagBase / k);
+        if(!mejor || pg.length < mejor.paginas.length) mejor = { k:k, paginas:pg };
+      });
+      const k = mejor.k, paginas = mejor.paginas;
+
+      paginas.forEach((p,i) => {
+        if(i === paginas.length - 1) return;
+        if(zonas.some(z => p.to > z.top + 0.5 && p.to < z.bottom - 0.5)) console.warn('[PDF] corte revisado en p\u00e1gina ' + (i+1));
+      });
+
+      for(let i = 0; i < paginas.length; i++){
+        if(i > 0) pdf.addPage();
+        const p = paginas[i];
+        const sliceH = Math.max(1, Math.round(p.to - p.from));
+        const slice = document.createElement('canvas');
+        slice.width = imgW; slice.height = sliceH;
+        const ctx = slice.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, imgW, sliceH);
+        ctx.drawImage(canvas, 0, p.from, imgW, sliceH, 0, 0, imgW, sliceH);
+
+        let drawW = usableW * k;
+        let drawH = (sliceH / imgW) * drawW;
+        if(drawH > usableH){ const f = usableH / drawH; drawW *= f; drawH = usableH; }
+        const x = margin + (usableW - drawW) / 2;
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
+      }
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for(let p = 1; p <= totalPages; p++){
+      pdf.setPage(p); pdf.setFontSize(8); pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 5', margin, pageH - 5);
+      if(totalPages > 1) pdf.text('P\u00e1g. ' + p + ' / ' + totalPages, pageW - margin, pageH - 5, { align:'right' });
+    }
+
+    const safeName = String(doc.nombre || 'inventario').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45) || 'inventario';
+    const safeVer = versionLabel ? '_' + versionLabel.replace(/[^a-zA-Z0-9]/g,'') : '';
+    const filename = 'Inventario_' + safeName + safeVer + '.pdf';
+    if(asBlob) return { blob:pdf.output('blob'), filename:filename };
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:', err);
+    return asBlob ? null : false;
+  }finally{
+    if(wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+function triggerBlobDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+$('printBtn').addEventListener('click', async () => {
+  if(abcData.length < 1){ showStatus('Agrega al menos un insumo antes de descargar.','err'); return; }
+  const btn = $('printBtn');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '&#9203; Generando PDF...';
+  const ok = await exportResumenS5ToPdf(currentName, '', false);
+  btn.disabled = false; btn.innerHTML = orig;
+  if(!ok) showStatus('No se pudo generar el PDF. Intenta de nuevo.','err');
 });
+
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────────────────
+
+async function loadAdminData(){
+  $('adminTableBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent = '';
+  const rec = await binRead();
+  if(rec === null){
+    $('adminTableBody').innerHTML = '<div class="alert-box amber"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+  const allEntries = Array.isArray(rec.entries) ? rec.entries : [];
+
+  const byDni = new Map();
+  allEntries.forEach(e => {
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list => list.sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0)));
+
+  const CTRL = new Set(['71509678','74250220']);
+  const empDnis = Object.keys(ROSTER).filter(d => !CTRL.has(d));
+  const conDatos = empDnis.filter(d => byDni.has(d));
+  const totalVersiones = allEntries.filter(e => ROSTER[e.dni] && !CTRL.has(e.dni)).length;
+
+  $('kAdminEmp').textContent = conDatos.length;
+  $('kAdminVer').textContent = totalVersiones;
+
+  const ordenados = empDnis.slice().sort((a,b) => (ROSTER[a]||'').localeCompare(ROSTER[b]||''));
+
+  let html = '';
+  ordenados.forEach(dni => {
+    const versions = byDni.get(dni) || [];
+    const nombre = ROSTER[dni] || dni;
+
+    const lista = versions.length
+      ? '<div class="admin-version-list">' + versions.map((v,i) => {
+          const desc = (v.insumoCount||0) + ' insumo' + ((v.insumoCount||0)===1?'':'s') +
+                       ' \u00b7 S/ ' + Math.round(v.totalValue||0).toLocaleString() +
+                       (v.reordenCount ? ' \u00b7 ' + v.reordenCount + ' con reorden' : '');
+          return '<div class="admin-version-item"><span class="v-num">v'+(i+1)+'</span>' +
+                 '<span class="v-name">'+esc(desc)+'</span>' +
+                 '<span class="v-date">'+fmtDateTime(v.savedAt)+'</span></div>';
+        }).join('') + '</div>'
+      : '<div class="admin-empty-versions">Sin inventarios guardados todav\u00eda.</div>';
+
+    html += '<div class="admin-emp-card">' +
+      '<div class="admin-emp-head"><div><div class="admin-emp-name">'+esc(nombre)+'</div></div>' +
+      '<span class="tag '+(versions.length?'green':'gray')+'">'+versions.length+' '+(versions.length===1?'versi\u00f3n':'versiones')+'</span></div>' +
+      lista +
+      (versions.length
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(String(nombre).split(' ')[0])+' (PDF + Excel)</button>'
+        : '') +
+      '</div>';
+  });
+  $('adminTableBody').innerHTML = html;
+}
+
+// Restaura el estado global desde UNA version guardada, para poder exportarla.
+function loadEntryIntoStateS5(v){
+  currentDNI  = v.dni;
+  currentName = v.name || ROSTER[v.dni] || v.dni;
+  insumos = Array.isArray(v.insumos) ? v.insumos.map(function(it){
+    return { name:it.name||'', cost:it.cost||'', qty:it.qty||'',
+             leadTime:it.leadTime||'', maxQty:it.maxQty||'', orderCost:it.orderCost||'' };
+  }) : [];
+  if($('planA')) $('planA').value = v.planA || '';
+  if($('planC')) $('planC').value = v.planC || '';
+  if($('analisisAbcS5')) $('analisisAbcS5').innerHTML = '';
+  if($('diagnosticoS5Body')) $('diagnosticoS5Body').innerHTML = '';
+  try{ computeABC(); }catch(e){}
+  pintarAnalisisS5(v);
+}
+
+function limpiarEstadoAdminS5(){
+  currentDNI = null; currentName = null;
+  insumos = []; abcData = [];
+  if($('planA')) $('planA').value = '';
+  if($('planC')) $('planC').value = '';
+  if($('analisisAbcS5')) $('analisisAbcS5').innerHTML = '';
+  if($('diagnosticoS5Body')) $('diagnosticoS5Body').innerHTML = '';
+}
+
+// Genera el .xlsx de la Matriz ABC de la version cargada. No se guarda ningun
+// archivo en la nube: se reconstruye con los datos de esa version, que ya
+// estan en el BIN. Asi el admin baja PDF + Excel sin inflar el almacenamiento.
+async function excelDeVersionS5(personName, label){
+  try{
+    if(typeof ExcelJS === 'undefined') return null;
+    if(!abcData || abcData.length < 1) return null;
+    const wb = await generarExcelABC();
+    const buf = await wb.xlsx.writeBuffer();
+    const base = String(personName||'').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,40) || 'ABC';
+    return {
+      filename: 'Matriz_ABC_' + base.replace(/\s+/g,'_') + (label ? '_' + label : '') + '.xlsx',
+      blob: new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+    };
+  }catch(e){ console.warn('[Excel] no se pudo generar el de esta versi\u00f3n', e); return null; }
+}
+
+async function downloadVersionsFor(dni){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const versions = all.filter(e => e.dni === dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+  if(!versions.length){ alert('Esta emprendedora no tiene inventarios guardados.'); return; }
+
+  const personName = ROSTER[dni] || dni;
+  $('adminBulkStatus').className = 'save-status loading';
+
+  const archivos = [];
+  for(let i = 0; i < versions.length; i++){
+    $('adminBulkStatus').textContent = 'Generando '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
+    loadEntryIntoStateS5(versions[i]);
+    await new Promise(r => setTimeout(r, 200));
+    const label = versions.length > 1 ? ('v'+(i+1)) : '';
+    const pdf = await exportResumenS5ToPdf(personName, label, true);
+    if(pdf) archivos.push(pdf);
+    const xls = await excelDeVersionS5(personName, label);
+    if(xls) archivos.push(xls);
+  }
+  limpiarEstadoAdminS5();
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  if(archivos.length === 1){
+    triggerBlobDownload(archivos[0].blob, archivos[0].filename);
+  } else {
+    $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' archivos...';
+    const zip = new JSZip();
+    archivos.forEach(f => zip.file(f.filename, f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Inventario_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' archivo(s) descargado(s) de '+personName+'.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 5000);
+}
+
+async function downloadAllVersionsS5(){
+  const rec = await binRead();
+  if(!rec){ alert('Error de conexi\u00f3n.'); return; }
+  const all = Array.isArray(rec.entries) ? rec.entries : [];
+  const CTRL = new Set(['71509678','74250220']);
+  const byDni = new Map();
+  all.forEach(e => {
+    if(!ROSTER[e.dni] || CTRL.has(e.dni)) return;
+    if(!byDni.has(e.dni)) byDni.set(e.dni, []);
+    byDni.get(e.dni).push(e);
+  });
+  if(byDni.size === 0){ alert('A\u00fan no hay inventarios guardados.'); return; }
+  if(!confirm('Se descargar\u00e1n los PDF y Excel de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?')) return;
+
+  const btn = $('adminDownloadAllBtn');
+  btn.disabled = true;
+  const dnis = Array.from(byDni.keys());
+  const archivos = [];
+
+  for(let d = 0; d < dnis.length; d++){
+    const dni = dnis[d];
+    const versions = byDni.get(dni).sort((a,b) => new Date(a.savedAt||0) - new Date(b.savedAt||0));
+    const personName = ROSTER[dni] || dni;
+    // Una carpeta por emprendedora: con 25 personas y 2 archivos por version,
+    // un ZIP plano es inmanejable.
+    const carpeta = String(personName).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().replace(/\s+/g,'_') || dni;
+    for(let i = 0; i < versions.length; i++){
+      $('adminBulkStatus').className = 'save-status loading';
+      $('adminBulkStatus').textContent = 'Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 versi\u00f3n '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
+      loadEntryIntoStateS5(versions[i]);
+      await new Promise(r => setTimeout(r, 200));
+      const label = versions.length > 1 ? ('v'+(i+1)) : '';
+      const pdf = await exportResumenS5ToPdf(personName, label, true);
+      if(pdf) archivos.push({ filename: carpeta+'/'+pdf.filename, blob: pdf.blob });
+      const xls = await excelDeVersionS5(personName, label);
+      if(xls) archivos.push({ filename: carpeta+'/'+xls.filename, blob: xls.blob });
+    }
+  }
+  limpiarEstadoAdminS5();
+  btn.disabled = false;
+
+  if(!archivos.length){
+    $('adminBulkStatus').className = 'save-status err';
+    $('adminBulkStatus').textContent = '\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  $('adminBulkStatus').textContent = 'Empaquetando '+archivos.length+' archivos en un ZIP...';
+  const zip = new JSZip();
+  archivos.forEach(f => zip.file(f.filename, f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:'blob'}), 'Inventario_S5_todas.zip');
+  $('adminBulkStatus').className = 'save-status ok';
+  $('adminBulkStatus').textContent = '\u2705 '+archivos.length+' archivo(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
+  setTimeout(() => { $('adminBulkStatus').textContent=''; $('adminBulkStatus').className='save-status'; }, 6000);
+}
+
+$('adminDownloadAllBtn').addEventListener('click', downloadAllVersionsS5);
 
 
 // TRAER DATOS DEL BIN
@@ -1136,10 +1672,11 @@ function btnS5Loading(){
 // GUARDAR NUBE
 $('saveCloudBtn').addEventListener('click', async function(){
   if(abcData.length<2){ showStatus('Agrega al menos 2 insumos.','err'); return; }
-  btnS5Loading(); showStatus('Guardando y generando an\u00e1lisis...','loading');
-  var rec=await binRead();
-  if(rec===null){ showStatus('Error de conexi\u00f3n.','err'); btnS5Original(); return; }
-  var entries=Array.isArray(rec.entries)?rec.entries:[];
+  btnS5Loading(); showStatus('Generando tu an\u00e1lisis con IA...','loading');
+  // La lectura del BIN va AL FINAL, pegada a la escritura. Si se leyera aqui y
+  // se escribiera 20-30 s despues (lo que tardan las llamadas a Claude), todo
+  // guardado de otra emprendedora ocurrido en ese lapso quedaria pisado: el BIN
+  // es un solo documento y binWrite reescribe el registro completo.
   var total=abcData.reduce(function(s,it){return s+it.value;},0);
   var groupA=abcData.filter(function(i){return i.cat==='A';});
   var groupB=abcData.filter(function(i){return i.cat==='B';});
@@ -1163,9 +1700,6 @@ $('saveCloudBtn').addEventListener('click', async function(){
     reorden:reordenData.map(function(r){return{name:r.name,cat:r.cat,lt:r.lt,ss:r.ss,pr:r.pr,eoq:r.eoq,eoqCosto:r.eoqCosto,pedidosMes:r.pedidosMes};}),
     savedAt:new Date().toISOString()
   };
-  var idx=entries.findIndex(function(e){return e.dni===currentDNI;});
-  if(idx>=0) entries[idx]=payload; else entries.push(payload);
-
   var firstName=currentName.trim().split(' ')[0];
   var insTexto=abcData.map(function(it){return '- '+it.name+' (Grupo '+it.cat+'): S/'+it.cost.toFixed(0)+' c/u x '+it.qty+'/mes = S/'+it.value.toFixed(0)+'/mes = '+it.pct.toFixed(0)+'% de tu dinero';}).join('\n');
   var elA=$('analisisAbcS5'); elA.classList.add('visible'); dotsS5El(elA);
@@ -1226,14 +1760,55 @@ $('saveCloudBtn').addEventListener('click', async function(){
     +'Lenguaje de amiga que sabe de negocios. Resalta con **asteriscos** el paso mas urgente.'
   );
   dBody.innerHTML=tablaHTML+renderNegS5(ia2||firstName+', esta semana define tu stock minimo para los A y deja de comprar de mas los C.');
+
+  // El analisis se persiste con la version: antes se pintaba en pantalla pero
+  // nunca se guardaba, asi que al recargar desaparecia.
+  payload.analisisAbc  = textoLimpioS5('analisisAbcS5');
+  payload.diagnostico  = textoLimpioS5('diagnosticoS5Body');
+
+  // ── Guardar: lectura y escritura pegadas, ventana minima ──
+  showStatus('Guardando en la nube...','loading');
+  var rec=await binRead();
+  if(rec===null){
+    showStatus('Error de conexi\u00f3n. Tu an\u00e1lisis sigue en pantalla \u2014 vuelve a tocar Guardar.','err');
+    btnS5Original(); return;
+  }
+  var entries=Array.isArray(rec.entries)?rec.entries:[];
+  // Cada guardado crea una VERSION NUEVA (no se sobrescribe la anterior).
+  payload.savedAt = new Date().toISOString();
+  payload.id      = currentDNI + '_' + Date.now();
+  entries.push(payload);
+
   var ok=await binWrite({entries});
-  showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar.',ok?'ok':'err');
+  showStatus(ok?'\u2705 Guardado y an\u00e1lisis generado.':'\u26a0\ufe0f Error al guardar. Intenta de nuevo.',ok?'ok':'err');
   if(ok) setTimeout(function(){showStatus('','');},5000);
   btnS5Original();
 });
 
 
 function showStatus(m,c){ $('saveStatus').textContent=m; $('saveStatus').className='save-status '+(c||''); }
+
+// Devuelve el HTML de un bloque de analisis, o '' si solo tiene el spinner.
+function textoLimpioS5(id){
+  const el = $(id);
+  if(!el) return '';
+  const html = el.innerHTML || '';
+  if(!html.trim() || html.indexOf('dots-s5') >= 0) return '';
+  return html;
+}
+
+// Pinta en pantalla el analisis de UNA version guardada.
+function pintarAnalisisS5(v){
+  if(!v) return;
+  if(v.analisisAbc && $('analisisAbcS5')){
+    $('analisisAbcS5').classList.add('visible');
+    $('analisisAbcS5').innerHTML = renderNegS5(v.analisisAbc);
+  }
+  if(v.diagnostico && $('diagnosticoS5')){
+    $('diagnosticoS5').classList.add('visible');
+    $('diagnosticoS5Body').innerHTML = renderNegS5(v.diagnostico);
+  }
+}
 
 // DOCENTE
 async function loadDocData(){
@@ -1243,7 +1818,8 @@ async function loadDocData(){
   if(rec===null){
     $('docTableBody').innerHTML='<tr><td colspan="6" style="padding:16px"><div class="alert-box amber"><b>Error de conexión.</b> Verifica internet.</div></td></tr>'; return;
   }
-  docEntries=Array.isArray(rec.entries)?rec.entries:[];
+  // Una fila por emprendedora: su version mas reciente.
+  docEntries=latestPerDni(Array.isArray(rec.entries)?rec.entries:[]);
 
   // Excluir controles del conteo
   const CTRL=new Set(['71509678','74250220']); // Franchesca y Beatriz — cuentas de prueba

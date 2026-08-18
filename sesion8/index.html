@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --navy:#002A8D;--navy-d:#001C5E;--navy-m:#1B3A9E;
@@ -27,6 +30,22 @@
 }
 .screen{display:none}
 .screen.active{display:block!important}
+.adm-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.adm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.adm-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.adm-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+.adm-stats{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.adm-stat{font-size:11px;background:var(--line2);border-radius:8px;padding:4px 9px;color:var(--ink2)}
+.adm-stat b{color:var(--navy)}
+.adm-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.adm-tag.on{background:var(--emer-bg);color:var(--emer)}
+.adm-tag.off{background:var(--line2);color:var(--muted)}
+.adm-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.adm-kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:14px;text-align:center;box-shadow:var(--shadow2)}
+.adm-kpi .v{font-size:24px;font-weight:800;color:var(--navy)}
+.adm-kpi .l{font-size:10.5px;color:var(--muted);margin-top:2px}
+.adm-status{font-size:12.5px;text-align:center;margin:8px 0;min-height:18px;font-weight:500}
+.adm-status.load{color:var(--muted)}.adm-status.ok{color:var(--emer)}.adm-status.err{color:var(--crim)}
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -207,20 +226,20 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
 @keyframes hexFloat{0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
 @keyframes hexGlow{0%,100%{filter:drop-shadow(0 6px 18px rgba(201,151,43,.3)) drop-shadow(0 2px 8px rgba(0,0,10,.4))}50%{filter:drop-shadow(0 10px 28px rgba(201,151,43,.55)) drop-shadow(0 4px 12px rgba(0,0,10,.5))}}
 
-.login-hex-wrap{display:flex;justify-content:center;margin-bottom:12px;position:relative;z-index:2;cursor:pointer;width:fit-content;margin-left:auto;margin-right:auto}
+.login-hex-wrap{display:flex;justify-content:center;margin-bottom:20px;position:relative;z-index:2;cursor:pointer;width:fit-content;margin-left:auto;margin-right:auto}
 .hex-glow-ring{position:absolute;width:110px;height:96px;background:radial-gradient(ellipse,rgba(201,151,43,.18) 0%,transparent 70%);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);animation:hexGlow 3s ease-in-out infinite;pointer-events:none}
-.login-hex{width:72px;height:62px;animation:hexFloat 4s ease-in-out infinite,hexGlow 3s ease-in-out infinite;transition:transform .2s}
+.login-hex{width:92px;height:80px;animation:hexFloat 4s ease-in-out infinite,hexGlow 3s ease-in-out infinite;transition:transform .2s}
 .login-hex:active{transform:scale(.93)}
 .hex-border{animation:hexPulse 2.5s ease-in-out infinite}
 .hex-shimmer{animation:hexShimmer 3.5s ease-in-out infinite;opacity:.9}
 .hex-text{animation:hexPulse 2.5s ease-in-out infinite}
 
 /* ══ EASTER EGG ═══════════════════════════════════════════════ */
-.login-bottom{padding:14px 16px 0;position:relative;z-index:2}
+.login-bottom{padding:14px 20px 0;position:relative;z-index:2}
 /* Benefit cycle */
 @keyframes cycleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardPulse{0%,100%{box-shadow:0 2px 8px rgba(0,42,141,.08)}50%{box-shadow:0 4px 16px rgba(0,42,141,.15)}}
-.lb-cycle{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:14px}
+.lb-cycle{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px}
 .lbc-card{
   flex:1;text-align:center;
   background:rgba(255,255,255,.7);
@@ -240,7 +259,7 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
   box-shadow:0 4px 16px rgba(201,151,43,.12);
   animation:cycleIn .5s ease forwards
 }
-.lbc-icon{display:block;font-size:18px;margin-bottom:2px}
+.lbc-icon{display:block;font-size:20px;margin-bottom:4px}
 .lbc-title{display:block;font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.3px}
 .lbc-desc{display:block;font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3;letter-spacing:.2px}
 .lbc-arrow{font-size:16px;color:rgba(0,42,141,.35);flex-shrink:0;font-weight:800;letter-spacing:-1px;align-self:center;padding:0 2px}
@@ -250,11 +269,11 @@ body.dark .lbc-title{color:#E2E8F0}
 body.dark .lbc-arrow{color:rgba(255,255,255,.28)}
 body.dark .lbc-card.active{border-color:rgba(201,151,43,.4);background:rgba(201,151,43,.1);box-shadow:0 4px 16px rgba(201,151,43,.15)}
 /* Quote block */
-.lb-quote-wrap{text-align:center;padding:4px 8px 4px}
+.lb-quote-wrap{text-align:center;padding:16px 8px 24px}
 .lb-q1{display:none}.lb-q1-author{display:none}
-.lb-qdiv{width:28px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(201,151,43,.4),transparent);margin:6px auto}
-.lb-q2{font-size:13px;font-weight:500;color:rgba(0,28,94,.45);line-height:1.5}
-.lb-q2 strong{font-size:17px;font-weight:900;color:var(--navy);letter-spacing:1px;display:block;margin-top:2px}
+.lb-qdiv{width:28px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(201,151,43,.4),transparent);margin:10px auto}
+.lb-q2{font-size:14px;font-weight:500;color:rgba(0,28,94,.45);line-height:1.6}
+.lb-q2 strong{font-size:19px;font-weight:900;color:var(--navy);letter-spacing:1px;display:block;margin-top:4px}
 body.dark .lb-q2{color:rgba(255,255,255,.3)}
 body.dark .lb-q2 strong{color:#E2E8F0}
 body.dark .lb-q1{color:rgba(255,255,255,.3)}
@@ -265,22 +284,18 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
 
 /* ── Easter egg panel — refined ── */
 .egg-panel{
-  position:fixed;
-  bottom:-160px;
-  left:50%;transform:translateX(-50%);
+  position:fixed;bottom:-120px;left:50%;transform:translateX(-50%);
   background:rgba(6,10,26,.97);
-  border:2px dashed rgba(255,255,255,.18);
-  border-radius:16px;
-  padding:12px 18px 16px;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  transition:bottom 1s cubic-bezier(.16,1,.3,1);
-  z-index:9999;backdrop-filter:blur(20px);
-  width:auto;
-  min-width:220px;
-  max-width:260px;
-  box-shadow:0 -8px 32px rgba(0,0,0,.5),0 8px 32px rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.09);border-bottom:none;
+  border-radius:20px 20px 0 0;
+  padding:12px 20px 22px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  transition:bottom .5s cubic-bezier(.34,1.25,.64,1);
+  z-index:999;backdrop-filter:blur(24px);
+  width:260px;
+  box-shadow:0 -16px 48px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
 }
-.egg-panel.show{transition:bottom .65s cubic-bezier(.25,.46,.45,.94)}
+.egg-panel.show{bottom:0}
 .egg-handle{width:30px;height:2.5px;background:rgba(255,255,255,.14);border-radius:2px}
 .egg-body{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px}
 
@@ -292,8 +307,8 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
   font-family:'Rubik',sans-serif;font-size:18px;font-weight:800;
   color:#fff;letter-spacing:3px;line-height:1;
 }
-.egg-r{font-size:9px;font-weight:300;color:rgba(255,255,255,.25);vertical-align:super}
-.egg-ucsp{font-size:9px;color:rgba(255,255,255,.6);letter-spacing:1.5px;text-transform:uppercase}
+.egg-r{font-size:10px;font-weight:400;color:rgba(255,255,255,.4);vertical-align:super}
+.egg-ucsp{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase}
 
 /* Separator */
 .egg-sep{width:1px;height:36px;background:rgba(255,255,255,.08);flex-shrink:0}
@@ -307,7 +322,7 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
   transition:transform .15s,box-shadow .15s;
 }
 .egg-li-btn:hover{transform:scale(1.08);box-shadow:0 6px 18px rgba(10,102,194,.55)}
-.egg-li-lbl{font-size:8px;color:rgba(255,255,255,.65);letter-spacing:1px;text-transform:lowercase}
+.egg-li-lbl{font-size:8px;color:rgba(255,255,255,.25);letter-spacing:1px;text-transform:lowercase}
 
 /* ── Login wrap — fondo plomo premium con watermark ── */
 #loginWrap{
@@ -316,7 +331,7 @@ body.dark .lb-q2{color:rgba(255,255,255,.45)}
     radial-gradient(ellipse 50% 40% at 80% 20%, rgba(201,151,43,.04) 0%, transparent 60%),
     linear-gradient(160deg,#E8EBF4 0%,#EEF0F8 40%,#E5E8F3 100%);
   position:relative;overflow:visible;
-  padding-bottom:0;
+  min-height:calc(100vh - 270px);padding-bottom:40px;
 }
 body.dark #loginWrap{
   background:radial-gradient(ellipse 60% 50% at 20% 80%,rgba(37,99,235,.06) 0%,transparent 70%),linear-gradient(160deg,#0A0D18 0%,#0D1120 100%);
@@ -341,29 +356,29 @@ body.dark #loginWrap::before{
 }
 /* Card watermark icon */
 .card-wm{
-  position:absolute;right:10px;top:8px;
-  pointer-events:none;opacity:.82;
+  position:absolute;right:14px;top:10px;
+  pointer-events:none;opacity:.88;
 }
 .card-shield{display:none}
-.login-card{position:relative;overflow:visible;padding:14px 20px 16px}
-.login-card h2{font-size:16px;font-weight:800;color:var(--navy-d);line-height:1.25;margin-bottom:3px;padding-right:68px}
-.login-card p{font-size:12px;color:var(--muted);margin-bottom:12px;padding-right:68px}
+.login-card{position:relative;overflow:visible}
+.login-card h2{font-size:17px;font-weight:800;color:var(--navy-d);line-height:1.25;margin-bottom:4px}
+.login-card p{font-size:13px;color:var(--muted);margin-bottom:16px}
 
 /* LOGIN */
-.login-top{background:linear-gradient(140deg,var(--navy-d),var(--navy));padding:26px 22px 20px;position:relative;overflow:hidden;text-align:center}
+.login-top{background:linear-gradient(140deg,var(--navy-d),var(--navy));padding:40px 22px 32px;position:relative;overflow:hidden;text-align:center}
 .login-top::before{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;background:var(--gold-l);border-radius:50%;opacity:.1}
 .login-top::after{content:'';position:absolute;left:-30px;bottom:-30px;width:130px;height:130px;background:var(--elec-l);border-radius:50%;opacity:.12}
 .login-orb{width:68px;height:68px;background:linear-gradient(135deg,var(--gold),var(--gold-l));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px;position:relative;z-index:2;box-shadow:0 8px 28px rgba(201,151,43,.4)}
-.login-top h1{font-size:22px;font-weight:800;color:#fff;line-height:1.15;position:relative;z-index:2;margin-bottom:4px}
+.login-top h1{font-size:24px;font-weight:800;color:#fff;line-height:1.15;position:relative;z-index:2}
 .login-top h1 em{color:var(--gold-l);font-style:normal}
 .login-top p{font-size:13px;color:rgba(255,255,255,.65);margin-top:6px;position:relative;z-index:2}
 .gold-stripe{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-l),var(--gold))}
-.login-wrap{padding:10px 20px 20px}
+.login-wrap{padding:20px}
 .login-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px}
 .login-card h2{font-size:17px;font-weight:700;margin-bottom:3px}
 .login-card p{font-size:13px;color:var(--muted);margin-bottom:18px}
-label.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
-.inp{width:100%;padding:10px 14px;font-size:15px;background:var(--bg);border:1.5px solid var(--line);border-radius:11px;color:var(--ink);font-family:var(--font);letter-spacing:2px;transition:.2s}
+label.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px}
+.inp{width:100%;padding:13px 15px;font-size:16px;background:var(--bg);border:1.5px solid var(--line);border-radius:11px;color:var(--ink);font-family:var(--font);letter-spacing:2px;transition:.2s}
 .inp::placeholder{letter-spacing:.5px;color:var(--dim);font-size:14px}
 .inp:focus{outline:none;border-color:var(--navy);background:#fff}
 .err{font-size:12px;color:var(--crim);min-height:16px;margin-top:5px;font-weight:500}
@@ -574,6 +589,10 @@ label.fl{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-
 /* ══ ONBOARDING SCREEN ══════════════════════════════════════════ */
 .ob-hero{background:linear-gradient(140deg,var(--navy-d),var(--navy));padding:36px 22px 28px;text-align:center;position:relative;overflow:hidden}
 .ob-hero::before{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:var(--gold-l);border-radius:50%;opacity:.08}
+/* Cerrar sesion en la esquina superior derecha del hero (onboarding).
+   z-index:3 para quedar por encima del circulo decorativo ::before. */
+.ob-logout{position:absolute;top:14px;right:14px;z-index:3;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;font-family:inherit;font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:9px;cursor:pointer;transition:.15s;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.ob-logout:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5)}
 .ob-step-bar{display:flex;gap:4px;justify-content:center;margin-bottom:18px;position:relative;z-index:2}
 .ob-step{width:28px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);transition:.3s}
 .ob-step.done{background:var(--gold-l)}
@@ -667,15 +686,15 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
       <label class="fl" for="dniI">Tu DNI</label>
       <input class="inp" type="password" id="dniI" inputmode="numeric" placeholder="8 dígitos" autocomplete="off">
       <div class="err" id="dniErr"></div>
-      <button class="btn btn-navy btn-full" id="loginBtn" style="margin-top:8px">Entrar →</button>
-      <div class="badges" style="margin-top:8px">
+      <button class="btn btn-navy btn-full" id="loginBtn" style="margin-top:13px">Entrar →</button>
+      <div class="badges" style="margin-top:14px">
         <span class="chip chip-navy">Módulo 3 · Gestión Comercial</span>
         <span class="chip chip-gold">BCP × UCSP-CENDES</span>
       </div>
     
       <!-- Card watermark — compass + UCSP shield -->
       <div class="card-wm">
-        <svg viewBox="0 0 76 76" width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 76 76" width="72" height="72" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="cBg" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#EEF2FF"/>
@@ -763,8 +782,31 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
 </div>
 
 <!-- ══ ONBOARDING ══════════════════════════════════════════════════ -->
+<!-- ══ ADMINISTRADOR ═══════════════════════════════════════════════ -->
+<div class="screen" id="scAdmin">
+  <div class="ob-hero" style="padding-bottom:18px">
+    <span class="ob-hero-icon">&#9881;</span>
+    <h2>Panel de administrador</h2>
+    <p style="opacity:.85;font-size:12.5px;margin-top:4px">Reportes de negocio y cotizaciones de cada emprendedora.</p>
+  </div>
+  <div style="max-width:560px;margin:0 auto;padding:16px 14px 40px">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm no-print" onclick="loadAdminData()">&#8635; Actualizar</button>
+      <button class="btn btn-ghost btn-sm no-print" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+    </div>
+    <div class="adm-kpis">
+      <div class="adm-kpi"><div class="v" id="kAdmEmp">-</div><div class="l">Emprendedoras con datos</div></div>
+      <div class="adm-kpi"><div class="v" id="kAdmVen">-</div><div class="l">Ventas registradas (total)</div></div>
+    </div>
+    <button class="btn btn-navy btn-full no-print" id="admAllBtn" style="margin-bottom:4px">&#128190; Descargar TODO (reportes + cotizaciones)</button>
+    <div class="adm-status" id="admStatus"></div>
+    <div id="admList"><div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div></div>
+  </div>
+</div>
+
 <div class="screen" id="scOnboard">
   <div class="ob-hero">
+    <button class="ob-logout no-print" onclick="doLogout()">Cerrar sesi&oacute;n</button>
     <div class="ob-step-bar">
       <div class="ob-step active" id="obs1"></div>
       <div class="ob-step" id="obs2"></div>
@@ -887,7 +929,7 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
             <div class="chart-title" id="chartMainTitle">Ventas por día</div>
             <div class="chart-sub" id="chartMainSub">Esta semana</div>
           </div>
-          <button class="btn btn-gold btn-sm no-print" onclick="window.print()" style="font-size:11px;padding:6px 11px">📥 PDF</button>
+          <button class="btn btn-gold btn-sm no-print" onclick="descargarReporteMio(this)" style="font-size:11px;padding:6px 11px">&#128229; PDF</button>
         </div>
         <div class="chart-wrap" style="height:170px"><canvas id="chartMain"></canvas></div>
       </div>
@@ -1163,10 +1205,22 @@ body.dark .ob-logo-upload:hover{background:rgba(37,99,235,.1)}
 
 <script>
 // ══ CONFIG ═══════════════════════════════════════════════════════
-const MKEY='$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
-const BIN_S8='6a77c48cda38895dfecb859d'; // crear en jsonbin.io → {"users":{}}
-const API=`https://api.jsonbin.io/v3/b/${BIN_S8}`;
-const ok=BIN_S8&&!BIN_S8.startsWith('REEMPLAZA');
+// ═══════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN JSONBin.io — igual que las demás apps del módulo
+// ═══════════════════════════════════════════════════════════════
+//
+//  PASOS para activar:
+//  1. Ve a https://jsonbin.io e inicia sesión
+//  2. Clic en "Create Bin"
+//  3. Pega este contenido exacto:  {"users":{}}
+//  4. Clic en "Create" → copia el BIN ID (24 caracteres)
+//  5. Reemplaza el valor de BIN_S8 con ese ID
+//
+const MKEY   = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm'; // ← Master Key (la misma de todas las apps)
+const BIN_S8 = '6a77c48cda38895dfecb859d';  // ← ⭐ AQUÍ VA TU BIN ID  (ej: 6a8f3d2c...)
+const API    = `https://api.jsonbin.io/v3/b/${BIN_S8}`;
+const ADMIN_DNI = '70003700';   // acceso de administrador (descarga de reportes)
+const ok     = BIN_S8 && !BIN_S8.startsWith('REEMPLAZA');
 
 const ROSTER={
   '40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas'},
@@ -1236,6 +1290,9 @@ function switchTab(name){
 // ══ AUTH ═══════════════════════════════════════════════════════════
 $('loginBtn').onclick=async()=>{
   const d=$('dniI').value.trim();
+  // El DNI de administrador no esta en el ROSTER: se revisa ANTES de validarlo,
+  // si no, caeria en "DNI no encontrado".
+  if(d===ADMIN_DNI){ $('dniErr').textContent=''; show('scAdmin'); loadAdminData(); return; }
   if(!ROSTER[d]){$('dniErr').textContent='DNI no encontrado. Verifica e intenta de nuevo.';return;}
   CU={dni:d,...ROSTER[d]};
   $('msDate').value=todayStr();
@@ -1271,24 +1328,8 @@ function hexTap(){
   if(eggTaps>=3&&!eggShown){
     eggTaps=0;eggShown=true;
     const panel=$('eggPanel');
-    // Small floating card — positions over TÚ DECIDES zone only
-    const quote=document.querySelector('.lb-quote-wrap');
-    if(quote){
-      const qr=quote.getBoundingClientRect();
-      const panelH=110; // approximate panel height
-      const midQuote=qr.top + qr.height/2;
-      const targetBottom=window.innerHeight-midQuote+panelH*0.3;
-      panel.style.bottom=Math.max(targetBottom,8)+'px';
-    }
-    panel.style.height='';
-    panel.style.justifyContent='';
-    panel.style.paddingTop='';
     panel.classList.add('show');
-    setTimeout(()=>{
-      panel.classList.remove('show');
-      panel.style.bottom='';
-      setTimeout(()=>{eggShown=false;},600);
-    },4500);
+    setTimeout(()=>{panel.classList.remove('show');setTimeout(()=>{eggShown=false;},600);},4500);
   }
 }
 function eggTap(){hexTap();}  // keep backward compat for footer tap
@@ -1791,74 +1832,636 @@ function qStatus(idx,st){
 }
 
 // ── PDF PROFESIONAL DE COTIZACIÓN ─────────────────────────────────
-function printQuote(idx){
+// ── PDF PROFESIONAL DE COTIZACIÓN ─────────────────────────────────
+// Antes: window.open() + window.print(). En móvil el navegador bloquea la
+// ventana emergente, así que muchas veces no pasaba nada; y cuando pasaba,
+// ella terminaba en el diálogo de impresión del sistema en vez de con un
+// archivo que pueda mandarle a su cliente por WhatsApp. Ahora se descarga
+// un PDF de verdad.
+async function printQuote(idx){
   const q=DB.quotes[idx];
-  const p=DB.profile||{};
-  const biz=(p.biz||CU.b||CU.n).toUpperCase();
-  const logoHtml=p.logo?`<img src="${p.logo}" style="max-height:64px;max-width:130px;object-fit:contain;border-radius:8px;margin-bottom:6px" alt="logo">`:`<div style="width:52px;height:52px;background:linear-gradient(135deg,#002A8D,#1B3A9E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:8px">🏢</div>`;
-  const w=window.open('','_blank','width=700,height=900');
-  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${q.id}</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0F172A;max-width:680px;margin:30px auto;padding:0 20px;font-size:13px}
-    .head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #002A8D;margin-bottom:20px}
-    .logo-area{display:flex;flex-direction:column}
-    .biz-name{font-size:18px;font-weight:800;color:#002A8D;margin-bottom:2px}
-    .biz-info{font-size:11px;color:#64748B;line-height:1.6}
-    .cot-info{text-align:right}
-    .cot-id{font-size:20px;font-weight:800;color:#C9972B}
-    .cot-date{font-size:11px;color:#64748B;margin-top:3px}
-    .cli-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 14px;margin-bottom:18px}
-    .cli-box strong{font-size:12px;font-weight:700;color:#64748B;letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:4px}
-    table{width:100%;border-collapse:collapse;margin-bottom:16px}
-    thead tr{background:#002A8D}
-    thead th{color:#fff;padding:9px 12px;text-align:left;font-size:12px;font-weight:600}
-    thead th:last-child{text-align:right}
-    tbody tr:nth-child(even){background:#F8FAFC}
-    tbody td{padding:9px 12px;font-size:13px;border-bottom:1px solid #E2E8F0}
-    tbody td:last-child{text-align:right;font-weight:600;color:#C9972B}
-    .tot-area{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;max-width:260px;margin-left:auto;margin-bottom:18px}
-    .tr{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px}
-    .tr span:first-child{color:#64748B}
-    .tr.big{font-size:16px;font-weight:800;border-top:1px solid #BFDBFE;padding-top:8px;margin-top:4px}
-    .tr.big span{color:#002A8D}
-    .notes{background:#FDF8EC;border:1px solid #E8C85A;border-radius:8px;padding:10px 12px;font-size:12px;color:#64748B;margin-bottom:16px;font-style:italic}
-    .footer{text-align:center;font-size:11px;color:#94A3B8;border-top:1px solid #E2E8F0;padding-top:14px;margin-top:8px}
-    .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;margin-left:8px}
-    .cond-bar{display:flex;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:10px 0;margin:16px 0 14px;overflow:hidden}
-    .cond-item{flex:1;text-align:center;padding:2px 8px}
-    .cond-sep{width:1px;background:#E2E8F0;flex-shrink:0}
-    .cond-l{font-size:9px;font-weight:700;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:3px}
-    .cond-v{font-size:12px;font-weight:700;color:#0F172A;display:block}
-  </style></head><body>
-  <div class="head">
-    <div class="logo-area">
-      ${logoHtml}
-      <div class="biz-name">${biz}</div>
-      <div class="biz-info">${p.ruc?'RUC: '+p.ruc+'<br>':''}${p.tel?'📞 '+p.tel+'<br>':''}${p.addr?'📍 '+p.addr+'<br>':''}${p.email?'✉️ '+p.email:''}</div>
-    </div>
-    <div class="cot-info">
-      <div class="cot-id">${q.id}<span class="status-badge">${{pending:'Pendiente',won:'Ganada',lost:'Perdida'}[q.status]||q.status}</span></div>
-      <div class="cot-date">Fecha: ${new Date(q.ts).toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})}</div>
-      <div class="cot-date">Canal: ${q.chan}</div>
-    </div>
-  </div>
-  <div class="cli-box"><strong>Cliente</strong>${q.cli}${q.tel?'<br>Tel: '+q.tel:''}</div>
-  <table>
-    <thead><tr><th>Producto / Servicio</th><th>Cant.</th><th>P. Unit.</th><th>IGV</th><th>Subtotal</th></tr></thead>
-    <tbody>${q.lines.map(l=>`<tr><td>${l.name}</td><td>${l.qty}</td><td>${fmt(l.price)}</td><td>${l.igv?'18%':'—'}</td><td>${fmt(l.price*l.qty+(l.igv?l.price*l.qty*.18:0))}</td></tr>`).join('')}</tbody>
-  </table>
-  <div class="tot-area">
-    <div class="tr"><span>Subtotal</span><span>${fmt(q.sub)}</span></div>
-    <div class="tr"><span>IGV (18%)</span><span>${fmt(q.igv)}</span></div>
-    <div class="tr big"><span>TOTAL</span><span>${fmt(q.tot)}</span></div>
-  </div>
-  ${q.notes?`<div class="notes">📝 ${q.notes}</div>`:''}
-  <div class="footer">${biz} · Generado con Mi Negocio · Módulo 3 BCP × UCSP-CENDES · ${new Date().toLocaleDateString('es-PE')}</div>
-    <div style="margin-top:3px;font-size:9px;color:#d4d4d4;text-align:center;letter-spacing:2px;opacity:.6">APSR</div>
-  <script>setTimeout(()=>{window.print();},400);<\/script>
-  </body></html>`);
-  w.document.close();
+  if(!q){toast('No se encontró la cotización');return;}
+  toast('Generando PDF...');
+  const ok=await exportCotizacionS8(q, DB, CU, false);
+  if(ok) toast('✓ Cotización descargada',true);
+  else toast('⚠️ No se pudo generar el PDF');
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2 a S7.2)
+   ------------------------------------------------------------------------
+   Dos entregas distintas, las dos rotas antes:
+
+   1) El "PDF" del tablero era window.print() de la pantalla completa: salian
+      las pestanas, los botones y los modales, no un reporte.
+   2) La cotizacion — el documento que ella le manda a SU cliente — se abria
+      con window.open() y window.print(). En movil el navegador bloquea la
+      ventana emergente, asi que muchas veces simplemente no pasaba nada; y
+      cuando pasaba, terminaba en el dialogo de impresion del sistema en vez
+      de con un archivo que pueda enviar por WhatsApp.
+
+   Las dos se componen ahora fuera de pantalla y se rasterizan con
+   html2canvas + jsPDF:
+    - NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+      asi el lienzo nunca recorta el final ni deja aire de mas.
+    - Los limites de cada bloque se miden DENTRO del clon via `onclone`, ya con
+      la tipografia cargada: medicion y render en el mismo sistema.
+    - Cada caja es un "atomo": la pagina solo corta donde no rompe ninguno.
+
+   Todo se arma desde un objeto DB ({products,quotes,sales,profile}), asi que
+   la emprendedora y el administrador generan exactamente el mismo documento.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
+
+const PDF_CFG = {
+  renderW: 800,
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6,
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
+
+const PDF_S8_CSS = [
+  '.pdf-s8{font-family:"Rubik",system-ui,sans-serif;font-size:12.5px;color:#0F172A;line-height:1.6}',
+  '.pdf-s8 .sec{margin-bottom:16px}',
+  '.pdf-s8 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#C9972B;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #E2E8F0}',
+  '.pdf-s8 .box{border:1px solid #E2E8F0;border-radius:10px;padding:13px 16px;margin-bottom:10px}',
+  '.pdf-s8 .kpis{display:flex;gap:10px;margin-bottom:10px}',
+  '.pdf-s8 .kpi{flex:1;border:1px solid #E2E8F0;border-radius:10px;padding:12px;text-align:center}',
+  '.pdf-s8 .kpi .v{font-size:19px;font-weight:800;color:#002A8D;line-height:1.2}',
+  '.pdf-s8 .kpi .l{font-size:9.5px;color:#64748B;margin-top:3px}',
+  '.pdf-s8 table{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.pdf-s8 th{background:#002A8D;color:#fff;padding:7px 9px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.4px}',
+  '.pdf-s8 td{padding:6px 9px;border-bottom:1px solid #E2E8F0;vertical-align:top}',
+  '.pdf-s8 tr:last-child td{border-bottom:none}',
+  '.pdf-s8 .r{text-align:right}',
+  '.pdf-s8 .vacio{font-size:11.5px;color:#94A3B8;font-style:italic}',
+  '.pdf-s8 .pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}',
+  '.pdf-s8 .pill.won{background:#ECFDF5;color:#059669}',
+  '.pdf-s8 .pill.pend{background:#FFFBEB;color:#D97706}',
+  '.pdf-s8 .pill.lost{background:#FEF2F2;color:#DC2626}',
+  /* Cotización */
+  '.pdf-cot{font-family:"Rubik",system-ui,sans-serif;font-size:12.5px;color:#0F172A;line-height:1.6}',
+  '.pdf-cot .head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:2px solid #002A8D;margin-bottom:18px}',
+  '.pdf-cot .biz{font-size:18px;font-weight:800;color:#002A8D;margin-bottom:2px}',
+  '.pdf-cot .info{font-size:11px;color:#64748B;line-height:1.6}',
+  '.pdf-cot .cot-id{font-size:20px;font-weight:800;color:#C9972B;text-align:right}',
+  '.pdf-cot .cot-date{font-size:11px;color:#64748B;text-align:right;margin-top:3px}',
+  '.pdf-cot .lbl{font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#64748B;margin-bottom:5px}',
+  '.pdf-cot .box{border:1px solid #E2E8F0;border-radius:10px;padding:13px 15px;margin-bottom:12px}',
+  '.pdf-cot table{width:100%;border-collapse:collapse;font-size:12px}',
+  '.pdf-cot th{background:#002A8D;color:#fff;padding:8px 9px;text-align:left;font-size:10.5px;font-weight:600}',
+  '.pdf-cot td{padding:8px 9px;border-bottom:1px solid #E2E8F0}',
+  '.pdf-cot .tot-row{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0}',
+  '.pdf-cot .tot-final{display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#002A8D;border-top:2px solid #002A8D;margin-top:6px;padding-top:8px}',
+  '.pdf-cot .r{text-align:right}'
+].join('\n');
+
+async function pdfEsperarTipografia(doc){
+  try{
+    const links=Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l=>l.sheet?Promise.resolve():new Promise(res=>{
+      l.addEventListener('load',res,{once:true});
+      l.addEventListener('error',res,{once:true});
+      setTimeout(res,1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts&&doc.fonts.load){
+      await Promise.all(['400','500','600','700','800'].map(w=>doc.fonts.load(w+' 14px Rubik')));
+    }
+    if(doc.fonts&&doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
+
+function pdfMedirBloques(root){
+  const wr=root.getBoundingClientRect();
+  const nodos=Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  const atomos=nodos.filter(n=>!nodos.some(o=>o!==n&&o.contains(n)));
+  const zonas=[];
+  atomos.forEach(n=>{
+    const r=n.getBoundingClientRect();
+    if(r.height>0) zonas.push({top:r.top-wr.top,bottom:r.bottom-wr.top});
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'),sec=>{
+    const t=sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero=atomos.filter(a=>sec.contains(a))[0];
+    const rt=t.getBoundingClientRect();
+    if(!primero){
+      const rs=sec.getBoundingClientRect();
+      if(rs.height>0) zonas.push({top:rs.top-wr.top,bottom:rs.bottom-wr.top});
+      return;
+    }
+    zonas.push({top:rt.top-wr.top,bottom:primero.getBoundingClientRect().bottom-wr.top});
+  });
+  return {height:wr.height,width:wr.width,zonas:zonas};
+}
+
+function pdfPlanificarPaginas(imgH,zonas,altoPagPx){
+  const dentro=p=>zonas.some(z=>p>z.top+0.5&&p<z.bottom-0.5);
+  const candidatos=[];
+  zonas.forEach(z=>{candidatos.push(z.top);candidatos.push(z.bottom);});
+  candidatos.push(imgH);
+  candidatos.sort((a,b)=>a-b);
+  const minSlice=altoPagPx*PDF_CFG.minFill;
+  const paginas=[];
+  let y=0,guarda=0;
+  while(y<imgH-1&&guarda++<400){
+    let corte=Math.min(y+altoPagPx,imgH);
+    if(corte<imgH&&dentro(corte)){
+      let mejor=-1;
+      for(let i=0;i<candidatos.length;i++){
+        const c=candidatos[i];
+        if(c>corte) break;
+        if(c<=y+minSlice) continue;
+        if(!dentro(c)) mejor=c;
+      }
+      if(mejor>y) corte=mejor;
+      else{
+        let fin=corte;
+        for(let pasada=0;pasada<4;pasada++){
+          const antes=fin;
+          zonas.forEach(z=>{if(fin>z.top&&fin<z.bottom) fin=z.bottom;});
+          if(fin===antes) break;
+        }
+        corte=Math.min(fin,imgH);
+      }
+    }
+    if(corte<=y) corte=Math.min(y+altoPagPx,imgH);
+    paginas.push({from:y,to:corte});
+    y=corte;
+  }
+  return paginas;
+}
+
+// Escape de HTML: los nombres de productos y clientes los escribe la
+// emprendedora y se inyectan con innerHTML.
+function escS8(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+const solS8 = n => 'S/ '+(Number(n)||0).toFixed(2);
+function fechaS8(ts){
+  if(!ts) return '-';
+  const d=new Date(ts);
+  return isNaN(d)?'-':d.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+// Motor comun: recibe el HTML del cuerpo y devuelve el PDF.
+async function rasterizarPdfS8(bodyHtml, headerHtml, filename, asBlob){
+  let wrapper=null;
+  try{
+    wrapper=document.createElement('div');
+    wrapper.style.cssText=[
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      "font-family:'Rubik',system-ui,sans-serif",
+      'width:'+PDF_CFG.renderW+'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const estilos=document.createElement('style');
+    estilos.textContent=PDF_S8_CSS;
+    wrapper.appendChild(estilos);
+
+    if(headerHtml){
+      const hdr=document.createElement('div');
+      hdr.setAttribute('data-pdf-atom','1');
+      hdr.innerHTML=headerHtml;
+      wrapper.appendChild(hdr);
+    }
+    const cuerpo=document.createElement('div');
+    cuerpo.innerHTML=bodyHtml;
+    wrapper.appendChild(cuerpo);
+
+    const spacer=document.createElement('div');
+    spacer.style.cssText='height:18px';
+    wrapper.appendChild(spacer);
+
+    document.body.appendChild(wrapper);
+
+    await pdfEsperarTipografia(document);
+    await new Promise(r=>setTimeout(r,250));
+
+    const fallback=pdfMedirBloques(wrapper);
+
+    // Escala adaptativa: con catalogos largos un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del movil.
+    let scale=PDF_CFG.scaleMax;
+    const altoCss=Math.max(fallback.height,wrapper.scrollHeight,1);
+    while(scale>1.2&&(PDF_CFG.renderW*scale)*(altoCss*scale)>PDF_CFG.maxCanvasPx) scale-=0.2;
+
+    let metrics=null;
+    const canvas=await html2canvas(wrapper,{
+      scale:scale, useCORS:true, backgroundColor:'#ffffff', logging:false,
+      windowWidth:PDF_CFG.renderW+300,
+      windowHeight:Math.max(1200,altoCss+300),
+      scrollX:0, scrollY:0,
+      onclone:async(d,cloned)=>{
+        await pdfEsperarTipografia(d);
+        await new Promise(r=>setTimeout(r,80));
+        try{metrics=pdfMedirBloques(cloned);}catch(err){metrics=null;}
+      }
+    });
+
+    const med=(metrics&&metrics.height>0)?metrics:fallback;
+
+    const {jsPDF}=window.jspdf;
+    const imgW=canvas.width,imgH=canvas.height;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const pageH=pdf.internal.pageSize.getHeight();
+    const margin=PDF_CFG.marginMm;
+    const usableW=pageW-margin*2;
+    const usableH=pageH-margin*2-PDF_CFG.footerMm;
+
+    const sy=med.height>0?(imgH/med.height):scale;
+    const altoPagBase=imgW*(usableH/usableW);
+
+    const zonas=med.zonas
+      .map(z=>({top:z.top*sy,bottom:z.bottom*sy}))
+      .filter(z=>z.bottom>z.top+1)
+      .sort((a,b)=>a.top-b.top);
+
+    const padPx=PDF_CFG.atomPadPx*sy;
+    zonas.forEach(z=>{
+      let sigTop=imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchon debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o=>{if(o.top>=z.bottom&&o.top<sigTop) sigTop=o.top;});
+      z.bottom+=Math.max(0,Math.min(padPx,(sigTop-z.bottom)*0.6));
+      if(z.bottom>imgH) z.bottom=imgH;
+    });
+
+    if(imgH<=altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',
+        margin,margin,usableW,(imgH/imgW)*usableW);
+    }else{
+      let mejor=null;
+      PDF_CFG.shrinkSteps.forEach(k=>{
+        const pg=pdfPlanificarPaginas(imgH,zonas,altoPagBase/k);
+        if(!mejor||pg.length<mejor.paginas.length) mejor={k:k,paginas:pg};
+      });
+      const k=mejor.k,paginas=mejor.paginas;
+
+      paginas.forEach((p,i)=>{
+        if(i===paginas.length-1) return;
+        if(zonas.some(z=>p.to>z.top+0.5&&p.to<z.bottom-0.5)) console.warn('[PDF] corte revisado en pagina '+(i+1));
+      });
+
+      for(let i=0;i<paginas.length;i++){
+        if(i>0) pdf.addPage();
+        const p=paginas[i];
+        const sliceH=Math.max(1,Math.round(p.to-p.from));
+        const slice=document.createElement('canvas');
+        slice.width=imgW; slice.height=sliceH;
+        const ctx=slice.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,imgW,sliceH);
+        ctx.drawImage(canvas,0,p.from,imgW,sliceH,0,0,imgW,sliceH);
+
+        let drawW=usableW*k;
+        let drawH=(sliceH/imgW)*drawW;
+        if(drawH>usableH){const f=usableH/drawH;drawW*=f;drawH=usableH;}
+        const x=margin+(usableW-drawW)/2;
+        pdf.addImage(slice.toDataURL('image/jpeg',0.95),'JPEG',x,margin,drawW,drawH);
+      }
+    }
+
+    const totalPages=pdf.internal.getNumberOfPages();
+    for(let p=1;p<=totalPages;p++){
+      pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 8',margin,pageH-5);
+      if(totalPages>1) pdf.text('P\u00e1g. '+p+' / '+totalPages,pageW-margin,pageH-5,{align:'right'});
+    }
+
+    if(asBlob) return {blob:pdf.output('blob'),filename:filename};
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:',err);
+    return asBlob?null:false;
+  }finally{
+    if(wrapper&&wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+// ── REPORTE DE NEGOCIO ──────────────────────────────────────────────────────
+function construirReporteS8(db, persona){
+  const P=(db&&db.profile)||{};
+  const prods=(db&&db.products)||[];
+  const quotes=(db&&db.quotes)||[];
+  const sales=(db&&db.sales)||[];
+  const A=' data-pdf-atom="1"';
+
+  const totalVentas=sales.reduce((s,v)=>s+(Number(v.total)||0),0);
+  const ticket=sales.length?totalVentas/sales.length:0;
+  const ganadas=quotes.filter(q=>q.status==='won').length;
+  const conv=quotes.length?Math.round(ganadas/quotes.length*100):0;
+
+  // Ranking de productos por monto vendido
+  const porProd={};
+  sales.forEach(v=>{ const k=v.prod||'(sin nombre)'; porProd[k]=(porProd[k]||0)+(Number(v.total)||0); });
+  const top=Object.keys(porProd).map(k=>({n:k,v:porProd[k]})).sort((a,b)=>b.v-a.v).slice(0,8);
+
+  // Reparto por canal
+  const porCanal={};
+  sales.forEach(v=>{ const k=v.canal||'Otro'; porCanal[k]=(porCanal[k]||0)+(Number(v.total)||0); });
+  const canales=Object.keys(porCanal).map(k=>({n:k,v:porCanal[k]})).sort((a,b)=>b.v-a.v);
+
+  let h='<div class="pdf-s8">';
+
+  h+='<div class="kpis"'+A+'>'+
+     '<div class="kpi"><div class="v">'+solS8(totalVentas).replace('S/ ','S/')+'</div><div class="l">Ventas acumuladas</div></div>'+
+     '<div class="kpi"><div class="v">'+sales.length+'</div><div class="l">Ventas registradas</div></div>'+
+     '<div class="kpi"><div class="v">'+solS8(ticket).replace('S/ ','S/')+'</div><div class="l">Ticket promedio</div></div>'+
+     '<div class="kpi"><div class="v">'+conv+'%</div><div class="l">Cotizaciones ganadas</div></div>'+
+     '</div>';
+
+  // Catálogo
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Cat\u00e1logo de productos y servicios ('+prods.length+')</div>';
+  h+='<div class="box"'+A+'>'+ (prods.length
+    ? '<table><thead><tr><th>Producto / Servicio</th><th>Categor\u00eda</th><th class="r">Precio</th><th class="r">IGV</th></tr></thead><tbody>'+
+      prods.map(p=>'<tr><td style="font-weight:600">'+escS8(p.name)+
+        (p.desc?'<div style="font-size:10.5px;color:#64748B;font-weight:400">'+escS8(p.desc)+'</div>':'')+'</td>'+
+        '<td>'+escS8(p.cat||'General')+'</td>'+
+        '<td class="r">'+solS8(p.price)+'</td>'+
+        '<td class="r">'+(p.igv?'S\u00ed':'No')+'</td></tr>').join('')+
+      '</tbody></table>'
+    : '<div class="vacio">A\u00fan no ha cargado productos.</div>')+'</div></div>';
+
+  // Ventas
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Ventas registradas ('+sales.length+')</div>';
+  if(top.length){
+    h+='<div class="box"'+A+'><div style="font-size:11.5px;font-weight:700;color:#002A8D;margin-bottom:7px">Lo que m\u00e1s vende</div>'+
+       '<table><tbody>'+top.map(t=>'<tr><td>'+escS8(t.n)+'</td><td class="r" style="font-weight:700;color:#059669">'+solS8(t.v)+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+  if(canales.length){
+    h+='<div class="box"'+A+'><div style="font-size:11.5px;font-weight:700;color:#002A8D;margin-bottom:7px">Por canal de venta</div>'+
+       '<table><tbody>'+canales.map(t=>'<tr><td>'+escS8(t.n)+'</td><td class="r" style="font-weight:700">'+solS8(t.v)+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+  h+='<div class="box"'+A+'>'+ (sales.length
+    ? '<table><thead><tr><th>Fecha</th><th>Producto</th><th class="r">Cant.</th><th>Canal</th><th class="r">Total</th></tr></thead><tbody>'+
+      sales.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(v=>
+        '<tr><td>'+escS8(v.date||fechaS8(v.ts))+'</td>'+
+        '<td>'+escS8(v.prod)+'</td>'+
+        '<td class="r">'+(v.qty||1)+'</td>'+
+        '<td>'+escS8(v.canal||'-')+'</td>'+
+        '<td class="r" style="font-weight:700">'+solS8(v.total)+'</td></tr>').join('')+
+      '</tbody></table>'
+    : '<div class="vacio">A\u00fan no ha registrado ventas.</div>')+'</div></div>';
+
+  // Cotizaciones
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Cotizaciones emitidas ('+quotes.length+')</div>';
+  h+='<div class="box"'+A+'>'+ (quotes.length
+    ? '<table><thead><tr><th>C\u00f3digo</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="r">Total</th></tr></thead><tbody>'+
+      quotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(q=>{
+        const st=q.status==='won'?'<span class="pill won">Ganada</span>':(q.status==='lost'?'<span class="pill lost">Perdida</span>':'<span class="pill pend">Pendiente</span>');
+        return '<tr><td style="font-weight:600">'+escS8(q.id)+'</td>'+
+          '<td>'+escS8(q.cli)+'</td>'+
+          '<td>'+fechaS8(q.ts)+'</td>'+
+          '<td>'+st+'</td>'+
+          '<td class="r" style="font-weight:700">'+solS8(q.tot)+'</td></tr>';
+      }).join('')+'</tbody></table>'
+    : '<div class="vacio">A\u00fan no ha emitido cotizaciones.</div>')+'</div></div>';
+
+  h+='</div>';
+
+  const biz=(P.biz||(persona&&persona.b)||(persona&&persona.n)||'').toUpperCase();
+  const header=
+    '<div style="margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #C9972B">'+
+    '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#C9972B;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n Comercial \u00b7 Sesi\u00f3n 8 \u00b7 BCP \u00d7 UCSP-CENDES</div>'+
+    '<div style="font-size:20px;font-weight:800;color:#002A8D;line-height:1.2">'+escS8(biz||'Mi negocio')+'</div>'+
+    '<div style="font-size:10.5px;color:#64748B;margin-top:4px">'+escS8((persona&&persona.n)||'')+
+      (P.tel?' \u00b7 '+escS8(P.tel):'')+
+      ' \u00b7 Reporte al '+new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})+'</div></div>';
+
+  return {html:h, header:header, biz:biz};
+}
+
+async function exportReporteS8(db, persona, asBlob){
+  const doc=construirReporteS8(db, persona);
+  const base=String((persona&&persona.n)||doc.biz||'negocio')
+    .replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45)||'negocio';
+  return rasterizarPdfS8(doc.html, doc.header, 'Reporte_'+base.replace(/\s+/g,'_')+'.pdf', asBlob);
+}
+
+// ── COTIZACIÓN ──────────────────────────────────────────────────────────────
+function construirCotizacionS8(q, db, persona){
+  const P=(db&&db.profile)||{};
+  const biz=(P.biz||(persona&&persona.b)||(persona&&persona.n)||'').toUpperCase();
+  const A=' data-pdf-atom="1"';
+  const logo=P.logo
+    ? '<img src="'+P.logo+'" style="max-height:60px;max-width:130px;object-fit:contain;border-radius:8px;margin-bottom:6px" alt="logo">'
+    : '';
+
+  let h='<div class="pdf-cot">';
+  h+='<div class="head"'+A+'><div>'+logo+
+     '<div class="biz">'+escS8(biz)+'</div>'+
+     '<div class="info">'+
+       (P.tel?escS8(P.tel)+'<br>':'')+
+       (P.email?escS8(P.email)+'<br>':'')+
+       (P.addr?escS8(P.addr):'')+
+     '</div></div>'+
+     '<div><div class="cot-id">'+escS8(q.id||'COT')+'</div>'+
+     '<div class="cot-date">'+fechaS8(q.ts)+'</div></div></div>';
+
+  h+='<div class="box"'+A+'><div class="lbl">Cliente</div>'+
+     '<div style="font-size:14px;font-weight:700;color:#0F172A">'+escS8(q.cli||'')+'</div>'+
+     (q.tel?'<div style="font-size:11.5px;color:#64748B;margin-top:2px">'+escS8(q.tel)+'</div>':'')+
+     (q.chan?'<div style="font-size:11.5px;color:#64748B">Canal: '+escS8(q.chan)+'</div>':'')+
+     '</div>';
+
+  const lines=q.lines||[];
+  h+='<div class="box"'+A+' style="padding:0;overflow:hidden"><table>'+
+     '<thead><tr><th>Descripci\u00f3n</th><th class="r">Cant.</th><th class="r">P. unit.</th><th class="r">Importe</th></tr></thead><tbody>'+
+     lines.map(l=>'<tr><td>'+escS8(l.name)+'</td>'+
+       '<td class="r">'+(l.qty||1)+'</td>'+
+       '<td class="r">'+solS8(l.price)+'</td>'+
+       '<td class="r" style="font-weight:600">'+solS8((Number(l.price)||0)*(Number(l.qty)||1))+'</td></tr>').join('')+
+     '</tbody></table></div>';
+
+  h+='<div class="box"'+A+'>'+
+     '<div class="tot-row"><span>Subtotal</span><span>'+solS8(q.sub)+'</span></div>'+
+     (Number(q.igv)?'<div class="tot-row"><span>IGV (18%)</span><span>'+solS8(q.igv)+'</span></div>':'')+
+     '<div class="tot-final"><span>TOTAL</span><span>'+solS8(q.tot)+'</span></div></div>';
+
+  h+='<div class="box"'+A+'><div class="lbl">Condiciones</div>'+
+     '<div style="font-size:12px;line-height:1.8">'+
+     '<b>Entrega:</b> '+escS8(q.delivery||'A convenir')+'<br>'+
+     '<b>Forma de pago:</b> '+escS8(q.payMode||'Contraentrega')+
+     (q.notes?'<br><b>Notas:</b> '+escS8(q.notes):'')+
+     '</div></div>';
+
+  h+='<div style="font-size:10.5px;color:#94A3B8;text-align:center;margin-top:14px"'+A+'>'+
+     'Cotizaci\u00f3n v\u00e1lida por 15 d\u00edas calendario desde su emisi\u00f3n.</div>';
+  h+='</div>';
+  return h;
+}
+
+async function exportCotizacionS8(q, db, persona, asBlob){
+  const html=construirCotizacionS8(q, db, persona);
+  const nom=String(q.cli||'cliente').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,30)||'cliente';
+  const filename=(q.id||'Cotizacion')+'_'+nom.replace(/\s+/g,'_')+'.pdf';
+  return rasterizarPdfS8(html, '', filename, asBlob);
+}
+
+function triggerBlobDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+// ── PANEL ADMINISTRADOR ─────────────────────────────────────────────────────
+
+let ADM_USERS = {};
+
+async function loadAdminData(){
+  $('admList').innerHTML='<div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('admStatus').textContent='';
+  try{
+    const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const rec=j.record!==undefined?j.record:j;
+    ADM_USERS=rec.users||{};
+  }catch(e){
+    $('admList').innerHTML='<div class="adm-card"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+
+  const dnis=Object.keys(ROSTER);
+  const conDatos=dnis.filter(d=>{
+    const u=ADM_USERS[d];
+    return u&&((u.products||[]).length||(u.quotes||[]).length||(u.sales||[]).length);
+  });
+  const totalVentas=dnis.reduce((n,d)=>n+(((ADM_USERS[d]||{}).sales)||[]).length,0);
+
+  $('kAdmEmp').textContent=conDatos.length;
+  $('kAdmVen').textContent=totalVentas;
+
+  const ordenados=dnis.slice().sort((a,b)=>((ROSTER[a]||{}).n||'').localeCompare((ROSTER[b]||{}).n||''));
+
+  let html='';
+  ordenados.forEach(d=>{
+    const info=ROSTER[d]||{};
+    const u=ADM_USERS[d]||null;
+    const prods=(u&&u.products)||[], quotes=(u&&u.quotes)||[], sales=(u&&u.sales)||[];
+    const tiene=prods.length||quotes.length||sales.length;
+    const monto=sales.reduce((s,v)=>s+(Number(v.total)||0),0);
+    const biz=(u&&u.profile&&u.profile.biz)||info.b||'';
+
+    html+='<div class="adm-card">'+
+      '<div class="adm-head"><div><div class="adm-name">'+escS8(info.n||d)+'</div>'+
+      (biz?'<div class="adm-biz">'+escS8(biz)+'</div>':'')+'</div>'+
+      '<span class="adm-tag '+(tiene?'on':'off')+'">'+(tiene?'con datos':'sin datos')+'</span></div>'+
+      (tiene
+        ? '<div class="adm-stats">'+
+          '<span class="adm-stat"><b>'+prods.length+'</b> productos</span>'+
+          '<span class="adm-stat"><b>'+quotes.length+'</b> cotizaciones</span>'+
+          '<span class="adm-stat"><b>'+sales.length+'</b> ventas</span>'+
+          '<span class="adm-stat"><b>'+solS8(monto)+'</b> vendido</span>'+
+          '</div>'+
+          '<button class="btn btn-navy btn-sm btn-full" onclick="downloadNegocioDe(\''+d+'\')">&#128190; Descargar reporte'+
+          (quotes.length?' + '+quotes.length+' cotizaci'+(quotes.length===1?'\u00f3n':'ones'):'')+'</button>'
+        : '<div style="font-size:12px;color:var(--muted);font-style:italic;margin:6px 0 2px">Todav\u00eda no ha cargado nada en la app.</div>')+
+      '</div>';
+  });
+  $('admList').innerHTML=html;
+}
+
+function admStatus(msg,cls){
+  const el=$('admStatus');
+  el.textContent=msg||'';
+  el.className='adm-status '+(cls||'');
+}
+
+// Genera reporte + todas las cotizaciones de UNA emprendedora.
+async function archivosDeNegocioS8(dni){
+  const info=ROSTER[dni]||{};
+  const db=ADM_USERS[dni]||{products:[],quotes:[],sales:[],profile:{}};
+  const persona={dni:dni,n:info.n||dni,b:info.b||''};
+  const out=[];
+  const rep=await exportReporteS8(db, persona, true);
+  if(rep) out.push(rep);
+  const quotes=db.quotes||[];
+  for(let i=0;i<quotes.length;i++){
+    const cot=await exportCotizacionS8(quotes[i], db, persona, true);
+    if(cot) out.push(cot);
+  }
+  return out;
+}
+
+async function downloadNegocioDe(dni){
+  const personName=(ROSTER[dni]||{}).n||dni;
+  admStatus('Generando reporte de '+personName+'...','load');
+  const archivos=await archivosDeNegocioS8(dni);
+  if(!archivos.length){ admStatus('\u26a0\ufe0f No se pudo generar ning\u00fan archivo.','err'); return; }
+  if(archivos.length===1){
+    triggerBlobDownload(archivos[0].blob,archivos[0].filename);
+  }else{
+    admStatus('Empaquetando '+archivos.length+' archivos...','load');
+    const zip=new JSZip();
+    archivos.forEach(f=>zip.file(f.filename,f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:'blob'}),
+      'Negocio_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
+  admStatus('\u2705 '+archivos.length+' archivo(s) descargado(s) de '+personName+'.','ok');
+  setTimeout(()=>admStatus('',''),5000);
+}
+
+async function downloadTodoS8(){
+  const dnis=Object.keys(ROSTER).filter(d=>{
+    const u=ADM_USERS[d];
+    return u&&((u.products||[]).length||(u.quotes||[]).length||(u.sales||[]).length);
+  });
+  if(!dnis.length){ admStatus('A\u00fan no hay negocios con datos.','err'); return; }
+  if(!confirm('Se descargar\u00e1n los reportes y cotizaciones de '+dnis.length+' emprendedora(s) en un solo ZIP. Esto puede tomar varios minutos. \u00bfContinuar?')) return;
+
+  const btn=$('admAllBtn');
+  btn.disabled=true;
+  const archivos=[];
+  for(let i=0;i<dnis.length;i++){
+    const personName=(ROSTER[dnis[i]]||{}).n||dnis[i];
+    admStatus('Emprendedora '+(i+1)+'/'+dnis.length+' \u2014 '+personName+'...','load');
+    // Una carpeta por emprendedora: con reporte + N cotizaciones cada una, un
+    // ZIP plano es inmanejable.
+    const carpeta=String(personName).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().replace(/\s+/g,'_')||dnis[i];
+    const fs=await archivosDeNegocioS8(dnis[i]);
+    fs.forEach(f=>archivos.push({filename:carpeta+'/'+f.filename,blob:f.blob}));
+  }
+  btn.disabled=false;
+
+  if(!archivos.length){ admStatus('\u26a0\ufe0f No se pudo generar ning\u00fan archivo.','err'); return; }
+  admStatus('Empaquetando '+archivos.length+' archivos en un ZIP...','load');
+  const zip=new JSZip();
+  archivos.forEach(f=>zip.file(f.filename,f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:'blob'}),'Negocios_S8_todas.zip');
+  admStatus('\u2705 '+archivos.length+' archivo(s) de '+dnis.length+' emprendedora(s) en un ZIP.','ok');
+  setTimeout(()=>admStatus('',''),6000);
+}
+
+$('admAllBtn').onclick=downloadTodoS8;
+
+// Botón "PDF" del tablero: antes hacía window.print() de la pantalla entera
+// (pestañas, botones y modales incluidos). Ahora arma el reporte del negocio.
+async function descargarReporteMio(btn){
+  const t=btn?btn.innerHTML:null;
+  if(btn){btn.disabled=true;btn.innerHTML='...';}
+  const ok=await exportReporteS8(DB, CU, false);
+  if(btn){btn.disabled=false;btn.innerHTML=t;}
+  if(ok) toast('\u2713 Reporte descargado',true);
+  else toast('\u26a0\ufe0f No se pudo generar el PDF');
 }
 
 // ══ SALES ══════════════════════════════════════════════════════════

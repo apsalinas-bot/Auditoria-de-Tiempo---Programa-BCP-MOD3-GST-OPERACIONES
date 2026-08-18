@@ -885,21 +885,47 @@ function construirResumenS5(personName){
   var H=padTop+pirCats.length*levelH+(pirCats.length-1)*gap+6;
   var maxH=120,minH=32,topH=11;
   function halfAt(idx){return pirCats.length===1?85:minH+(maxH-minH)*(idx/(pirCats.length-1));}
-  // width Y height explicitos: html2canvas rasteriza el SVG serializandolo como
-  // imagen, y un SVG con ancho pero sin alto se colapsa a cero al convertirlo
-  // (en pantalla el navegador lo deducia del viewBox, en el PDF no). Sin esto
-  // la piramide sale en blanco en el PDF.
+  // ── PIRAMIDE: se dibuja en un <canvas> y se inserta como PNG, NO como SVG ──
+  // html2canvas no rasteriza el SVG inline: lo serializa a una data-URL y lo
+  // carga como <img>; si esa carga falla (y aqui fallaba) no dibuja nada y deja
+  // el hueco en blanco, que es exactamente lo que se veia en el PDF. Poniendo
+  // width/height al SVG se arreglo el tamano del hueco, pero seguia vacio.
+  // Dibujandola nosotros en canvas 2D y embebiendo el PNG resultante, el PDF ya
+  // no depende de como el navegador convierta SVG a imagen: html2canvas solo ve
+  // un <img> con data:image/png, que es la ruta mas confiable que tiene.
   var pirW=200, pirH=Math.round(pirW*H/W);
-  var svgPir='<svg viewBox="0 0 '+W+' '+H+'" width="'+pirW+'" height="'+pirH+'" preserveAspectRatio="xMidYMid meet" style="display:block;margin:0 auto 6px;width:'+pirW+'px;height:'+pirH+'px" xmlns="http://www.w3.org/2000/svg">';
-  var lblPir=''; var yy=padTop;
-  pirCats.forEach(function(d,idx){
-    var wTop=idx===0?topH:halfAt(idx-1), wBot=halfAt(idx);
-    var topY=yy, botY=yy+levelH;
-    svgPir+='<polygon points="'+(cx-wTop)+','+topY+' '+(cx+wTop)+','+topY+' '+(cx+wBot)+','+botY+' '+(cx-wBot)+','+botY+'" fill="'+d.color+'"/>';
-    lblPir+='<text x="'+cx+'" y="'+(topY+levelH/2+7)+'" text-anchor="middle" font-size="'+(19+idx*2)+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+d.cat+'</text>';
-    yy=botY+gap;
-  });
-  svgPir+=lblPir+'</svg>';
+  var svgPir='';
+  try{
+    var cvPir=document.createElement('canvas');
+    var DPR=3;                              // nitidez para impresion
+    cvPir.width=Math.round(pirW*DPR); cvPir.height=Math.round(pirH*DPR);
+    var cx2=cvPir.getContext('2d');
+    cx2.scale(cvPir.width/W, cvPir.height/H);   // dibujar en coordenadas del viewBox
+    var etiquetas=[], yy=padTop;
+    pirCats.forEach(function(d,idx){
+      var wTop=idx===0?topH:halfAt(idx-1), wBot=halfAt(idx);
+      var topY=yy, botY=yy+levelH;
+      cx2.beginPath();
+      cx2.moveTo(cx-wTop,topY); cx2.lineTo(cx+wTop,topY);
+      cx2.lineTo(cx+wBot,botY); cx2.lineTo(cx-wBot,botY);
+      cx2.closePath();
+      cx2.fillStyle=d.color; cx2.fill();
+      etiquetas.push({cat:d.cat, y:topY+levelH/2+7, size:19+idx*2});
+      yy=botY+gap;
+    });
+    cx2.fillStyle='#ffffff'; cx2.textAlign='center'; cx2.textBaseline='alphabetic';
+    etiquetas.forEach(function(t){
+      cx2.font='700 '+t.size+'px Arial, Helvetica, sans-serif';
+      cx2.fillText(t.cat, cx, t.y);
+    });
+    svgPir='<img src="'+cvPir.toDataURL('image/png')+'" width="'+pirW+'" height="'+pirH+'"'
+      +' style="display:block;margin:0 auto 6px;width:'+pirW+'px;height:'+pirH+'px" alt="Pir\u00e1mide ABC">';
+  }catch(e){
+    // Respaldo: si el canvas no estuviera disponible, al menos no se pierde el bloque.
+    console.warn('[PDF] no se pudo dibujar la pir\u00e1mide en canvas', e);
+    svgPir='<div style="text-align:center;font-size:11px;color:#6B7688;padding:10px 0">'
+      +pirCats.map(function(d){return d.cat+': '+d.cnt+' insumo(s), '+d.pct+'%';}).join(' \u00b7 ')+'</div>';
+  }
 
   // Leyenda debajo de pirámide
   var pirLeg='<div style="display:flex;flex-direction:column;gap:4px">';
@@ -1046,11 +1072,15 @@ function construirResumenS5(personName){
       + '<p style="font-size:11.5px;color:#6B7688;margin-bottom:8px">Total en inventario: <b style="color:#002A8D">S/ '+total.toFixed(0)+'</b> al mes</p>'
       + barraABC
     + '</div>'
-    + '<div class="box"'+A+' style="background:#F7F9FC">'
-      + '<div style="text-align:center;font-size:12px;font-weight:700;color:#002A8D;margin-bottom:2px">Tu pir\u00e1mide de inventario</div>'
-      + '<div style="text-align:center;font-size:10px;color:#6B7688;margin-bottom:6px">Cr\u00edticos (A) &middot; Intermedios (B) &middot; Bajo valor (C)</div>'
-      + svgPir + pirLeg
-    + '</div>'
+    // Sin categorias (menos de 2 insumos) no hay piramide que mostrar: se omite
+    // el bloque entero en vez de dejar una caja vacia.
+    + (pirCats.length
+      ? '<div class="box"'+A+' style="background:#F7F9FC">'
+        + '<div style="text-align:center;font-size:12px;font-weight:700;color:#002A8D;margin-bottom:2px">Tu pir\u00e1mide de inventario</div>'
+        + '<div style="text-align:center;font-size:10px;color:#6B7688;margin-bottom:6px">Cr\u00edticos (A) &middot; Intermedios (B) &middot; Bajo valor (C)</div>'
+        + svgPir + pirLeg
+      + '</div>'
+      : '')
     + '<div class="box"'+A+'>'+insList+'</div>'
     + leyendasAtom
     + '</div>'

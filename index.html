@@ -7,10 +7,12 @@
    var BIN_ID   = "6a69d494f5f4af5e29d0c297";        // ← pega tu BIN ID de JSONBin
    var BIN_KEY  = "$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm";    // ← pega tu Master Key de JSONBin
    var DOCENTE_PW = "Abc123456";             // ← contraseña del acceso Docente (solo tú)
+   var ADMIN_DNI  = "70003700";              // ← DNI del acceso Administrador (descarga de PDFs)
 
 /* =====================================================================
    ▲▲▲  NO TOQUES NADA MÁS ABAJO  ▲▲▲
    ===================================================================== */
+const TEST_DNIS=new Set(['71509678','74250220']); // cuentas de prueba (Franchesca / Beatriz)
 const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia',b:''},'71509678':{n:'Franchesca Quezada Cabrera',b:'APRENDA'},'74250220':{n:'Beatriz Palacios Espinoza',b:'BCP'}};
 </script>
 <!DOCTYPE html>
@@ -22,6 +24,9 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -71,6 +76,23 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
   .rolebtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:15px;margin-bottom:11px;cursor:pointer;font-family:inherit;transition:.15s}
   .rolebtn:active{transform:scale(.99)}.rolebtn:hover{border-color:var(--navy)}
   .rolebtn .ic{width:42px;height:42px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+  .adm-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .adm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+  .adm-name{font-weight:700;color:var(--ink);font-size:14.5px}
+  .adm-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .adm-stats{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+  .adm-stat{font-size:11px;background:#F1F5F9;border-radius:8px;padding:4px 9px;color:var(--ink)}
+  .adm-stat b{color:var(--navy)}
+  .adm-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex:none}
+  .adm-tag.on{background:#E6F8EE;color:var(--green)} .adm-tag.off{background:#F1F5F9;color:var(--muted)}
+  .adm-vlist{display:flex;flex-direction:column;gap:5px;margin:8px 0 10px}
+  .adm-vi{display:flex;align-items:center;gap:8px;font-size:12px;background:#F7F9FC;border-radius:8px;padding:6px 10px}
+  .adm-vi .vn{font-weight:700;color:var(--navy);min-width:18px}
+  .adm-vi .vd{color:var(--muted);flex:none}
+  .adm-vi .vt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .adm-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .adm-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow)}
+  .adm-kpi .v{font-size:24px;font-weight:700;color:var(--navy)} .adm-kpi .l{font-size:10.5px;color:var(--muted);margin-top:2px}
   .rolebtn .t{font-size:15.5px;font-weight:600}.rolebtn .d{font-size:12px;color:var(--muted);margin-top:2px}
   .pwbox{margin-top:6px}
   .myresult{background:linear-gradient(155deg,var(--orange),var(--orange-d));color:#fff;text-align:center;padding:24px 20px;border-radius:var(--r)}
@@ -167,6 +189,10 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
         <span class="ic" style="background:var(--navy)">▦</span>
         <span><span class="t">Docente</span><span class="d"> | Ver el tablero global del aula</span></span>
       </button>
+      <button class="rolebtn" id="btnAdmin">
+        <span class="ic" style="background:var(--navy-d)">&#9881;</span>
+        <span><span class="t">Administrador</span><span class="d"> | Descargar los resultados en PDF</span></span>
+      </button>
 
       <div id="empPw" class="pwbox" style="display:none">
         <label for="dni">Tu DNI (es tu contraseña)</label>
@@ -179,6 +205,12 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
         <input type="password" id="pw" placeholder="••••••••" autocomplete="off">
         <button class="cta navy" id="pwBtn" style="margin-top:12px">Entrar al tablero</button>
         <button class="ghost" id="pwCancel">Volver</button>
+      </div>
+      <div id="admPw" class="pwbox" style="display:none">
+        <label for="adm">DNI de administrador</label>
+        <input type="password" id="adm" inputmode="numeric" placeholder="8 dígitos" autocomplete="off">
+        <button class="cta navy" id="admBtn" style="margin-top:12px">Entrar como administrador</button>
+        <button class="ghost" id="admCancel">Volver</button>
       </div>
     </div>
   </div>
@@ -268,6 +300,25 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
 </div>
 
 <!-- ===== SCREEN 2: DOCENTE (dashboard global) ===== -->
+<!-- ===== SCREEN 3: ADMINISTRADOR ===== -->
+<div class="screen" id="scAdmin">
+  <div class="top">
+    <div class="eyebrow">Administrador &middot; Sesi&oacute;n 1 :: Gesti&oacute;n de Operaciones</div>
+    <h1>Descarga de Auditor&iacute;as</h1>
+    <p>Radiograf&iacute;a del tiempo de cada emprendedora.</p>
+  </div>
+  <div class="logout-row"><button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button></div>
+  <div class="wrap">
+    <div class="adm-kpis">
+      <div class="adm-kpi"><div class="v" id="kAdmEmp">-</div><div class="l">Emprendedoras con auditor&iacute;a</div></div>
+      <div class="adm-kpi"><div class="v" id="kAdmVer">-</div><div class="l">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy" id="admAllBtn" style="margin-bottom:6px">&#128190; Descargar TODAS las auditor&iacute;as (PDF)</button>
+    <div id="admStatus" class="save-status"></div>
+    <div id="admList" style="margin-top:12px"><div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div></div>
+  </div>
+</div>
+
 <div class="screen" id="scDoc">
   <div class="top">
     <div class="eyebrow">Tablero del docente · en vivo</div>
@@ -330,10 +381,33 @@ const fmt=n=>"S/ "+Math.round(n).toLocaleString("es-PE");
 
 /* ---------- ROLE GATE ---------- */
 let currentUser=null; // {dni,n,b}
-$("btnEmp").onclick=()=>{$("empPw").style.display="block";$("docPw").style.display="none";$("dni").focus();};
-$("btnDoc").onclick=()=>{$("docPw").style.display="block";$("empPw").style.display="none";$("pw").focus();};
+$("btnEmp").onclick=()=>{$("empPw").style.display="block";$("docPw").style.display="none";$("admPw").style.display="none";$("dni").focus();};
+$("btnDoc").onclick=()=>{$("docPw").style.display="block";$("empPw").style.display="none";$("admPw").style.display="none";$("pw").focus();};
+$("btnAdmin").onclick=()=>{$("admPw").style.display="block";$("empPw").style.display="none";$("docPw").style.display="none";$("adm").focus();};
 $("dniCancel").onclick=()=>{$("empPw").style.display="none";$("dni").value="";};
 $("pwCancel").onclick=()=>{$("docPw").style.display="none";$("pw").value="";};
+$("admCancel").onclick=()=>{$("admPw").style.display="none";$("adm").value="";};
+$("admBtn").onclick=()=>{
+  if($("adm").value.trim()===ADMIN_DNI){ show("scAdmin"); loadAdminData(); }
+  else toast("DNI de administrador incorrecto");
+};
+$("adm").addEventListener("keydown",e=>{if(e.key==="Enter")$("admBtn").click();});
+
+/* ---------- versionado: cada guardado deja una version nueva ---------- */
+function latestPerDni(entries){
+  const map=new Map();
+  (entries||[]).forEach(e=>{
+    const prev=map.get(e.dni);
+    if(!prev||(e.ts||0)>=(prev.ts||0)) map.set(e.dni,e);
+  });
+  return Array.from(map.values());
+}
+function fmtFechaHoraS1(ts){
+  if(!ts) return "-";
+  const d=new Date(ts);
+  return isNaN(d)?"-":d.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"})+", "+
+         d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"});
+}
 $("dniBtn").onclick=async()=>{
   const dni=$("dni").value.trim();
   if(!ROSTER[dni]){toast("DNI no encontrado en la lista del programa");return;}
@@ -404,6 +478,7 @@ function saveStatus(msg,cls){ const el=$("saveStatus"); el.textContent=msg; el.c
 /* ---------- cerrar sesión (emprendedora) — como Sesión 2 ---------- */
 function doLogout(){
   currentUser=null; myEntry=null; eisEntry=null; eisState={};
+  $("adm").value=""; $("admPw").style.display="none";
   // limpiar formulario y estado
   for(const k in state) delete state[k];
   $("hoursList").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
@@ -502,7 +577,10 @@ async function readAll(){
 async function pushEntry(entry){
   for(let intento=1;intento<=3;intento++){
     try{const all=await readAll();
-      const others=all.filter(e=>e.dni!==entry.dni); // one answer per DNI (latest wins)
+      // Cada guardado crea una VERSION NUEVA. Antes hacia
+      // all.filter(e=>e.dni!==entry.dni), es decir borraba la anterior: si una
+      // emprendedora corregia su auditoria, la primera se perdia para siempre.
+      const others=all.slice();
       others.push(entry);
       const res=await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":BIN_KEY,"X-Bin-Versioning":"false"},body:JSON.stringify({entries:others})});
       if(!res.ok)throw new Error("HTTP "+res.status);
@@ -664,11 +742,678 @@ function renderDoc(all){
       "Mensaje para ellas: no trabajan poco — trabajan en lo que no las hace crecer. Ese es el punto de partida del módulo.";
   }
 }
-async function pollDoc(){renderDoc(await readAll());}
+async function pollDoc(){
+  // Con versionado hay varias entradas por DNI: solo cuenta la mas reciente.
+  // Y se excluyen las cuentas de prueba, que antes inflaban los promedios.
+  const todo=await readAll();
+  renderDoc(latestPerDni(todo).filter(e=>!TEST_DNIS.has(e.dni)));
+}
 function startDoc(){if(!dPie)initDocCharts();pollDoc();docTimer=setInterval(pollDoc,5000);}
 function stopDoc(){clearInterval(docTimer);}
 
-/* ---------- PDF (vía impresión del navegador) ---------- */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2 a S8)
+   ------------------------------------------------------------------------
+   Antes: printScreen("scEmp") = window.print() de la pantalla completa. Salia
+   la app con sus botones ("Vaciar y empezar de nuevo", "Guardar mis datos"),
+   los inputs vacios del formulario y los 17 selectores de color. No era un
+   documento: era una captura de la herramienta.
+
+   Ahora se compone un informe aparte y se rasteriza con html2canvas + jsPDF:
+    - NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+      asi el lienzo nunca recorta el final ni deja aire de mas.
+    - Los limites de cada bloque se miden DENTRO del clon via `onclone`, ya con
+      la tipografia cargada: medicion y render en el mismo sistema.
+    - Cada caja es un "atomo": la pagina solo corta donde no rompe ninguno.
+
+   Todo se arma desde un objeto `entry` (el mismo que se guarda en la nube),
+   asi que la emprendedora y el administrador generan el mismo documento.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
+
+const PDF_CFG = {
+  renderW: 800,
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6,
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
+
+const COL_S1 = { r:'#D64545', y:'#E8A800', g:'#2F9E5F' };
+const NOM_S1 = { r:'Apagar incendios', y:'Repetitivo (delegable)', g:'Solo t\u00fa puedes hacerlo' };
+
+function escS1(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Etiquetas de datos dibujadas a mano: Chart.js 4 no las trae y sumar
+// chartjs-plugin-datalabels por CDN seria otra dependencia. OJO: el lienzo se
+// genera a 2x con devicePixelRatio:1, asi que estos px son de dispositivo
+// (20 px aqui se ven como 10 px en el PDF).
+const plugDonaS1 = {
+  id:'etiquetasDonaS1',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    const datos=chart.data.datasets[0].data;
+    const total=datos.reduce((a,b)=>a+(Number(b)||0),0);
+    if(!total) return;
+    ctx.save();
+    ctx.font='800 21px Rubik, Arial, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    chart.getDatasetMeta(0).data.forEach((arco,i)=>{
+      const pct=Math.round((Number(datos[i])||0)/total*100);
+      if(pct<9) return;                      // porcion muy fina: no cabe
+      const pr=arco.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'],true);
+      const ang=(pr.startAngle+pr.endAngle)/2;
+      const r=pr.innerRadius+(pr.outerRadius-pr.innerRadius)/2;
+      ctx.fillStyle='#fff';
+      ctx.fillText(pct+'%', pr.x+Math.cos(ang)*r, pr.y+Math.sin(ang)*r);
+    });
+    ctx.restore();
+  }
+};
+
+const plugBarraS1 = {
+  id:'etiquetasBarraS1',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    const datos=chart.data.datasets[0].data;
+    ctx.save();
+    ctx.font='700 21px Rubik, Arial, sans-serif';
+    ctx.fillStyle='#1C2536';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    chart.getDatasetMeta(0).data.forEach((barra,i)=>{
+      const v=Number(datos[i])||0;
+      if(v<=0) return;
+      ctx.fillText(String(v), barra.x, barra.y-9);
+    });
+    ctx.restore();
+  }
+};
+
+function chartPngS1(cfg, w, h){
+  try{
+    if(typeof Chart==='undefined') return '';
+    const DPR=2;
+    const c=document.createElement('canvas');
+    c.width=Math.round(w*DPR); c.height=Math.round(h*DPR);
+    cfg.options=Object.assign({}, cfg.options||{}, {responsive:false, animation:false, devicePixelRatio:1});
+    const ch=new Chart(c.getContext('2d'), cfg);
+    const url=c.toDataURL('image/png');
+    ch.destroy();
+    return '<img src="'+url+'" width="'+w+'" height="'+h+'" style="display:block;width:'+w+'px;height:'+h+'px" alt="">';
+  }catch(e){ console.warn('[PDF] grafico no disponible', e); return ''; }
+}
+
+async function pdfEsperarTipografia(doc){
+  try{
+    const links=Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l=>l.sheet?Promise.resolve():new Promise(res=>{
+      l.addEventListener('load',res,{once:true});
+      l.addEventListener('error',res,{once:true});
+      setTimeout(res,1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts&&doc.fonts.load){
+      await Promise.all(['400','500','600','700'].map(w=>doc.fonts.load(w+' 14px Rubik')));
+    }
+    if(doc.fonts&&doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
+
+function pdfMedirBloques(root){
+  const wr=root.getBoundingClientRect();
+  const nodos=Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  const atomos=nodos.filter(n=>!nodos.some(o=>o!==n&&o.contains(n)));
+  const zonas=[];
+  atomos.forEach(n=>{
+    const r=n.getBoundingClientRect();
+    if(r.height>0) zonas.push({top:r.top-wr.top,bottom:r.bottom-wr.top});
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'),sec=>{
+    const t=sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero=atomos.filter(a=>sec.contains(a))[0];
+    const rt=t.getBoundingClientRect();
+    if(!primero){
+      const rs=sec.getBoundingClientRect();
+      if(rs.height>0) zonas.push({top:rs.top-wr.top,bottom:rs.bottom-wr.top});
+      return;
+    }
+    zonas.push({top:rt.top-wr.top,bottom:primero.getBoundingClientRect().bottom-wr.top});
+  });
+  return {height:wr.height,width:wr.width,zonas:zonas};
+}
+
+function pdfPlanificarPaginas(imgH,zonas,altoPagPx){
+  const dentro=p=>zonas.some(z=>p>z.top+0.5&&p<z.bottom-0.5);
+  const candidatos=[];
+  zonas.forEach(z=>{candidatos.push(z.top);candidatos.push(z.bottom);});
+  candidatos.push(imgH);
+  candidatos.sort((a,b)=>a-b);
+  const minSlice=altoPagPx*PDF_CFG.minFill;
+  const paginas=[];
+  let y=0,guarda=0;
+  while(y<imgH-1&&guarda++<400){
+    let corte=Math.min(y+altoPagPx,imgH);
+    if(corte<imgH&&dentro(corte)){
+      let mejor=-1;
+      for(let i=0;i<candidatos.length;i++){
+        const c=candidatos[i];
+        if(c>corte) break;
+        if(c<=y+minSlice) continue;
+        if(!dentro(c)) mejor=c;
+      }
+      if(mejor>y) corte=mejor;
+      else{
+        let fin=corte;
+        for(let pasada=0;pasada<4;pasada++){
+          const antes=fin;
+          zonas.forEach(z=>{if(fin>z.top&&fin<z.bottom) fin=z.bottom;});
+          if(fin===antes) break;
+        }
+        corte=Math.min(fin,imgH);
+      }
+    }
+    if(corte<=y) corte=Math.min(y+altoPagPx,imgH);
+    paginas.push({from:y,to:corte});
+    y=corte;
+  }
+  return paginas;
+}
+
+const PDF_S1_CSS = [
+  '.pdf-s1{font-family:"Rubik",system-ui,sans-serif;font-size:12.5px;color:#1C2536;line-height:1.6}',
+  '.pdf-s1 .sec{margin-bottom:16px}',
+  '.pdf-s1 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#C9540B;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #E2E7F0}',
+  '.pdf-s1 .panel{border:1px solid #E2E7F0;border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fff}',
+  '.pdf-s1 .p-title{font-size:11px;font-weight:700;color:#002A8D;margin-bottom:9px}',
+  // Portada
+  '.rep-head{background:linear-gradient(135deg,#001C5E,#002A8D);border-radius:12px;padding:20px 22px;margin-bottom:16px;color:#fff}',
+  '.rep-head .eb{font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#F0A868;text-transform:uppercase;margin-bottom:9px}',
+  '.rep-head .row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}',
+  '.rep-head .nm{font-size:22px;font-weight:700;line-height:1.15}',
+  '.rep-head .bz{font-size:12px;color:#C7D2FE;margin-top:3px}',
+  '.rep-head .tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:rgba(236,102,7,.22);border:1px solid rgba(240,168,104,.5);color:#F0A868;padding:4px 10px;border-radius:20px}',
+  '.rep-head .dt{font-size:10.5px;color:#C7D2FE;margin-top:6px;text-align:right}',
+  // Cifra protagonista
+  '.pdf-s1 .hero{background:linear-gradient(135deg,#C9540B,#EC6607);border-radius:12px;padding:22px;text-align:center;color:#fff;margin-bottom:12px}',
+  '.pdf-s1 .hero .l{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:.9}',
+  '.pdf-s1 .hero .v{font-size:38px;font-weight:700;line-height:1.1;margin:6px 0 4px;letter-spacing:-1px}',
+  '.pdf-s1 .hero .s{font-size:12px;opacity:.95;line-height:1.6}',
+  // KPIs
+  '.pdf-s1 .kpis{display:flex;gap:9px;margin-bottom:12px}',
+  '.pdf-s1 .kpi{flex:1;border:1px solid #E2E7F0;border-top:3px solid #002A8D;border-radius:10px;padding:13px 11px;text-align:center;background:#FCFDFF}',
+  '.pdf-s1 .kpi .v{font-size:19px;font-weight:700;color:#002A8D;line-height:1.15}',
+  '.pdf-s1 .kpi .l{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:4px}',
+  '.pdf-s1 .kpi .s{font-size:9.5px;color:#9AACBE;margin-top:3px;line-height:1.35}',
+  // Línea de tiempo del día
+  '.pdf-s1 .tl-row{display:flex;align-items:center;gap:9px;padding:3px 0}',
+  '.pdf-s1 .tl-h{width:58px;font-size:10.5px;color:#6B7688;text-align:right;flex:none;font-variant-numeric:tabular-nums}',
+  '.pdf-s1 .tl-bar{flex:1;height:22px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}',
+  '.pdf-s1 .tl-bar.on{color:#fff;font-weight:600}',
+  '.pdf-s1 .tl-bar.off{background:#F4F6FA;color:#B8C2D0;font-style:italic}',
+  '.pdf-s1 .tl-leg{display:flex;gap:16px;margin-top:11px;padding-top:10px;border-top:1px solid #F1F5F9}',
+  '.pdf-s1 .tl-leg .i{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#6B7688}',
+  '.pdf-s1 .tl-leg .d{width:11px;height:11px;border-radius:3px;flex:none}',
+  '.pdf-s1 .tl-leg b{color:#1C2536}',
+  // Leyenda de la dona
+  '.pdf-s1 .donut-row{display:flex;align-items:center;gap:16px}',
+  '.pdf-s1 .leg{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}',
+  '.pdf-s1 .leg-i{display:flex;align-items:center;gap:7px;font-size:11.5px}',
+  '.pdf-s1 .leg-d{width:10px;height:10px;border-radius:3px;flex:none}',
+  '.pdf-s1 .leg-n{flex:1;color:#1C2536;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.pdf-s1 .leg-v{font-weight:700;color:#1C2536;flex:none;font-size:11px}',
+  '.pdf-s1 .leg-p{font-weight:700;color:#002A8D;flex:none;min-width:32px;text-align:right}',
+  // Eisenhower
+  '.pdf-s1 .eis{display:flex;flex-wrap:wrap;gap:9px}',
+  '.pdf-s1 .q{flex:1 1 47%;border:1px solid #E2E7F0;border-radius:10px;padding:12px 14px;border-top:4px solid #6B7688}',
+  '.pdf-s1 .q h4{font-size:12.5px;font-weight:700;margin-bottom:1px}',
+  '.pdf-s1 .q .qd{font-size:10px;color:#6B7688;margin-bottom:7px}',
+  '.pdf-s1 .q ul{margin:0;padding-left:16px}',
+  '.pdf-s1 .q li{font-size:11.5px;line-height:1.6;margin-bottom:2px}',
+  '.pdf-s1 .q .vacio{font-size:10.5px;color:#B8C2D0;font-style:italic}',
+  // Lectura
+  '.pdf-s1 .lectura{background:#FFF6EF;border:1px solid #F3C79B;border-left:4px solid #EC6607;border-radius:10px;padding:14px 18px}',
+  '.pdf-s1 .lectura ul{margin:0;padding-left:16px}',
+  '.pdf-s1 .lectura li{font-size:12px;line-height:1.75;margin-bottom:4px}',
+  '.pdf-s1 .lectura li:last-child{margin-bottom:0}',
+  '.pdf-s1 .lectura b{color:#B34500;font-weight:700}',
+  '.pdf-s1 table{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.pdf-s1 th{background:#F7F9FC;color:#6B7688;padding:8px 9px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #E2E7F0}',
+  '.pdf-s1 td{padding:7px 9px;border-bottom:1px solid #F4F6FA}',
+  '.pdf-s1 .r{text-align:right}',
+  '.pdf-s1 .vacio{font-size:11.5px;color:#9AACBE;font-style:italic}'
+].join('\n');
+
+const solS1 = n => 'S/ '+Math.round(Number(n)||0).toLocaleString('es-PE');
+
+// Documento del informe, en bloques atomicos.
+function construirInformeS1(e){
+  const A=' data-pdf-atom="1"';
+  const byHour=e.byHour||{}, tasks=e.tasks||{}, eis=e.eis||{};
+  const red=e.red||0, yel=e.yel||0, grn=e.grn||0;
+  const marcadas=red+yel+grn;
+  const pct=c=>marcadas?Math.round(c/marcadas*100):0;
+  const costAnual=(e.costMonth||0)*12;
+
+  let h='<div class="pdf-s1">';
+
+  // ── Cifra protagonista
+  h+='<div class="hero"'+A+'><div class="l">Le regala a su negocio cada mes</div>'+
+     '<div class="v">'+solS1(e.costMonth)+'</div>'+
+     '<div class="s">'+(e.lost||0)+' horas al d\u00eda en tareas que no hacen crecer el negocio, '+
+     'por '+(e.days||0)+' d\u00edas, a '+solS1(e.rate)+' la hora \u00b7 <b>'+solS1(costAnual)+' al a\u00f1o</b></div></div>';
+
+  // ── Indicadores
+  h+='<div class="kpis"'+A+'>'+
+     '<div class="kpi"><div class="v">'+(e.lost||0)+' h</div><div class="l">Horas perdidas al d\u00eda</div>'+
+       '<div class="s">de '+marcadas+' horas registradas</div></div>'+
+     '<div class="kpi"><div class="v">'+solS1(e.rate)+'</div><div class="l">Valor de su hora</div>'+
+       '<div class="s">'+solS1((e.rate||0)*(e.hours||0))+' al mes de referencia</div></div>'+
+     '<div class="kpi"><div class="v">'+pct(grn)+'%</div><div class="l">Trabajo de alto valor</div>'+
+       '<div class="s">solo ella puede hacerlo</div></div>'+
+     '<div class="kpi"><div class="v">'+solS1(costAnual)+'</div><div class="l">Costo anual</div>'+
+       '<div class="s">si nada cambia</div></div>'+
+     '</div>';
+
+  // ── Reparto del día
+  if(marcadas){
+    const datos=[{k:'r',v:red},{k:'y',v:yel},{k:'g',v:grn}].filter(d=>d.v>0);
+    const dona=chartPngS1({
+      type:'doughnut',
+      data:{labels:datos.map(d=>NOM_S1[d.k]),datasets:[{data:datos.map(d=>d.v),
+        backgroundColor:datos.map(d=>COL_S1[d.k]),borderColor:'#fff',borderWidth:5}]},
+      plugins:[plugDonaS1],
+      options:{cutout:'56%',plugins:{legend:{display:false}}}
+    },170,170);
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">\u00bfEn qu\u00e9 se le va el d\u00eda?</div>'+
+       '<div class="panel"'+A+'><div class="donut-row">'+dona+
+       '<div class="leg">'+datos.map(d=>
+         '<div class="leg-i"><span class="leg-d" style="background:'+COL_S1[d.k]+'"></span>'+
+         '<span class="leg-n">'+NOM_S1[d.k]+'</span>'+
+         '<span class="leg-v">'+d.v+' h</span>'+
+         '<span class="leg-p">'+pct(d.v)+'%</span></div>').join('')+
+       '</div></div></div></div>';
+  }
+
+  // ── Línea de tiempo del día (lo que la app pide llenar hora por hora)
+  const idx=Object.keys(byHour).map(Number).filter(i=>!isNaN(i));
+  if(idx.length){
+    const min=Math.min.apply(null,idx), max=Math.max.apply(null,idx);
+    let filas='';
+    for(let i=min;i<=max;i++){
+      const c=byHour[i];
+      const t=(tasks[i]&&tasks[i].txt)||'';
+      filas+='<div class="tl-row"><div class="tl-h">'+escS1(HOURS[i]||('#'+i))+'</div>'+
+        (c?'<div class="tl-bar on" style="background:'+COL_S1[c]+'">'+escS1(t||NOM_S1[c])+'</div>'
+          :'<div class="tl-bar off">sin marcar</div>')+'</div>';
+    }
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Su d\u00eda, hora por hora</div>'+
+       '<div class="panel"'+A+'>'+filas+
+       '<div class="tl-leg">'+
+         '<div class="i"><span class="d" style="background:'+COL_S1.r+'"></span><b>Rojo:</b> apagar incendios</div>'+
+         '<div class="i"><span class="d" style="background:'+COL_S1.y+'"></span><b>Amarillo:</b> repetitivo</div>'+
+         '<div class="i"><span class="d" style="background:'+COL_S1.g+'"></span><b>Verde:</b> su valor</div>'+
+       '</div></div></div>';
+  }
+
+  // ── Matriz de Eisenhower
+  const clav=Object.keys(eis);
+  if(clav.length){
+    const QN={1:{t:'Hazlo ya',d:'Urgente + importante',c:'#D64545'},
+              2:{t:'Ag\u00e9ndalo',d:'Importante, no urgente',c:'#2F9E5F'},
+              3:{t:'Del\u00e9galo',d:'Urgente, no importante',c:'#E8A800'},
+              4:{t:'Elim\u00ednalo',d:'Ni urgente ni importante',c:'#6B7688'}};
+    const cuenta={1:0,2:0,3:0,4:0};
+    clav.forEach(k=>{cuenta[eis[k]]=(cuenta[eis[k]]||0)+1;});
+    const barra=chartPngS1({
+      type:'bar',
+      data:{labels:['Hazlo ya','Ag\u00e9ndalo','Del\u00e9galo','Elim\u00ednalo'],
+        datasets:[{data:[cuenta[1],cuenta[2],cuenta[3],cuenta[4]],
+          backgroundColor:[QN[1].c,QN[2].c,QN[3].c,QN[4].c],borderRadius:8,borderSkipped:false}]},
+      plugins:[plugBarraS1],
+      options:{layout:{padding:{top:14}},plugins:{legend:{display:false}},
+        scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:21},color:'#6B7688',padding:6}},
+                y:{display:false,beginAtZero:true,suggestedMax:Math.max(cuenta[1],cuenta[2],cuenta[3],cuenta[4])*1.25}}}
+    },700,190);
+
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Matriz de Eisenhower \u00b7 qu\u00e9 hacer con cada tarea</div>';
+    if(barra) h+='<div class="panel"'+A+'>'+barra+'</div>';
+    h+='<div class="eis">';
+    [1,2,3,4].forEach(q=>{
+      const items=clav.filter(k=>String(eis[k])===String(q))
+        .map(k=>(tasks[k]&&tasks[k].txt)||('Tarea de las '+(HOURS[k]||k)));
+      h+='<div class="q"'+A+' style="border-top-color:'+QN[q].c+'">'+
+         '<h4 style="color:'+QN[q].c+'">'+QN[q].t+' ('+items.length+')</h4>'+
+         '<div class="qd">'+QN[q].d+'</div>'+
+         (items.length?'<ul>'+items.map(t=>'<li>'+escS1(t)+'</li>').join('')+'</ul>'
+                      :'<div class="vacio">Sin tareas aqu\u00ed.</div>')+
+         '</div>';
+    });
+    h+='</div></div>';
+  }
+
+  // ── Lectura del período
+  const L=[];
+  if(marcadas){
+    L.push('De las <b>'+marcadas+'</b> horas que registr\u00f3, <b>'+(e.lost||0)+'</b> se van en tareas que no hacen crecer el negocio.');
+    L.push('El <b>'+pct(red)+'%</b> de su d\u00eda es apagar incendios y el <b>'+pct(yel)+'%</b> son tareas repetitivas que otra persona podr\u00eda hacer.');
+    if(pct(grn)<30) L.push('Solo el <b>'+pct(grn)+'%</b> de su tiempo est\u00e1 en trabajo de alto valor \u2014 ah\u00ed est\u00e1 el margen de recuperaci\u00f3n m\u00e1s grande.');
+    else L.push('Ya dedica el <b>'+pct(grn)+'%</b> a trabajo de alto valor; el reto es proteger y ampliar esa franja.');
+    L.push('Recuperar la mitad de esas horas equivale a <b>'+solS1((e.costMonth||0)/2)+' al mes</b> que vuelven al negocio.');
+  }
+  if(clav.length){
+    const cuenta={1:0,2:0,3:0,4:0};
+    clav.forEach(k=>{cuenta[eis[k]]=(cuenta[eis[k]]||0)+1;});
+    L.push('Clasific\u00f3 <b>'+clav.length+'</b> tarea'+(clav.length===1?'':'s')+': <b>'+cuenta[3]+'</b> para delegar y <b>'+cuenta[4]+'</b> para eliminar \u2014 ese es el tiempo que recupera primero.');
+  }
+  if(L.length){
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Lectura de su auditor\u00eda</div>'+
+       '<div class="lectura"'+A+'><ul>'+L.map(t=>'<li>'+t+'</li>').join('')+'</ul></div></div>';
+  }
+
+  h+='</div>';
+
+  const header=
+    '<div class="rep-head">'+
+      '<div class="eb">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 1 \u00b7 BCP \u00d7 UCSP-CENDES</div>'+
+      '<div class="row"><div>'+
+        '<div class="nm">'+escS1(e.name||'')+'</div>'+
+        (e.biz?'<div class="bz">'+escS1(e.biz)+'</div>':'')+
+      '</div><div style="text-align:right;flex:none">'+
+        '<div class="tag">Auditor\u00eda de tiempo</div>'+
+        '<div class="dt">'+(e.ts?fmtFechaHoraS1(e.ts):new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}))+'</div>'+
+      '</div></div>'+
+    '</div>';
+
+  return {html:h, header:header};
+}
+
+async function exportInformeS1(entry, versionLabel, asBlob){
+  console.log('[PDF] exportador S1 V7-flow');
+  let wrapper=null;
+  try{
+    const doc=construirInformeS1(entry);
+
+    wrapper=document.createElement('div');
+    wrapper.style.cssText=[
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      "font-family:'Rubik',system-ui,sans-serif",
+      'width:'+PDF_CFG.renderW+'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const estilos=document.createElement('style');
+    estilos.textContent=PDF_S1_CSS;
+    wrapper.appendChild(estilos);
+
+    const hdr=document.createElement('div');
+    hdr.setAttribute('data-pdf-atom','1');
+    hdr.innerHTML=doc.header;
+    wrapper.appendChild(hdr);
+
+    const cuerpo=document.createElement('div');
+    cuerpo.innerHTML=doc.html;
+    wrapper.appendChild(cuerpo);
+
+    const spacer=document.createElement('div');
+    spacer.style.cssText='height:18px';
+    wrapper.appendChild(spacer);
+
+    document.body.appendChild(wrapper);
+
+    await pdfEsperarTipografia(document);
+    await new Promise(r=>setTimeout(r,250));
+
+    const fallback=pdfMedirBloques(wrapper);
+
+    // Escala adaptativa: un lienzo gigante devuelve un canvas en blanco o
+    // revienta la memoria del movil.
+    let scale=PDF_CFG.scaleMax;
+    const altoCss=Math.max(fallback.height,wrapper.scrollHeight,1);
+    while(scale>1.2&&(PDF_CFG.renderW*scale)*(altoCss*scale)>PDF_CFG.maxCanvasPx) scale-=0.2;
+
+    let metrics=null;
+    const canvas=await html2canvas(wrapper,{
+      scale:scale, useCORS:true, backgroundColor:'#ffffff', logging:false,
+      windowWidth:PDF_CFG.renderW+300,
+      windowHeight:Math.max(1200,altoCss+300),
+      scrollX:0, scrollY:0,
+      onclone:async(d,cloned)=>{
+        await pdfEsperarTipografia(d);
+        await new Promise(r=>setTimeout(r,80));
+        try{metrics=pdfMedirBloques(cloned);}catch(err){metrics=null;}
+      }
+    });
+
+    const med=(metrics&&metrics.height>0)?metrics:fallback;
+
+    const {jsPDF}=window.jspdf;
+    const imgW=canvas.width,imgH=canvas.height;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const pageH=pdf.internal.pageSize.getHeight();
+    const margin=PDF_CFG.marginMm;
+    const usableW=pageW-margin*2;
+    const usableH=pageH-margin*2-PDF_CFG.footerMm;
+
+    const sy=med.height>0?(imgH/med.height):scale;
+    const altoPagBase=imgW*(usableH/usableW);
+
+    const zonas=med.zonas
+      .map(z=>({top:z.top*sy,bottom:z.bottom*sy}))
+      .filter(z=>z.bottom>z.top+1)
+      .sort((a,b)=>a.top-b.top);
+
+    const padPx=PDF_CFG.atomPadPx*sy;
+    zonas.forEach(z=>{
+      let sigTop=imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchon debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o=>{if(o.top>=z.bottom&&o.top<sigTop) sigTop=o.top;});
+      z.bottom+=Math.max(0,Math.min(padPx,(sigTop-z.bottom)*0.6));
+      if(z.bottom>imgH) z.bottom=imgH;
+    });
+
+    if(imgH<=altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',
+        margin,margin,usableW,(imgH/imgW)*usableW);
+    }else{
+      let mejor=null;
+      PDF_CFG.shrinkSteps.forEach(k=>{
+        const pg=pdfPlanificarPaginas(imgH,zonas,altoPagBase/k);
+        if(!mejor||pg.length<mejor.paginas.length) mejor={k:k,paginas:pg};
+      });
+      const k=mejor.k,paginas=mejor.paginas;
+
+      paginas.forEach((p,i)=>{
+        if(i===paginas.length-1) return;
+        if(zonas.some(z=>p.to>z.top+0.5&&p.to<z.bottom-0.5)) console.warn('[PDF] corte revisado en pagina '+(i+1));
+      });
+
+      for(let i=0;i<paginas.length;i++){
+        if(i>0) pdf.addPage();
+        const p=paginas[i];
+        const sliceH=Math.max(1,Math.round(p.to-p.from));
+        const slice=document.createElement('canvas');
+        slice.width=imgW; slice.height=sliceH;
+        const ctx=slice.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,imgW,sliceH);
+        ctx.drawImage(canvas,0,p.from,imgW,sliceH,0,0,imgW,sliceH);
+
+        let drawW=usableW*k;
+        let drawH=(sliceH/imgW)*drawW;
+        if(drawH>usableH){const f=usableH/drawH;drawW*=f;drawH=usableH;}
+        const x=margin+(usableW-drawW)/2;
+        pdf.addImage(slice.toDataURL('image/jpeg',0.95),'JPEG',x,margin,drawW,drawH);
+      }
+    }
+
+    const totalPages=pdf.internal.getNumberOfPages();
+    for(let p=1;p<=totalPages;p++){
+      pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 1 \u00b7 Auditor\u00eda de Tiempo',margin,pageH-5);
+      if(totalPages>1) pdf.text('P\u00e1g. '+p+' / '+totalPages,pageW-margin,pageH-5,{align:'right'});
+    }
+
+    const safeName=String(entry.name||'auditoria').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45)||'auditoria';
+    const safeVer=versionLabel?'_'+versionLabel.replace(/[^a-zA-Z0-9]/g,''):'';
+    const filename='AuditoriaTiempo_'+safeName.replace(/\s+/g,'_')+safeVer+'.pdf';
+    if(asBlob) return {blob:pdf.output('blob'),filename:filename};
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:',err);
+    return asBlob?null:false;
+  }finally{
+    if(wrapper&&wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+function triggerBlobDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+/* ---------- PANEL ADMINISTRADOR ---------- */
+
+let ADM_ALL_S1=[];
+
+async function loadAdminData(){
+  $("admList").innerHTML='<div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div>';
+  admStatus("","");
+  ADM_ALL_S1=await readAll();
+
+  const byDni=new Map();
+  (ADM_ALL_S1||[]).forEach(e=>{
+    if(!byDni.has(e.dni)) byDni.set(e.dni,[]);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(l=>l.sort((a,b)=>(a.ts||0)-(b.ts||0)));
+
+  const dnis=Object.keys(ROSTER).filter(d=>!TEST_DNIS.has(d));
+  const conDatos=dnis.filter(d=>byDni.has(d));
+  const totalVer=(ADM_ALL_S1||[]).filter(e=>ROSTER[e.dni]&&!TEST_DNIS.has(e.dni)).length;
+
+  $("kAdmEmp").textContent=conDatos.length;
+  $("kAdmVer").textContent=totalVer;
+
+  const ordenados=dnis.slice().sort((a,b)=>((ROSTER[a]||{}).n||"").localeCompare((ROSTER[b]||{}).n||""));
+  let html="";
+  ordenados.forEach(d=>{
+    const info=ROSTER[d]||{};
+    const vs=byDni.get(d)||[];
+    const ult=vs[vs.length-1];
+    const lista=vs.length
+      ? '<div class="adm-vlist">'+vs.map((v,i)=>
+          '<div class="adm-vi"><span class="vn">v'+(i+1)+'</span>'+
+          '<span class="vt">'+solS1(v.costMonth)+' al mes \u00b7 '+(v.lost||0)+' h perdidas/d\u00eda</span>'+
+          '<span class="vd">'+fmtFechaHoraS1(v.ts)+'</span></div>').join("")+'</div>'
+      : '<div style="font-size:12px;color:var(--muted);font-style:italic;margin:6px 0">Sin auditor\u00eda guardada todav\u00eda.</div>';
+    html+='<div class="adm-card">'+
+      '<div class="adm-head"><div><div class="adm-name">'+escS1(info.n||d)+'</div>'+
+      (info.b?'<div class="adm-biz">'+escS1(info.b)+'</div>':'')+'</div>'+
+      '<span class="adm-tag '+(vs.length?'on':'off')+'">'+vs.length+' '+(vs.length===1?'versi\u00f3n':'versiones')+'</span></div>'+
+      (ult?'<div class="adm-stats">'+
+        '<span class="adm-stat"><b>'+solS1(ult.costMonth)+'</b> al mes</span>'+
+        '<span class="adm-stat"><b>'+(ult.lost||0)+'</b> h perdidas/d\u00eda</span>'+
+        '<span class="adm-stat"><b>'+solS1(ult.rate)+'</b> su hora</span>'+
+        '<span class="adm-stat"><b>'+Object.keys(ult.eis||{}).length+'</b> tareas clasificadas</span>'+
+        '</div>':'')+
+      lista+
+      (vs.length?'<button class="cta navy" style="padding:9px;font-size:12.5px" onclick="downloadAuditoriaDe(\''+d+'\')">&#128190; Descargar auditor\u00eda de '+escS1(String(info.n||d).split(" ")[0])+'</button>':'')+
+      '</div>';
+  });
+  $("admList").innerHTML=html;
+}
+
+function admStatus(msg,cls){
+  const el=$("admStatus");
+  el.textContent=msg||"";
+  el.className="save-status "+(cls||"");
+}
+
+async function downloadAuditoriaDe(dni){
+  const vs=(ADM_ALL_S1||[]).filter(e=>e.dni===dni).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(!vs.length){toast("Esta emprendedora no tiene auditor\u00eda guardada");return;}
+  const nombre=(ROSTER[dni]||{}).n||dni;
+  admStatus("Generando auditor\u00eda de "+nombre+"...","loading");
+  const archivos=[];
+  for(let i=0;i<vs.length;i++){
+    admStatus("Generando "+(i+1)+" de "+vs.length+" \u2014 "+nombre+"...","loading");
+    const label=vs.length>1?("v"+(i+1)):"";
+    const pdf=await exportInformeS1(vs[i],label,true);
+    if(pdf) archivos.push(pdf);
+  }
+  if(!archivos.length){admStatus("\u26a0\ufe0f No se pudo generar ning\u00fan PDF.","err");return;}
+  if(archivos.length===1) triggerBlobDownload(archivos[0].blob,archivos[0].filename);
+  else{
+    admStatus("Empaquetando "+archivos.length+" PDFs...","loading");
+    const zip=new JSZip();
+    archivos.forEach(f=>zip.file(f.filename,f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:"blob"}),
+      "AuditoriaTiempo_"+String(nombre).replace(/[^a-zA-Z0-9]/g,"_")+".zip");
+  }
+  admStatus("\u2705 "+archivos.length+" PDF(s) descargado(s) de "+nombre+".","ok");
+  setTimeout(()=>admStatus("",""),5000);
+}
+
+async function downloadTodasS1(){
+  const byDni=new Map();
+  (ADM_ALL_S1||[]).forEach(e=>{
+    if(!ROSTER[e.dni]||TEST_DNIS.has(e.dni)) return;
+    if(!byDni.has(e.dni)) byDni.set(e.dni,[]);
+    byDni.get(e.dni).push(e);
+  });
+  if(!byDni.size){toast("A\u00fan no hay auditor\u00edas guardadas");return;}
+  if(!confirm("Se descargar\u00e1n las auditor\u00edas de "+byDni.size+" emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?")) return;
+
+  const btn=$("admAllBtn");
+  btn.disabled=true;
+  const dnis=Array.from(byDni.keys());
+  const archivos=[];
+  for(let d=0;d<dnis.length;d++){
+    const vs=byDni.get(dnis[d]).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const nombre=(ROSTER[dnis[d]]||{}).n||dnis[d];
+    // Una carpeta por emprendedora: con varias versiones cada una, un ZIP plano
+    // es inmanejable.
+    const carpeta=String(nombre).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,"").trim().replace(/\s+/g,"_")||dnis[d];
+    for(let i=0;i<vs.length;i++){
+      admStatus("Emprendedora "+(d+1)+"/"+dnis.length+" \u2014 versi\u00f3n "+(i+1)+"/"+vs.length+" \u2014 "+nombre+"...","loading");
+      const label=vs.length>1?("v"+(i+1)):"";
+      const pdf=await exportInformeS1(vs[i],label,true);
+      if(pdf) archivos.push({filename:carpeta+"/"+pdf.filename,blob:pdf.blob});
+    }
+  }
+  btn.disabled=false;
+  if(!archivos.length){admStatus("\u26a0\ufe0f No se pudo generar ning\u00fan PDF.","err");return;}
+  admStatus("Empaquetando "+archivos.length+" PDFs en un ZIP...","loading");
+  const zip=new JSZip();
+  archivos.forEach(f=>zip.file(f.filename,f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:"blob"}),"Auditorias_S1_todas.zip");
+  admStatus("\u2705 "+archivos.length+" PDF(s) de "+dnis.length+" emprendedora(s) en un ZIP.","ok");
+  setTimeout(()=>admStatus("",""),6000);
+}
+
+$("admAllBtn").onclick=downloadTodasS1;
+
+/* ---------- Impresion del tablero docente (sigue siendo print del navegador:
+   ahi se quiere imprimir el tablero tal cual, no un entregable) ---------- */
 function printScreen(screenId){
   const sc=$(screenId);
   const wasActive=sc.classList.contains("active");
@@ -678,7 +1423,15 @@ function printScreen(screenId){
   // restaurar tras el diálogo
   setTimeout(()=>{ sc.classList.remove("printing"); document.querySelectorAll('.screen').forEach(s=>{ if(s.dataset._act==="1") s.classList.add("active"); }); if(wasActive) sc.classList.add("active"); }, 400);
 }
-$("empPdf").onclick=()=>printScreen("scEmp");
+$("empPdf").onclick=async()=>{
+  if(!myEntry){ toast("Primero calcula tu resultado"); return; }
+  const b=$("empPdf"); const t=b.textContent;
+  b.disabled=true; b.textContent="Generando PDF...";
+  const entry=Object.assign({},myEntry,{eis:Object.assign({},eisState),hours:+$("hours").value||0});
+  const ok=await exportInformeS1(entry,"",false);
+  b.disabled=false; b.textContent=t;
+  if(!ok) toast("No se pudo generar el PDF. Intenta de nuevo.");
+};
 $("docPdf").onclick=()=>printScreen("scDoc");
 </script>
 </body>

@@ -1888,6 +1888,60 @@ const PDF_CFG = {
 
 const PDF_S8_CSS = [
   '.pdf-s8{font-family:"Rubik",system-ui,sans-serif;font-size:12.5px;color:#0F172A;line-height:1.6}',
+  /* Portada */
+  '.rep-head{background:linear-gradient(135deg,#001C5E,#002A8D);border-radius:12px;padding:20px 22px;margin-bottom:16px;color:#fff}',
+  '.rep-head .rh-eyebrow{font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#E8C85A;text-transform:uppercase;margin-bottom:9px}',
+  '.rep-head .rh-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}',
+  '.rep-head .rh-biz{font-size:22px;font-weight:800;line-height:1.15;letter-spacing:-.3px}',
+  '.rep-head .rh-owner{font-size:12px;color:#C7D2FE;margin-top:3px}',
+  '.rep-head .rh-contact{font-size:10.5px;color:#9FB6FF;margin-top:5px;line-height:1.5}',
+  '.rep-head .rh-right{text-align:right;flex-shrink:0}',
+  '.rep-head .rh-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:rgba(232,200,90,.18);border:1px solid rgba(232,200,90,.45);color:#F0C040;padding:4px 10px;border-radius:20px}',
+  '.rep-head .rh-date{font-size:10.5px;color:#C7D2FE;margin-top:6px}',
+  '.rep-head .rh-period{font-size:11px;color:#9FB6FF;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.16)}',
+  /* Indicadores */
+  '.pdf-s8 .kpi-band{display:flex;gap:9px;margin-bottom:16px}',
+  '.pdf-s8 .kpi{flex:1;border:1px solid #E2E8F0;border-top:3px solid #C9972B;border-radius:10px;padding:13px 11px;text-align:center;background:#FCFDFF}',
+  '.pdf-s8 .kpi .v{font-size:18px;font-weight:800;color:#002A8D;line-height:1.15;letter-spacing:-.3px}',
+  '.pdf-s8 .kpi .l{font-size:9.5px;font-weight:600;color:#0F172A;margin-top:4px;text-transform:uppercase;letter-spacing:.4px}',
+  '.pdf-s8 .kpi .s{font-size:9.5px;color:#94A3B8;margin-top:3px;line-height:1.35}',
+  /* Paneles */
+  '.pdf-s8 .panel{border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fff}',
+  '.pdf-s8 .p-title{font-size:11px;font-weight:700;color:#002A8D;margin-bottom:9px}',
+  '.pdf-s8 .grid2{display:flex;gap:10px;margin-bottom:10px}',
+  '.pdf-s8 .grid2 .panel{flex:1;margin-bottom:0}',
+  '.pdf-s8 .donut-row{display:flex;align-items:center;gap:12px}',
+  '.pdf-s8 .leg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}',
+  '.pdf-s8 .leg-i{display:flex;align-items:center;gap:6px;font-size:11px}',
+  '.pdf-s8 .leg-d{width:9px;height:9px;border-radius:3px;flex-shrink:0}',
+  '.pdf-s8 .leg-n{flex:1;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.pdf-s8 .leg-v{font-weight:700;color:#002A8D;flex-shrink:0}',
+  /* Barra apilada de origen */
+  '.pdf-s8 .stack{display:flex;height:26px;border-radius:7px;overflow:hidden;background:#F1F5F9}',
+  '.pdf-s8 .stack-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}',
+  /* Ranking */
+  '.pdf-s8 .rank{display:flex;align-items:center;gap:10px;padding:6px 0}',
+  '.pdf-s8 .rk-n{width:20px;height:20px;border-radius:6px;background:#EFF6FF;color:#2563EB;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+  '.pdf-s8 .rk-b{flex:1;min-width:0}',
+  '.pdf-s8 .rk-name{font-size:11.5px;font-weight:600;color:#1E293B;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.pdf-s8 .rk-track{height:7px;background:#F1F5F9;border-radius:4px;overflow:hidden}',
+  '.pdf-s8 .rk-fill{height:100%;border-radius:4px}',
+  '.pdf-s8 .rk-v{font-size:11.5px;font-weight:700;color:#002A8D;flex-shrink:0}',
+  /* Lectura */
+  '.pdf-s8 .lectura{background:#FDF8EC;border:1px solid #E8C85A;border-left:4px solid #C9972B;border-radius:10px;padding:14px 18px}',
+  '.pdf-s8 .lectura ul{margin:0;padding-left:16px}',
+  '.pdf-s8 .lectura li{font-size:12px;line-height:1.75;color:#1E293B;margin-bottom:4px}',
+  '.pdf-s8 .lectura li:last-child{margin-bottom:0}',
+  '.pdf-s8 .lectura b{color:#8A6516;font-weight:700}',
+  /* Tablas limpias */
+  '.pdf-s8 table.clean{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.pdf-s8 table.clean th{background:#F8FAFC;color:#475569;padding:8px 9px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #E2E8F0}',
+  '.pdf-s8 table.clean td{padding:7px 9px;border-bottom:1px solid #F1F5F9}',
+  '.pdf-s8 table.clean tr:last-child td{border-bottom:none}',
+  '.pdf-s8 table.clean tr.tot td{border-top:2px solid #002A8D;font-weight:800;color:#002A8D;font-size:12.5px;padding-top:9px}',
+  '.pdf-s8 .sub{font-size:10.5px;color:#94A3B8;font-weight:400;margin-top:1px}',
+  '.pdf-s8 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}',
+  '.pdf-s8 .cont{font-size:9.5px;color:#94A3B8;text-align:right;font-style:italic;margin-top:6px}',
   '.pdf-s8 .sec{margin-bottom:16px}',
   '.pdf-s8 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#C9972B;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #E2E8F0}',
   '.pdf-s8 .box{border:1px solid #E2E8F0;border-radius:10px;padding:13px 16px;margin-bottom:10px}',
@@ -2153,95 +2207,300 @@ async function rasterizarPdfS8(bodyHtml, headerHtml, filename, asBlob){
   }
 }
 
-// ── REPORTE DE NEGOCIO ──────────────────────────────────────────────────────
-function construirReporteS8(db, persona){
-  const P=(db&&db.profile)||{};
+// ── REPORTE EJECUTIVO DE NEGOCIO ────────────────────────────────────────────
+// No es un volcado de tablas: reproduce el tablero de la app (KPIs, tendencia,
+// mezcla por canal y producto, origen de la venta, embudo comercial) para que
+// se pueda anexar tal cual a un informe corporativo. Los graficos se dibujan
+// con Chart.js en un canvas propio y se insertan como PNG, no como <canvas>:
+// html2canvas no rasteriza bien los canvas con escalado responsive, y ademas
+// en la vista de administrador el tablero de la emprendedora ni siquiera esta
+// montado en pantalla.
+
+function chartPngS8(cfg, w, h){
+  try{
+    if(typeof Chart==='undefined') return '';
+    const DPR=2;                                   // nitidez de impresion
+    const c=document.createElement('canvas');
+    c.width=Math.round(w*DPR); c.height=Math.round(h*DPR);
+    cfg.options=Object.assign({}, cfg.options||{}, {responsive:false, animation:false, devicePixelRatio:1});
+    const ch=new Chart(c.getContext('2d'), cfg);
+    const url=c.toDataURL('image/png');
+    ch.destroy();
+    return '<img src="'+url+'" width="'+w+'" height="'+h+'" style="display:block;width:'+w+'px;height:'+h+'px" alt="">';
+  }catch(e){ console.warn('[PDF] grafico no disponible', e); return ''; }
+}
+
+// Metricas del negocio a partir del DB. Se calculan una vez y las usan tanto
+// las tarjetas como los graficos y las lecturas automaticas.
+function metricasS8(db){
   const prods=(db&&db.products)||[];
   const quotes=(db&&db.quotes)||[];
   const sales=(db&&db.sales)||[];
+
+  const total=sales.reduce((s,v)=>s+(Number(v.total)||0),0);
+  const tx=sales.length;
+  const ticket=tx?total/tx:0;
+
+  const won=quotes.filter(q=>q.status==='won');
+  const lost=quotes.filter(q=>q.status==='lost');
+  const pend=quotes.filter(q=>q.status!=='won'&&q.status!=='lost');
+  const conv=quotes.length?Math.round(won.length/quotes.length*100):0;
+  const cartera=pend.reduce((s,q)=>s+(Number(q.tot)||0),0);
+  const montoCot=quotes.reduce((s,q)=>s+(Number(q.tot)||0),0);
+
+  const fromCot=sales.filter(s=>s.src==='cot').length;
+  const fromDir=tx-fromCot;
+
+  const agrupar=(fn)=>{
+    const m={};
+    sales.forEach(v=>{ const k=fn(v)||'Otro'; m[k]=(m[k]||0)+(Number(v.total)||0); });
+    return Object.keys(m).map(k=>({n:k,v:m[k]})).sort((a,b)=>b.v-a.v);
+  };
+  const porProd=agrupar(v=>v.prod);
+  const porCanal=agrupar(v=>v.canal);
+
+  // Serie de los ultimos 6 meses (misma logica que la tendencia del tablero)
+  const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const now=new Date();
+  const serieLbl=[], serieVal=[];
+  for(let m=5;m>=0;m--){
+    const d=new Date(now); d.setMonth(d.getMonth()-m);
+    serieLbl.push(MES[d.getMonth()]);
+    const mo=d.getMonth(), yr=d.getFullYear();
+    serieVal.push(sales.filter(s=>{const dd=new Date(s.ts);return dd.getMonth()===mo&&dd.getFullYear()===yr;})
+      .reduce((a,s)=>a+(Number(s.total)||0),0));
+  }
+
+  const ts=sales.map(s=>Number(s.ts)||0).filter(Boolean).sort((a,b)=>a-b);
+  const dias=new Set(sales.map(s=>s.date||fechaS8(s.ts))).size;
+
+  return {prods,quotes,sales,total,tx,ticket,won,lost,pend,conv,cartera,montoCot,
+          fromCot,fromDir,porProd,porCanal,serieLbl,serieVal,
+          desde:ts[0]||0, hasta:ts[ts.length-1]||0, dias};
+}
+
+// Lecturas automaticas del periodo: solo afirmaciones verificables con los
+// datos que ella misma cargo, nunca relleno motivacional.
+function lecturasS8(M){
+  const L=[];
+  if(M.tx===0 && M.quotes.length===0) return L;
+  if(M.tx>0){
+    L.push('Registr\u00f3 <b>'+M.tx+'</b> venta'+(M.tx===1?'':'s')+' por <b>'+solS8(M.total)+
+           '</b>, con un ticket promedio de <b>'+solS8(M.ticket)+'</b>.');
+  }
+  if(M.porProd.length && M.total>0){
+    const p=M.porProd[0], pct=Math.round(p.v/M.total*100);
+    if(M.porProd.length===1) L.push('Todas sus ventas corresponden a un solo producto: <b>'+escS8(p.n)+'</b>.');
+    else L.push('<b>'+escS8(p.n)+'</b> concentra el <b>'+pct+'%</b> de la facturaci\u00f3n'+
+                (pct>=60?' \u2014 dependencia alta de un solo producto.':'.'));
+  }
+  if(M.porCanal.length && M.total>0){
+    const c=M.porCanal[0], pct=Math.round(c.v/M.total*100);
+    L.push(M.porCanal.length===1
+      ? 'El 100% de la venta entra por un solo canal: <b>'+escS8(c.n)+'</b>.'
+      : '<b>'+escS8(c.n)+'</b> es su canal principal con el <b>'+pct+'%</b> de los ingresos.');
+  }
+  if(M.quotes.length){
+    L.push('Cerr\u00f3 <b>'+M.won.length+' de '+M.quotes.length+'</b> cotizaci'+(M.quotes.length===1?'\u00f3n':'ones')+
+           ' emitida'+(M.quotes.length===1?'':'s')+' (<b>'+M.conv+'%</b> de conversi\u00f3n).');
+    if(M.pend.length) L.push('Tiene <b>'+solS8(M.cartera)+'</b> en <b>'+M.pend.length+'</b> cotizaci'+
+      (M.pend.length===1?'\u00f3n pendiente':'ones pendientes')+' por cerrar.');
+  }
+  if(M.tx>0){
+    const pctCot=Math.round(M.fromCot/M.tx*100);
+    if(M.fromCot>0) L.push('El <b>'+pctCot+'%</b> de sus ventas naci\u00f3 de una cotizaci\u00f3n formal.');
+    else L.push('Ninguna venta se origin\u00f3 en una cotizaci\u00f3n: todas fueron directas.');
+  }
+  if(M.prods.length) L.push('Su cat\u00e1logo tiene <b>'+M.prods.length+'</b> producto'+(M.prods.length===1?'':'s')+' cargado'+(M.prods.length===1?'':'s')+'.');
+  return L;
+}
+
+// Las tablas de anexo pueden tener decenas de filas. Si fueran un solo bloque
+// atomico y no cupieran en una hoja, el paginador se veria obligado a llevarlas
+// completas y reducirlas (con 80 ventas quedaba al 58% de tamano, ilegible).
+// Se parten en bloques de POR_BLOQUE filas, cada uno con su propio encabezado:
+// asi la pagina puede cortar ENTRE bloques y las columnas siguen rotuladas en
+// cada hoja, que es como debe verse un anexo.
+function tablaLargaS8(cabecera, filas, pie){
+  const POR_BLOQUE = 14;
+  if(!filas.length) return '';
+  let out='';
+  for(let i=0;i<filas.length;i+=POR_BLOQUE){
+    const trozo=filas.slice(i,i+POR_BLOQUE);
+    const ultimo=(i+POR_BLOQUE)>=filas.length;
+    out+='<div class="panel" data-pdf-atom="1"'+(i>0?' style="margin-top:-2px"':'')+'>'+
+      '<table class="clean"><thead>'+cabecera+'</thead><tbody>'+
+      trozo.join('')+((ultimo&&pie)?pie:'')+
+      '</tbody></table>'+
+      (ultimo?'':'<div class="cont">contin\u00faa \u2192</div>')+
+      '</div>';
+  }
+  return out;
+}
+
+function construirReporteS8(db, persona){
+  const P=(db&&db.profile)||{};
+  const M=metricasS8(db);
   const A=' data-pdf-atom="1"';
-
-  const totalVentas=sales.reduce((s,v)=>s+(Number(v.total)||0),0);
-  const ticket=sales.length?totalVentas/sales.length:0;
-  const ganadas=quotes.filter(q=>q.status==='won').length;
-  const conv=quotes.length?Math.round(ganadas/quotes.length*100):0;
-
-  // Ranking de productos por monto vendido
-  const porProd={};
-  sales.forEach(v=>{ const k=v.prod||'(sin nombre)'; porProd[k]=(porProd[k]||0)+(Number(v.total)||0); });
-  const top=Object.keys(porProd).map(k=>({n:k,v:porProd[k]})).sort((a,b)=>b.v-a.v).slice(0,8);
-
-  // Reparto por canal
-  const porCanal={};
-  sales.forEach(v=>{ const k=v.canal||'Otro'; porCanal[k]=(porCanal[k]||0)+(Number(v.total)||0); });
-  const canales=Object.keys(porCanal).map(k=>({n:k,v:porCanal[k]})).sort((a,b)=>b.v-a.v);
+  const CAT=(typeof CAT_COLS!=='undefined')?CAT_COLS:['#2563EB','#C9972B','#059669','#DC2626','#D97706','#7C3AED','#0891B2','#BE185D'];
+  const CAN=(typeof CANAL_COLS!=='undefined')?CANAL_COLS:{};
 
   let h='<div class="pdf-s8">';
 
-  h+='<div class="kpis"'+A+'>'+
-     '<div class="kpi"><div class="v">'+solS8(totalVentas).replace('S/ ','S/')+'</div><div class="l">Ventas acumuladas</div></div>'+
-     '<div class="kpi"><div class="v">'+sales.length+'</div><div class="l">Ventas registradas</div></div>'+
-     '<div class="kpi"><div class="v">'+solS8(ticket).replace('S/ ','S/')+'</div><div class="l">Ticket promedio</div></div>'+
-     '<div class="kpi"><div class="v">'+conv+'%</div><div class="l">Cotizaciones ganadas</div></div>'+
+  // ── Banda de indicadores
+  h+='<div class="kpi-band"'+A+'>'+
+     '<div class="kpi"><div class="v">'+solS8(M.total)+'</div><div class="l">Ventas acumuladas</div>'+
+       '<div class="s">'+(M.dias?M.dias+' d\u00eda'+(M.dias===1?'':'s')+' con movimiento':'sin movimiento')+'</div></div>'+
+     '<div class="kpi"><div class="v">'+M.tx+'</div><div class="l">Transacciones</div>'+
+       '<div class="s">ticket prom. '+solS8(M.ticket)+'</div></div>'+
+     '<div class="kpi"><div class="v">'+M.conv+'%</div><div class="l">Conversi\u00f3n</div>'+
+       '<div class="s">'+M.won.length+' de '+M.quotes.length+' cotizaciones</div></div>'+
+     '<div class="kpi"><div class="v">'+solS8(M.cartera)+'</div><div class="l">Cartera por cerrar</div>'+
+       '<div class="s">'+M.pend.length+' cotizaci'+(M.pend.length===1?'\u00f3n':'ones')+' pendiente'+(M.pend.length===1?'':'s')+'</div></div>'+
      '</div>';
 
-  // Catálogo
-  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Cat\u00e1logo de productos y servicios ('+prods.length+')</div>';
-  h+='<div class="box"'+A+'>'+ (prods.length
-    ? '<table><thead><tr><th>Producto / Servicio</th><th>Categor\u00eda</th><th class="r">Precio</th><th class="r">IGV</th></tr></thead><tbody>'+
-      prods.map(p=>'<tr><td style="font-weight:600">'+escS8(p.name)+
-        (p.desc?'<div style="font-size:10.5px;color:#64748B;font-weight:400">'+escS8(p.desc)+'</div>':'')+'</td>'+
-        '<td>'+escS8(p.cat||'General')+'</td>'+
-        '<td class="r">'+solS8(p.price)+'</td>'+
-        '<td class="r">'+(p.igv?'S\u00ed':'No')+'</td></tr>').join('')+
-      '</tbody></table>'
-    : '<div class="vacio">A\u00fan no ha cargado productos.</div>')+'</div></div>';
-
-  // Ventas
-  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Ventas registradas ('+sales.length+')</div>';
-  if(top.length){
-    h+='<div class="box"'+A+'><div style="font-size:11.5px;font-weight:700;color:#002A8D;margin-bottom:7px">Lo que m\u00e1s vende</div>'+
-       '<table><tbody>'+top.map(t=>'<tr><td>'+escS8(t.n)+'</td><td class="r" style="font-weight:700;color:#059669">'+solS8(t.v)+'</td></tr>').join('')+'</tbody></table></div>';
+  // ── Tendencia de ventas
+  const haySerie=M.serieVal.some(v=>v>0);
+  const gTend=haySerie?chartPngS8({
+    type:'bar',
+    data:{labels:M.serieLbl,datasets:[{data:M.serieVal,
+      backgroundColor:M.serieVal.map(v=>v===Math.max.apply(null,M.serieVal)&&v>0?'#2563EB':'rgba(37,99,235,.22)'),
+      borderRadius:8,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:22},color:'#64748B'}},
+              y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.06)'},
+                 ticks:{font:{size:20},color:'#64748B',callback:v=>'S/'+v}}}}
+  },700,230):'';
+  if(gTend){
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Tendencia de ventas \u00b7 \u00faltimos 6 meses</div>'+
+       '<div class="panel"'+A+'>'+gTend+'</div></div>';
   }
-  if(canales.length){
-    h+='<div class="box"'+A+'><div style="font-size:11.5px;font-weight:700;color:#002A8D;margin-bottom:7px">Por canal de venta</div>'+
-       '<table><tbody>'+canales.map(t=>'<tr><td>'+escS8(t.n)+'</td><td class="r" style="font-weight:700">'+solS8(t.v)+'</td></tr>').join('')+'</tbody></table></div>';
-  }
-  h+='<div class="box"'+A+'>'+ (sales.length
-    ? '<table><thead><tr><th>Fecha</th><th>Producto</th><th class="r">Cant.</th><th>Canal</th><th class="r">Total</th></tr></thead><tbody>'+
-      sales.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(v=>
-        '<tr><td>'+escS8(v.date||fechaS8(v.ts))+'</td>'+
-        '<td>'+escS8(v.prod)+'</td>'+
-        '<td class="r">'+(v.qty||1)+'</td>'+
-        '<td>'+escS8(v.canal||'-')+'</td>'+
-        '<td class="r" style="font-weight:700">'+solS8(v.total)+'</td></tr>').join('')+
-      '</tbody></table>'
-    : '<div class="vacio">A\u00fan no ha registrado ventas.</div>')+'</div></div>';
 
-  // Cotizaciones
-  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Cotizaciones emitidas ('+quotes.length+')</div>';
-  h+='<div class="box"'+A+'>'+ (quotes.length
-    ? '<table><thead><tr><th>C\u00f3digo</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="r">Total</th></tr></thead><tbody>'+
-      quotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(q=>{
-        const st=q.status==='won'?'<span class="pill won">Ganada</span>':(q.status==='lost'?'<span class="pill lost">Perdida</span>':'<span class="pill pend">Pendiente</span>');
-        return '<tr><td style="font-weight:600">'+escS8(q.id)+'</td>'+
-          '<td>'+escS8(q.cli)+'</td>'+
-          '<td>'+fechaS8(q.ts)+'</td>'+
-          '<td>'+st+'</td>'+
-          '<td class="r" style="font-weight:700">'+solS8(q.tot)+'</td></tr>';
-      }).join('')+'</tbody></table>'
-    : '<div class="vacio">A\u00fan no ha emitido cotizaciones.</div>')+'</div></div>';
+  // ── Mezcla comercial: canal y producto
+  if(M.total>0){
+    const donut=(datos,colores,w)=>chartPngS8({
+      type:'doughnut',
+      data:{labels:datos.map(d=>d.n),datasets:[{data:datos.map(d=>d.v),backgroundColor:colores,
+        borderColor:'#fff',borderWidth:4}]},
+      options:{cutout:'58%',plugins:{legend:{display:false}}}
+    },w,w);
+    const colCanal=M.porCanal.map((d,i)=>CAN[d.n]||CAT[i%CAT.length]);
+    const colProd =M.porProd.map((d,i)=>CAT[i%CAT.length]);
+    const leyenda=(datos,cols)=>'<div class="leg">'+datos.slice(0,6).map((d,i)=>
+      '<div class="leg-i"><span class="leg-d" style="background:'+cols[i]+'"></span>'+
+      '<span class="leg-n">'+escS8(d.n)+'</span>'+
+      '<span class="leg-v">'+Math.round(d.v/M.total*100)+'%</span></div>').join('')+'</div>';
+
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Mezcla comercial</div>'+
+       '<div class="grid2">'+
+       '<div class="panel"'+A+'><div class="p-title">Por canal de venta</div>'+
+         '<div class="donut-row">'+donut(M.porCanal,colCanal,150)+leyenda(M.porCanal,colCanal)+'</div></div>'+
+       '<div class="panel"'+A+'><div class="p-title">Por producto</div>'+
+         '<div class="donut-row">'+donut(M.porProd,colProd,150)+leyenda(M.porProd,colProd)+'</div></div>'+
+       '</div>';
+
+    // Origen de la venta (barra apilada, igual que en el tablero)
+    const pctCot=M.tx?Math.round(M.fromCot/M.tx*100):0;
+    h+='<div class="panel"'+A+'><div class="p-title">Origen de la venta</div>'+
+       '<div class="stack">'+
+         (pctCot>0?'<div class="stack-seg" style="width:'+pctCot+'%;background:#2563EB">'+(pctCot>=14?pctCot+'%':'')+'</div>':'')+
+         (100-pctCot>0?'<div class="stack-seg" style="width:'+(100-pctCot)+'%;background:#D97706">'+((100-pctCot)>=14?(100-pctCot)+'%':'')+'</div>':'')+
+       '</div>'+
+       '<div class="leg" style="margin-top:9px;flex-direction:row;gap:20px">'+
+         '<div class="leg-i"><span class="leg-d" style="background:#2563EB"></span><span class="leg-n">Desde cotizaci\u00f3n</span><span class="leg-v">'+M.fromCot+'</span></div>'+
+         '<div class="leg-i"><span class="leg-d" style="background:#D97706"></span><span class="leg-n">Venta directa</span><span class="leg-v">'+M.fromDir+'</span></div>'+
+       '</div></div>';
+    h+='</div>';
+  }
+
+  // ── Ranking de productos
+  if(M.porProd.length){
+    const max=M.porProd[0].v;
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Lo que m\u00e1s vende</div>'+
+       '<div class="panel"'+A+'>'+M.porProd.slice(0,6).map((p,i)=>
+         '<div class="rank"><div class="rk-n">'+(i+1)+'</div>'+
+         '<div class="rk-b"><div class="rk-name">'+escS8(p.n)+'</div>'+
+         '<div class="rk-track"><div class="rk-fill" style="width:'+Math.max(3,Math.round(p.v/max*100))+'%;background:'+CAT[i%CAT.length]+'"></div></div></div>'+
+         '<div class="rk-v">'+solS8(p.v)+'</div></div>').join('')+
+       '</div></div>';
+  }
+
+  // ── Embudo comercial
+  if(M.quotes.length){
+    const fila=(lbl,n,monto,col)=>'<tr><td><span class="dot" style="background:'+col+'"></span>'+lbl+'</td>'+
+      '<td class="r">'+n+'</td><td class="r" style="font-weight:700">'+solS8(monto)+'</td></tr>';
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Embudo comercial</div>'+
+       '<div class="panel"'+A+'><table class="clean">'+
+       '<thead><tr><th>Etapa</th><th class="r">Cotizaciones</th><th class="r">Monto</th></tr></thead><tbody>'+
+       fila('Emitidas',M.quotes.length,M.montoCot,'#475569')+
+       fila('Ganadas',M.won.length,M.won.reduce((s,q)=>s+(Number(q.tot)||0),0),'#059669')+
+       fila('Pendientes',M.pend.length,M.cartera,'#D97706')+
+       fila('Perdidas',M.lost.length,M.lost.reduce((s,q)=>s+(Number(q.tot)||0),0),'#DC2626')+
+       '</tbody></table></div></div>';
+  }
+
+  // ── Lectura del período
+  const L=lecturasS8(M);
+  if(L.length){
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Lectura del per\u00edodo</div>'+
+       '<div class="lectura"'+A+'><ul>'+L.map(t=>'<li>'+t+'</li>').join('')+'</ul></div></div>';
+  }
+
+  // ── Anexos: catálogo, ventas, cotizaciones
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Anexo 1 \u00b7 Cat\u00e1logo ('+M.prods.length+')</div>'+
+     (M.prods.length
+      ? tablaLargaS8('<tr><th>Producto / Servicio</th><th>Categor\u00eda</th><th class="r">Precio</th><th class="r">IGV</th></tr>',
+          M.prods.map(p=>'<tr><td style="font-weight:600">'+escS8(p.name)+
+            (p.desc?'<div class="sub">'+escS8(p.desc)+'</div>':'')+'</td>'+
+            '<td>'+escS8(p.cat||'General')+'</td>'+
+            '<td class="r">'+solS8(p.price)+'</td>'+
+            '<td class="r">'+(p.igv?'S\u00ed':'No')+'</td></tr>'), '')
+      : '<div class="panel"'+A+'><div class="vacio">A\u00fan no ha cargado productos.</div></div>')+'</div>';
+
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Anexo 2 \u00b7 Detalle de ventas ('+M.tx+')</div>'+
+     (M.tx
+      ? tablaLargaS8('<tr><th>Fecha</th><th>Producto</th><th class="r">Cant.</th><th>Canal</th><th>Origen</th><th class="r">Total</th></tr>',
+          M.sales.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(v=>
+            '<tr><td>'+escS8(v.date||fechaS8(v.ts))+'</td><td>'+escS8(v.prod)+'</td>'+
+            '<td class="r">'+(v.qty||1)+'</td><td>'+escS8(v.canal||'-')+'</td>'+
+            '<td>'+(v.src==='cot'?'Cotizaci\u00f3n':'Directa')+'</td>'+
+            '<td class="r" style="font-weight:700">'+solS8(v.total)+'</td></tr>'),
+          '<tr class="tot"><td colspan="5">TOTAL</td><td class="r">'+solS8(M.total)+'</td></tr>')
+      : '<div class="panel"'+A+'><div class="vacio">A\u00fan no ha registrado ventas.</div></div>')+'</div>';
+
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Anexo 3 \u00b7 Cotizaciones ('+M.quotes.length+')</div>'+
+     (M.quotes.length
+      ? tablaLargaS8('<tr><th>C\u00f3digo</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="r">Total</th></tr>',
+          M.quotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(q=>{
+            const st=q.status==='won'?'<span class="pill won">Ganada</span>'
+                   :(q.status==='lost'?'<span class="pill lost">Perdida</span>':'<span class="pill pend">Pendiente</span>');
+            return '<tr><td style="font-weight:600">'+escS8(q.id)+'</td><td>'+escS8(q.cli)+'</td>'+
+                   '<td>'+fechaS8(q.ts)+'</td><td>'+st+'</td>'+
+                   '<td class="r" style="font-weight:700">'+solS8(q.tot)+'</td></tr>';
+          }),
+          '<tr class="tot"><td colspan="4">TOTAL COTIZADO</td><td class="r">'+solS8(M.montoCot)+'</td></tr>')
+      : '<div class="panel"'+A+'><div class="vacio">A\u00fan no ha emitido cotizaciones.</div></div>')+'</div>';
 
   h+='</div>';
 
+  // ── Portada del reporte (banda superior)
   const biz=(P.biz||(persona&&persona.b)||(persona&&persona.n)||'').toUpperCase();
+  const rango=(M.desde&&M.hasta)
+    ? ('Actividad del '+fechaS8(M.desde)+' al '+fechaS8(M.hasta))
+    : 'Sin actividad registrada';
+  const contacto=[P.tel,P.email,P.addr].filter(Boolean).map(escS8).join(' &middot; ');
   const header=
-    '<div style="margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #C9972B">'+
-    '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#C9972B;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n Comercial \u00b7 Sesi\u00f3n 8 \u00b7 BCP \u00d7 UCSP-CENDES</div>'+
-    '<div style="font-size:20px;font-weight:800;color:#002A8D;line-height:1.2">'+escS8(biz||'Mi negocio')+'</div>'+
-    '<div style="font-size:10.5px;color:#64748B;margin-top:4px">'+escS8((persona&&persona.n)||'')+
-      (P.tel?' \u00b7 '+escS8(P.tel):'')+
-      ' \u00b7 Reporte al '+new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})+'</div></div>';
+    '<div class="rep-head">'+
+      '<div class="rh-eyebrow">M\u00f3dulo 3 \u00b7 Gesti\u00f3n Comercial \u00b7 Sesi\u00f3n 8 \u00b7 BCP \u00d7 UCSP-CENDES</div>'+
+      '<div class="rh-row">'+
+        '<div><div class="rh-biz">'+escS8(biz||'Mi negocio')+'</div>'+
+        '<div class="rh-owner">'+escS8((persona&&persona.n)||'')+'</div>'+
+        (contacto?'<div class="rh-contact">'+contacto+'</div>':'')+'</div>'+
+        '<div class="rh-right"><div class="rh-tag">Reporte de gesti\u00f3n</div>'+
+        '<div class="rh-date">'+new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})+'</div></div>'+
+      '</div>'+
+      '<div class="rh-period">'+rango+'</div>'+
+    '</div>';
 
   return {html:h, header:header, biz:biz};
 }

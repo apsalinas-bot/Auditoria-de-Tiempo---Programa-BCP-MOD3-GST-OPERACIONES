@@ -12,10 +12,15 @@
    // Ya está puesto: es el mismo BIN_ID que usa tu app "Auditoría de Tiempo".
    var BIN_ID_S1  = "6a69d494f5f4af5e29d0c297";
 
+   // DNI del acceso de administrador (descarga de PDF + Word de todas las versiones)
+   var ADMIN_DNI  = "70003700";
+
 /* =====================================================================
    ▲▲▲  NO TOQUES NADA MÁS ABAJO  ▲▲▲
    ===================================================================== */
-const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia Uscca Huamanquispe',b:'Alba Ingeniería y Servicios'}};
+const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas S.R.L.'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial  Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia Uscca Huamanquispe',b:'Alba Ingeniería y Servicios'},'71509678':{n:'Franchesca Quezada Cabrera',b:'Aprenda'},'74250220':{n:'Beatriz Palacios Espinoza',b:'BCP'}};
+const TEST_DNIS=new Set(['71509678','74250220']); // Franchesca (Aprenda) y Beatriz (BCP) — cuentas de prueba, no cuentan en el tablero docente
+
 </script>
 <!DOCTYPE html>
 <html lang="es">
@@ -25,6 +30,9 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
 <title>Matriz de Delegación · Módulo 3 · Sesión 7 · BCP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
   --orange:#EC6607;--orange-d:#C9540B;--navy:#002A8D;--navy-d:#001C5E;
@@ -58,6 +66,17 @@ h1,h2,h3{font-weight:600;letter-spacing:-.2px}
 .rc-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
 .rc-icon.emp{background:var(--coral)}
 .rc-icon.doc{background:var(--navy-d)}
+.rc-icon.admin{background:var(--navy)}
+.admin-emp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 6px 24px rgba(0,20,80,.08)}
+.admin-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px}
+.admin-emp-name{font-weight:700;color:var(--ink);font-size:14.5px}
+.admin-emp-biz{font-size:11.5px;color:var(--muted);margin-top:2px}
+.admin-version-list{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.admin-version-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:#F7F9FC;border-radius:8px;padding:6px 10px}
+.admin-version-item .v-num{font-weight:700;color:var(--navy);min-width:18px}
+.admin-version-item .v-date{color:var(--muted);flex-shrink:0}
+.admin-version-item .v-name{flex:1;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-empty-versions{font-size:12px;color:var(--muted);font-style:italic;margin:8px 0}
 .rc-label{font-size:15px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
 .rc-sub{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
 .role-card.selected .rc-label{color:var(--navy)}
@@ -243,6 +262,10 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
           <div class="rc-icon doc">▦</div>
           <div><span class="rc-label">Docente</span><span class="rc-sub">Ver el tablero global del aula</span></div>
         </button>
+        <button class="role-card" id="cardAdmin" onclick="pickRole('admin')">
+          <div class="rc-icon admin">&#9881;</div>
+          <div><span class="rc-label">Administrador</span><span class="rc-sub">Descargar PDF y Word de cada versi&oacute;n</span></div>
+        </button>
       </div>
       <div class="gate-panel on" id="panelEmp">
         <span class="gate-panel-label">Tu DNI (es tu contraseña)</span>
@@ -265,6 +288,17 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
         </div>
         <div class="gate-err" id="errDoc"></div>
         <button class="gate-btn doc" onclick="doLoginDoc()">Entrar al tablero</button>
+      </div>
+      <div class="gate-panel" id="panelAdmin">
+        <span class="gate-panel-label">DNI de administrador</span>
+        <div style="position:relative;width:100%">
+          <input class="gate-dni-input" type="password" id="inputAdmin" placeholder="8 d&iacute;gitos" maxlength="8" inputmode="numeric" style="padding-right:44px">
+          <button type="button" class="pw-eye-btn" id="eyeAdmin" onclick="toggleEye('inputAdmin','eyeAdmin')" title="Mostrar/ocultar">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="gate-err" id="errAdmin"></div>
+        <button class="gate-btn doc" onclick="doLoginAdmin()">Entrar como administrador</button>
       </div>
     </div>
     <div class="foot">Programa BCP · UCSP–CENDES · Módulo 3: Gestión de Operaciones</div>
@@ -404,6 +438,30 @@ input[type=password]::-ms-reveal,input[type=password]::-ms-clear{display:none}
   </div>
 </div>
 
+<!-- ==== VISTA ADMINISTRADOR ==== -->
+<div id="adminView" style="display:none">
+  <div class="top" style="background:linear-gradient(135deg,var(--navy-d) 0%,#8a3410 100%)">
+    <div class="eyebrow">Administrador &middot; M&oacute;dulo 3 &middot; Sesi&oacute;n 7</div>
+    <h1>Descarga de <span style="color:#FF9E6D">Matrices</span></h1>
+    <p>Matriz de delegaci&oacute;n y plan de acci&oacute;n de cada emprendedora.</p>
+  </div>
+  <div class="logout-row no-print">
+    <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
+  </div>
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-val" id="kAdminEmp">-</div><div class="kpi-lbl">Emprendedoras con guardado</div></div>
+      <div class="kpi-box"><div class="kpi-val" id="kAdminVer">-</div><div class="kpi-lbl">Versiones totales guardadas</div></div>
+    </div>
+    <button class="cta navy full no-print" id="adminDownloadAllBtn" style="margin-bottom:6px">&#128190; Descargar TODO (PDF + Word de todas)</button>
+    <div id="adminBulkStatus" class="save-status"></div>
+    <div class="section-title">Emprendedoras registradas</div>
+    <div id="adminTableBody"><div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div></div>
+    <div class="foot" style="margin-top:16px">Programa BCP &middot; UCSP&ndash;CENDES &middot; M&oacute;dulo 3</div>
+  </div>
+</div>
+
 <div id="detailModal"><div class="modal-box">
   <button class="modal-close" onclick="closeModal()">✕</button>
   <div class="modal-name" id="modalName">-</div>
@@ -421,7 +479,9 @@ const BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
 const BIN_URL_S1='https://api.jsonbin.io/v3/b/'+BIN_ID_S1;
 const HEADERS_R={'X-Master-Key':BIN_KEY,'X-Bin-Meta':'false'};
 const HEADERS_W={'Content-Type':'application/json','X-Master-Key':BIN_KEY,'X-Bin-Versioning':'false'};
-const SESSION_KEY='bcp_s4_session';
+// Clave de sesion PROPIA de la S7. Antes decia 'bcp_s4_session' (copia-pega de
+// la Sesion 4): al compartir clave, entrar en una app pisaba la sesion de la otra.
+const SESSION_KEY='bcp_s7_session';
 const DATA_PREFIX='bcp_s4_data_';
 const QLABEL={1:'Delega ya',2:'Delega con guía',3:'Hazlo tú',4:'Elimina / Automatiza'};
 
@@ -447,9 +507,11 @@ function toggleEye(inputId, btnId){
 function pickRole(role){
   $('cardEmp').classList.toggle('selected',role==='emp');
   $('cardDoc').classList.toggle('selected',role==='doc');
+  $('cardAdmin').classList.toggle('selected',role==='admin');
   $('panelEmp').classList.toggle('on',role==='emp');
   $('panelDoc').classList.toggle('on',role==='doc');
-  setTimeout(()=>{const i=role==='emp'?$('inputEmp'):$('inputDoc');if(i)i.focus();},50);
+  $('panelAdmin').classList.toggle('on',role==='admin');
+  setTimeout(()=>{const i=role==='emp'?$('inputEmp'):role==='doc'?$('inputDoc'):$('inputAdmin');if(i)i.focus();},50);
 }
 function doLoginEmp(){
   const v=$('inputEmp').value.trim();$('errEmp').textContent='';
@@ -465,18 +527,48 @@ function doLoginDoc(){
   sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'doc'}));
   showDocView();
 }
+function doLoginAdmin(){
+  const v=$('inputAdmin').value.trim();$('errAdmin').textContent='';
+  if(!v){$('errAdmin').textContent='Ingresa tu DNI.';return;}
+  if(v!==ADMIN_DNI){$('errAdmin').textContent='DNI de administrador incorrecto.';return;}
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:'admin'}));
+  showAdminView();
+}
+function showAdminView(){
+  $('gateScreen').style.display='none';$('empView').style.display='none';$('docView').style.display='none';$('adminView').style.display='';
+  loadAdminData();
+}
+
+// ---- Versionado: cada guardado crea una version nueva, no pisa la anterior ----
+function latestEntryFor(entries,dni){
+  const mine=entries.filter(e=>e.dni===dni);
+  if(!mine.length) return null;
+  return mine.reduce((a,b)=> new Date(b.savedAt||0)>=new Date(a.savedAt||0)?b:a);
+}
+function latestPerDni(entries){
+  const map=new Map();
+  entries.forEach(e=>{
+    const prev=map.get(e.dni);
+    if(!prev||new Date(e.savedAt||0)>=new Date(prev.savedAt||0)) map.set(e.dni,e);
+  });
+  return Array.from(map.values());
+}
+
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY);currentDNI=null;currentName=null;
   if(docTimer){clearInterval(docTimer);docTimer=null;}
-  $('gateScreen').style.display='';$('empView').style.display='none';$('docView').style.display='none';
-  $('inputEmp').value='';$('inputDoc').value='';
-  $('inputEmp').type='password';$('inputDoc').type='password';
-  $('eyeEmp').innerHTML=EYE_OPEN;$('eyeDoc').innerHTML=EYE_OPEN;
+  $('gateScreen').style.display='';$('empView').style.display='none';$('docView').style.display='none';$('adminView').style.display='none';
+  $('inputEmp').value='';$('inputDoc').value='';$('inputAdmin').value='';
+  $('inputEmp').type='password';$('inputDoc').type='password';$('inputAdmin').type='password';
+  $('eyeEmp').innerHTML=EYE_OPEN;$('eyeDoc').innerHTML=EYE_OPEN;$('eyeAdmin').innerHTML=EYE_OPEN;
+  $('errEmp').textContent='';$('errDoc').textContent='';$('errAdmin').textContent='';
   pickRole('emp');
 }
 function tryResume(){
   try{const s=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(!s)return;
-    if(s.role==='doc'){showDocView();}else if(s.role==='emp'&&ROSTER[s.dni]){currentDNI=s.dni;currentName=s.name||ROSTER[s.dni].n;showEmpView();}
+    if(s.role==='doc'){showDocView();}
+    else if(s.role==='admin'){showAdminView();}
+    else if(s.role==='emp'&&ROSTER[s.dni]){currentDNI=s.dni;currentName=s.name||ROSTER[s.dni].n;showEmpView();}
   }catch(e){}
 }
 function showEmpView(){
@@ -645,19 +737,18 @@ $('saveCloudBtn').onclick=async()=>{
   if(pool.length===0){showStatus('Aún no tienes actividades para guardar.','err');return;}
   const classified=pool.filter(t=>t.quad).length;
   if(classified===0){showStatus('Ubica al menos una actividad en la matriz antes de guardar.','err');return;}
-  btnS7Loading();showStatus('Guardando y generando análisis...','loading');
-  const rec=await binRead(BIN_URL);
-  const entries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  btnS7Loading();showStatus('Generando tu análisis con IA...','loading');
+  // La lectura del BIN va AL FINAL, pegada a la escritura. Con las dos llamadas
+  // a Claude en medio (20-30 s), leer aquí y escribir después pisaba todo lo que
+  // otra emprendedora guardara en ese lapso: el BIN es un solo documento y
+  // binWrite reescribe el registro completo.
   const counts={1:0,2:0,3:0,4:0};pool.forEach(t=>{if(t.quad)counts[t.quad]++;});
   const biz=(ROSTER[currentDNI]||{}).b||'';
   const payload={
     dni:currentDNI,name:currentName,biz:biz,
     tasks:pool.map(t=>({txt:t.txt,quad:t.quad,who:t.who})),
     counts,total:pool.length,classified,complete:classified===pool.length&&pool.length>0,
-    savedAt:new Date().toISOString()
   };
-  const idx=entries.findIndex(e=>e.dni===currentDNI);
-  if(idx>=0)entries[idx]=payload;else entries.push(payload);
 
   const firstName=currentName.trim().split(' ')[0];
   function listaDe(q){return pool.filter(t=>t.quad===q).map(t=>t.txt+(t.who?' (a delegar en: '+t.who+')':'')).join('; ')||'(ninguna)';}
@@ -697,6 +788,19 @@ $('saveCloudBtn').onclick=async()=>{
   dBody.innerHTML=renderNegS7(ia2||'1. **Escribe un checklist simple** para la primera actividad que vas a delegar con guía — hazlo esta semana.\n2. Agenda 15 minutos con la persona a quien le vas a delegar y explícale el checklist paso a paso.\n3. La próxima semana, suelta la primera actividad de "Delegar ya" sin supervisión.\n4. En 2 semanas, revisa con esa persona cómo le fue y ajusta lo que no quedó claro.').replace(/\n/g,'<br>');
   payload.planAccion=ia2||'';
 
+  // ---- Guardar: lectura y escritura pegadas, ventana mínima ----
+  showStatus('Guardando en la nube...','loading');
+  const rec=await binRead(BIN_URL);
+  if(rec===null){
+    showStatus('Error de conexión. Tu análisis sigue en pantalla — vuelve a tocar Guardar.','err');
+    btnS7Original();return;
+  }
+  const entries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
+  payload.savedAt=new Date().toISOString();
+  payload.id=currentDNI+'_'+Date.now();
+  entries.push(payload);
+
   const ok=await binWrite(BIN_URL,{entries});
   showStatus(ok?'✅ Guardado y análisis generado.':'⚠️ Error al guardar. Revisa tu conexión o el BIN_ID.',ok?'ok':'err');
   if(ok)setTimeout(()=>showStatus('',''),5000);
@@ -709,7 +813,7 @@ function showStatus(m,c){$('saveStatus').textContent=m;$('saveStatus').className
 // que se guarda en la nube: {dni,name,biz,tasks:[{txt,quad,who}]}). La usa tanto el
 // botón de la emprendedora (con su sesión activa) como el panel docente (con cualquier
 // registro ya guardado), para que ambos generen exactamente el mismo documento.
-function buildMatrizDoc(entry){
+function buildMatrizDoc(entry, asBlob){
   const tasks=entry.tasks||[];
   const entryName=entry.name||entry.dni||'';
   const rubro=entry.biz||(ROSTER[entry.dni]||{}).b||'';
@@ -739,8 +843,15 @@ function buildMatrizDoc(entry){
     '<div style="border-top:1pt solid #C8D4E8;margin-top:22pt;padding-top:6pt"><p style="font-size:8.5pt;color:#6B7688;text-align:center">Documento elaborado en el marco del Programa de Impulso Pyme · BCP × UCSP–CENDES · Módulo 3: Gestión de Operaciones · Sesión 7.</p></div>'+
     '</body></html>';
   const blob=new Blob(['\ufeff'+doc],{type:'application/msword'});
+  const base=(entryName.split(' ')[0]||'matriz');
+  const filename='MatrizDelegacion_'+base+(entry.__verLabel?('_'+entry.__verLabel):'')+'_S7.doc';
+  // asBlob=true: lo devuelve para empaquetarlo en el ZIP del administrador, en vez
+  // de disparar una descarga suelta (el navegador bloquea las descargas multiples).
+  if(asBlob) return { blob:blob, filename:filename };
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='MatrizDelegacion_'+(entryName.split(' ')[0]||'matriz')+'_S7.doc';a.click();
+  a.download=filename;a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  return true;
 }
 
 $('wordBtn').onclick=()=>{
@@ -753,7 +864,559 @@ $('wordBtn').onclick=()=>{
   showStatus('✅ Matriz (formato ejecutivo) descargada.','ok');
   setTimeout(()=>showStatus('',''),4000);
 };
-$('printBtn').onclick=()=>window.print();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EXPORTADOR PDF · V7 "flujo por bloques"  (mismo motor que S2 a S6)
+   ------------------------------------------------------------------------
+   Antes el boton hacia window.print() de la pantalla completa: salia la app
+   con botones y controles, no un documento. Ahora se compone un resumen
+   aparte y se rasteriza con html2canvas + jsPDF:
+    - NO se pasa width/height: html2canvas mide el CLON que realmente dibuja,
+      asi el lienzo nunca recorta el final ni deja aire de mas.
+    - Los limites de cada bloque se miden DENTRO del clon via `onclone`, ya con
+      la tipografia cargada: medicion y render en el mismo sistema.
+    - Cada caja (cada cuadrante, el resumen, el analisis, el plan) es un
+      "atomo": la pagina solo corta donde no rompe ninguno.
+    - Los titulos de seccion viajan pegados a su primer bloque.
+
+   Se construye desde un objeto `entry` (mismo shape que se guarda en la nube),
+   igual que buildMatrizDoc: asi la emprendedora y el administrador generan
+   exactamente el mismo documento, sin depender del estado de la pantalla.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const PDF_ATOM_SELECTOR = '[data-pdf-atom]';
+
+const PDF_CFG = {
+  renderW: 820,
+  scaleMax: 2.4,
+  maxCanvasPx: 22e6,
+  marginMm: 11,
+  footerMm: 9,
+  atomPadPx: 12,
+  minFill: 0.10,
+  shrinkSteps: [1, 0.97, 0.94, 0.91, 0.88]
+};
+
+const PDF_S7_CSS = [
+  '.pdf-s7{font-family:Rubik,system-ui,"Segoe UI",sans-serif;font-size:12.5px;color:#1C2536;line-height:1.65}',
+  '.pdf-s7 .sec{margin-bottom:16px}',
+  '.pdf-s7 .sec-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#C2431A;margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #E2E7F0}',
+  '.pdf-s7 .box{border:1px solid #E2E7F0;border-radius:10px;padding:13px 16px;margin-bottom:10px}',
+  '.pdf-s7 .quad{border-radius:10px;padding:13px 16px;margin-bottom:10px;border:1px solid #E2E7F0;border-left-width:4px}',
+  '.pdf-s7 .quad h3{font-size:13.5px;font-weight:700;margin-bottom:2px}',
+  '.pdf-s7 .quad .qd{font-size:10.5px;color:#6B7688;margin-bottom:8px}',
+  '.pdf-s7 .quad ul{margin:0;padding-left:18px}',
+  '.pdf-s7 .quad li{font-size:12.5px;line-height:1.75;margin-bottom:3px}',
+  '.pdf-s7 .quad li .who{color:#6B7688;font-size:11.5px}',
+  '.pdf-s7 .quad .vacio{font-size:11.5px;color:#9AACBE;font-style:italic}',
+  '.pdf-s7 .resumen{background:#002A8D;border-radius:10px;padding:15px 17px;margin-bottom:10px;color:#E4EAFF}',
+  '.pdf-s7 .resumen .t{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9FB6FF;margin-bottom:9px}',
+  '.pdf-s7 .resumen .row{font-size:12px;padding:2px 0;color:#C6D2F5}',
+  '.pdf-s7 .resumen .row b{color:#fff}',
+  '.pdf-s7 .analisis{background:#FFF1EA;border-left:3px solid #E85D2F;padding:12px 15px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.75;margin-bottom:10px}',
+  '.pdf-s7 .analisis b{color:#C2431A;font-weight:700}',
+  '.pdf-s7 .plan{background:linear-gradient(135deg,#1a0a00,#3d1500);border-radius:12px;padding:19px;color:#FFD4A8}',
+  '.pdf-s7 .plan .ey{font-size:8.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#FF8C42;margin-bottom:5px}',
+  '.pdf-s7 .plan h2{font-size:15.5px;font-weight:700;color:#fff;margin-bottom:10px}',
+  '.pdf-s7 .plan .bo{font-size:12.5px;color:#FFD4A8;line-height:1.85}',
+  '.pdf-s7 .plan .bo b{color:#fff;font-weight:700}'
+].join('\n');
+
+async function pdfEsperarTipografia(doc){
+  try{
+    const links=Array.prototype.slice.call(doc.querySelectorAll('link[rel="stylesheet"]'));
+    await Promise.all(links.map(l=>l.sheet?Promise.resolve():new Promise(res=>{
+      l.addEventListener('load',res,{once:true});
+      l.addEventListener('error',res,{once:true});
+      setTimeout(res,1500);
+    })));
+  }catch(e){}
+  try{
+    if(doc.fonts&&doc.fonts.load){
+      await Promise.all(['400','500','600','700'].map(w=>doc.fonts.load(w+' 14px Rubik')));
+    }
+    if(doc.fonts&&doc.fonts.ready) await doc.fonts.ready;
+  }catch(e){}
+}
+
+function pdfMedirBloques(root){
+  const wr=root.getBoundingClientRect();
+  const nodos=Array.prototype.slice.call(root.querySelectorAll(PDF_ATOM_SELECTOR));
+  const atomos=nodos.filter(n=>!nodos.some(o=>o!==n&&o.contains(n)));
+  const zonas=[];
+  atomos.forEach(n=>{
+    const r=n.getBoundingClientRect();
+    if(r.height>0) zonas.push({top:r.top-wr.top,bottom:r.bottom-wr.top});
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-pdf-sec]'),sec=>{
+    const t=sec.querySelector('[data-pdf-title]');
+    if(!t) return;
+    const primero=atomos.filter(a=>sec.contains(a))[0];
+    const rt=t.getBoundingClientRect();
+    if(!primero){
+      const rs=sec.getBoundingClientRect();
+      if(rs.height>0) zonas.push({top:rs.top-wr.top,bottom:rs.bottom-wr.top});
+      return;
+    }
+    zonas.push({top:rt.top-wr.top,bottom:primero.getBoundingClientRect().bottom-wr.top});
+  });
+  return {height:wr.height,width:wr.width,zonas:zonas};
+}
+
+function pdfPlanificarPaginas(imgH,zonas,altoPagPx){
+  const dentro=p=>zonas.some(z=>p>z.top+0.5&&p<z.bottom-0.5);
+  const candidatos=[];
+  zonas.forEach(z=>{candidatos.push(z.top);candidatos.push(z.bottom);});
+  candidatos.push(imgH);
+  candidatos.sort((a,b)=>a-b);
+  const minSlice=altoPagPx*PDF_CFG.minFill;
+  const paginas=[];
+  let y=0,guarda=0;
+  while(y<imgH-1&&guarda++<400){
+    let corte=Math.min(y+altoPagPx,imgH);
+    if(corte<imgH&&dentro(corte)){
+      let mejor=-1;
+      for(let i=0;i<candidatos.length;i++){
+        const c=candidatos[i];
+        if(c>corte) break;
+        if(c<=y+minSlice) continue;
+        if(!dentro(c)) mejor=c;
+      }
+      if(mejor>y) corte=mejor;
+      else{
+        let fin=corte;
+        for(let pasada=0;pasada<4;pasada++){
+          const antes=fin;
+          zonas.forEach(z=>{if(fin>z.top&&fin<z.bottom) fin=z.bottom;});
+          if(fin===antes) break;
+        }
+        corte=Math.min(fin,imgH);
+      }
+    }
+    if(corte<=y) corte=Math.min(y+altoPagPx,imgH);
+    paginas.push({from:y,to:corte});
+    y=corte;
+  }
+  return paginas;
+}
+
+// Devuelve el HTML de un bloque de analisis, o '' si solo tiene el spinner.
+function textoLimpioS7(id){
+  const el=$(id);
+  if(!el) return '';
+  const html=el.innerHTML||'';
+  if(!html.trim()||html.indexOf('dots-s6')>=0) return '';
+  return html;
+}
+
+// Arma un `entry` con el estado actual de la pantalla (para la emprendedora).
+function entryActualS7(){
+  const counts={1:0,2:0,3:0,4:0};
+  pool.forEach(t=>{if(t.quad) counts[t.quad]++;});
+  return {
+    dni:currentDNI, name:currentName, biz:(ROSTER[currentDNI]||{}).b||'',
+    tasks:pool.map(t=>({txt:t.txt,quad:t.quad,who:t.who})),
+    counts:counts, total:pool.length, classified:pool.filter(t=>t.quad).length,
+    analisisIA:textoLimpioS7('analisisPoeS7'),
+    planAccion:textoLimpioS7('diagnosticoS7Body')
+  };
+}
+
+// Documento del resumen, en bloques atomicos.
+function construirResumenS7(entry){
+  const e=entry||{};
+  const tasks=Array.isArray(e.tasks)?e.tasks:[];
+  const A=' data-pdf-atom="1"';
+  const neg=t=>(typeof renderNegS7==='function'?renderNegS7(t):esc(t||''));
+
+  const counts=e.counts||{1:0,2:0,3:0,4:0};
+  const total=e.total||tasks.length;
+  const clasif=e.classified!=null?e.classified:tasks.filter(t=>t.quad).length;
+
+  // Estilo por cuadrante: mismo codigo de color que la matriz en pantalla.
+  const QSTYLE={
+    '1':{c:'#2F9E5F',bg:'#F0FBF4',ico:'\u2713',t:'Delega ya',d:'No cr\u00edtico \u00b7 eres buena'},
+    '2':{c:'#002A8D',bg:'#EEF3FF',ico:'\u25a4',t:'Delega con gu\u00eda',d:'Importante \u00b7 entrenar'},
+    '3':{c:'#E85D2F',bg:'#FFF1EA',ico:'\u2605',t:'Hazlo t\u00fa',d:'Importante \u00b7 eres buena'},
+    '4':{c:'#9CA3AF',bg:'#F7F9FC',ico:'\u2716',t:'Elimina / Automatiza',d:'No cr\u00edtico \u00b7 no necesaria'}
+  };
+
+  let h='<div class="pdf-s7">';
+
+  // Resumen numerico
+  h+='<div class="resumen"'+A+'><div class="t">Tu matriz en n\u00fameros</div>' +
+     '<div class="row"><b>'+total+'</b> actividad'+(total===1?'':'es')+' repetitiva'+(total===1?'':'s')+' identificada'+(total===1?'':'s')+
+     ' \u00b7 <b>'+clasif+'</b> ya ubicada'+(clasif===1?'':'s')+' en la matriz</div>' +
+     '<div class="row">Delega ya: <b>'+(counts['1']||0)+'</b> \u00b7 Delega con gu\u00eda: <b>'+(counts['2']||0)+
+     '</b> \u00b7 Hazlo t\u00fa: <b>'+(counts['3']||0)+'</b> \u00b7 Elimina/Automatiza: <b>'+(counts['4']||0)+'</b></div></div>';
+
+  // Los cuatro cuadrantes, cada uno su propio bloque
+  h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Tu matriz de delegaci\u00f3n</div>';
+  ['1','2','3','4'].forEach(function(q){
+    const st=QSTYLE[q];
+    const items=tasks.filter(function(t){return String(t.quad)===q;});
+    h+='<div class="quad"'+A+' style="background:'+st.bg+';border-left-color:'+st.c+'">' +
+       '<h3 style="color:'+st.c+'">'+st.ico+' '+st.t+'</h3><div class="qd">'+st.d+'</div>' +
+       (items.length
+         ? '<ul>'+items.map(function(t){
+             return '<li>'+esc(t.txt||'')+(t.who?' <span class="who">\u2014 a delegar en: '+esc(t.who)+'</span>':'')+'</li>';
+           }).join('')+'</ul>'
+         : '<div class="vacio">Sin actividades en este cuadrante.</div>') +
+       '</div>';
+  });
+
+  // Actividades aun sin ubicar
+  const pend=tasks.filter(function(t){return !t.quad;});
+  if(pend.length){
+    h+='<div class="box"'+A+'><h3 style="font-size:12.5px;font-weight:700;color:#6B7688;margin-bottom:6px">A\u00fan sin ubicar ('+pend.length+')</h3>' +
+       '<ul style="margin:0;padding-left:18px">'+pend.map(function(t){
+         return '<li style="font-size:12px;color:#6B7688;line-height:1.7">'+esc(t.txt||'')+'</li>';
+       }).join('')+'</ul></div>';
+  }
+  h+='</div>';
+
+  if(e.analisisIA){
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Lectura de tu matriz</div>' +
+       '<div class="analisis"'+A+'>'+neg(e.analisisIA)+'</div></div>';
+  }
+  if(e.planAccion){
+    h+='<div class="sec" data-pdf-sec="1"><div class="sec-title" data-pdf-title="1">Tu plan de acci\u00f3n</div>' +
+       '<div class="plan"'+A+'><div class="ey">\u25c6 Plan de acci\u00f3n de tu consultor</div>' +
+       '<h2>Qu\u00e9 hacer en las pr\u00f3ximas semanas</h2><div class="bo">'+neg(e.planAccion)+'</div></div></div>';
+  }
+
+  h+='</div>';
+  return {html:h,nombre:e.name||''};
+}
+
+async function exportResumenS7ToPdf(entry,versionLabel,asBlob){
+  console.log('[PDF] exportador S7 V7-flow');
+  let wrapper=null;
+  try{
+    const doc=construirResumenS7(entry);
+
+    wrapper=document.createElement('div');
+    wrapper.style.cssText=[
+      'position:absolute','top:0','left:-9999px',
+      'background:#fff','padding:26px 24px',
+      "font-family:Rubik,system-ui,'Segoe UI',sans-serif",
+      'width:'+PDF_CFG.renderW+'px','box-sizing:border-box','overflow:visible'
+    ].join(';');
+
+    const estilos=document.createElement('style');
+    estilos.textContent=PDF_S7_CSS;
+    wrapper.appendChild(estilos);
+
+    const biz=(entry&&entry.biz)||'';
+    const hdr=document.createElement('div');
+    hdr.setAttribute('data-pdf-atom','1');
+    hdr.style.cssText='margin-bottom:16px;padding-bottom:11px;border-bottom:2.5px solid #E85D2F';
+    hdr.innerHTML=
+      '<div style="font-size:8.5px;letter-spacing:1.8px;font-weight:600;color:#F0A080;text-transform:uppercase;margin-bottom:4px">M\u00f3dulo 3 \u00b7 Gesti\u00f3n de Operaciones \u00b7 Sesi\u00f3n 7 \u00b7 BCP \u00d7 UCSP-CENDES</div>'+
+      '<div style="font-size:20px;font-weight:700;color:#002A8D;line-height:1.2">Matriz de <span style="color:#E85D2F">Delegaci\u00f3n</span></div>'+
+      '<div style="font-size:10.5px;color:#6B7688;margin-top:4px">'+esc(doc.nombre)+
+        (biz?' \u00b7 '+esc(biz):'')+
+        (versionLabel?' \u00b7 '+esc(versionLabel):'')+' \u00b7 '+
+        new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'})+'</div>';
+    wrapper.appendChild(hdr);
+
+    const cuerpo=document.createElement('div');
+    cuerpo.innerHTML=doc.html;
+    wrapper.appendChild(cuerpo);
+
+    const spacer=document.createElement('div');
+    spacer.style.cssText='height:18px';
+    wrapper.appendChild(spacer);
+
+    document.body.appendChild(wrapper);
+
+    await pdfEsperarTipografia(document);
+    await new Promise(r=>setTimeout(r,250));
+
+    const fallback=pdfMedirBloques(wrapper);
+
+    // Escala adaptativa: con muchas actividades un lienzo gigante devuelve un
+    // canvas en blanco o revienta la memoria del movil.
+    let scale=PDF_CFG.scaleMax;
+    const altoCss=Math.max(fallback.height,wrapper.scrollHeight,1);
+    while(scale>1.2&&(PDF_CFG.renderW*scale)*(altoCss*scale)>PDF_CFG.maxCanvasPx) scale-=0.2;
+
+    let metrics=null;
+    const canvas=await html2canvas(wrapper,{
+      scale:scale, useCORS:true, backgroundColor:'#ffffff', logging:false,
+      windowWidth:PDF_CFG.renderW+300,
+      windowHeight:Math.max(1200,altoCss+300),
+      scrollX:0, scrollY:0,
+      onclone:async(d,cloned)=>{
+        await pdfEsperarTipografia(d);
+        await new Promise(r=>setTimeout(r,80));
+        try{metrics=pdfMedirBloques(cloned);}catch(err){metrics=null;}
+      }
+    });
+
+    const med=(metrics&&metrics.height>0)?metrics:fallback;
+
+    const {jsPDF}=window.jspdf;
+    const imgW=canvas.width,imgH=canvas.height;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const pageH=pdf.internal.pageSize.getHeight();
+    const margin=PDF_CFG.marginMm;
+    const usableW=pageW-margin*2;
+    const usableH=pageH-margin*2-PDF_CFG.footerMm;
+
+    const sy=med.height>0?(imgH/med.height):scale;
+    const altoPagBase=imgW*(usableH/usableW);
+
+    const zonas=med.zonas
+      .map(z=>({top:z.top*sy,bottom:z.bottom*sy}))
+      .filter(z=>z.bottom>z.top+1)
+      .sort((a,b)=>a.top-b.top);
+
+    const padPx=PDF_CFG.atomPadPx*sy;
+    zonas.forEach(z=>{
+      let sigTop=imgH;
+      // >= y no >: cuando dos bloques se tocan exactamente el hueco es 0 y el
+      // colchon debe ser 0, o todas las zonas se encadenan en una sola.
+      zonas.forEach(o=>{if(o.top>=z.bottom&&o.top<sigTop) sigTop=o.top;});
+      z.bottom+=Math.max(0,Math.min(padPx,(sigTop-z.bottom)*0.6));
+      if(z.bottom>imgH) z.bottom=imgH;
+    });
+
+    if(imgH<=altoPagBase){
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',
+        margin,margin,usableW,(imgH/imgW)*usableW);
+    }else{
+      let mejor=null;
+      PDF_CFG.shrinkSteps.forEach(k=>{
+        const pg=pdfPlanificarPaginas(imgH,zonas,altoPagBase/k);
+        if(!mejor||pg.length<mejor.paginas.length) mejor={k:k,paginas:pg};
+      });
+      const k=mejor.k,paginas=mejor.paginas;
+
+      paginas.forEach((p,i)=>{
+        if(i===paginas.length-1) return;
+        if(zonas.some(z=>p.to>z.top+0.5&&p.to<z.bottom-0.5)) console.warn('[PDF] corte revisado en pagina '+(i+1));
+      });
+
+      for(let i=0;i<paginas.length;i++){
+        if(i>0) pdf.addPage();
+        const p=paginas[i];
+        const sliceH=Math.max(1,Math.round(p.to-p.from));
+        const slice=document.createElement('canvas');
+        slice.width=imgW; slice.height=sliceH;
+        const ctx=slice.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,imgW,sliceH);
+        ctx.drawImage(canvas,0,p.from,imgW,sliceH,0,0,imgW,sliceH);
+
+        let drawW=usableW*k;
+        let drawH=(sliceH/imgW)*drawW;
+        if(drawH>usableH){const f=usableH/drawH;drawW*=f;drawH=usableH;}
+        const x=margin+(usableW-drawW)/2;
+        pdf.addImage(slice.toDataURL('image/jpeg',0.95),'JPEG',x,margin,drawW,drawH);
+      }
+    }
+
+    const totalPages=pdf.internal.getNumberOfPages();
+    for(let p=1;p<=totalPages;p++){
+      pdf.setPage(p);pdf.setFontSize(8);pdf.setTextColor(150);
+      pdf.text('Programa BCP \u00b7 UCSP-CENDES \u00b7 M\u00f3dulo 3 \u00b7 Sesi\u00f3n 7',margin,pageH-5);
+      if(totalPages>1) pdf.text('P\u00e1g. '+p+' / '+totalPages,pageW-margin,pageH-5,{align:'right'});
+    }
+
+    const safeName=String(doc.nombre||'matriz').replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().slice(0,45)||'matriz';
+    const safeVer=versionLabel?'_'+versionLabel.replace(/[^a-zA-Z0-9]/g,''):'';
+    const filename='MatrizDelegacion_'+safeName+safeVer+'.pdf';
+    if(asBlob) return {blob:pdf.output('blob'),filename:filename};
+    pdf.save(filename);
+    return true;
+
+  }catch(err){
+    console.error('PDF error:',err);
+    return asBlob?null:false;
+  }finally{
+    if(wrapper&&wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }
+}
+
+function triggerBlobDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+$('printBtn').onclick=async()=>{
+  if(pool.length===0){showStatus('A\u00fan no tienes actividades para descargar.','err');return;}
+  const btn=$('printBtn');
+  const orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='\u23f3 Generando PDF...';
+  const ok=await exportResumenS7ToPdf(entryActualS7(),'',false);
+  btn.disabled=false;btn.innerHTML=orig;
+  if(!ok) showStatus('No se pudo generar el PDF. Intenta de nuevo.','err');
+};
+
+/* ---------- PANEL ADMINISTRADOR ---------- */
+
+async function loadAdminData(){
+  $('adminTableBody').innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Cargando...</div>';
+  $('adminBulkStatus').textContent='';
+  const rec=await binRead(BIN_URL);
+  if(rec===null){
+    $('adminTableBody').innerHTML='<div class="alert-box amber"><b>Error de conexi\u00f3n al servidor.</b></div>';
+    return;
+  }
+  const allEntries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+
+  const byDni=new Map();
+  allEntries.forEach(e=>{
+    if(!byDni.has(e.dni)) byDni.set(e.dni,[]);
+    byDni.get(e.dni).push(e);
+  });
+  byDni.forEach(list=>list.sort((a,b)=>new Date(a.savedAt||0)-new Date(b.savedAt||0)));
+
+  const empDnis=Object.keys(ROSTER).filter(d=>!TEST_DNIS.has(d));
+  const conDatos=empDnis.filter(d=>byDni.has(d));
+  const totalVersiones=allEntries.filter(e=>ROSTER[e.dni]&&!TEST_DNIS.has(e.dni)).length;
+
+  $('kAdminEmp').textContent=conDatos.length;
+  $('kAdminVer').textContent=totalVersiones;
+
+  const ordenados=empDnis.slice().sort((a,b)=>((ROSTER[a]||{}).n||'').localeCompare((ROSTER[b]||{}).n||''));
+
+  let html='';
+  ordenados.forEach(dni=>{
+    const versions=byDni.get(dni)||[];
+    const info=ROSTER[dni]||{};
+    const nombre=info.n||dni;
+
+    const lista=versions.length
+      ? '<div class="admin-version-list">'+versions.map((v,i)=>{
+          const c=v.counts||{};
+          const desc=(v.total||0)+' actividades \u00b7 '+(v.classified||0)+' ubicadas \u00b7 delega ya: '+(c['1']||0);
+          const chip=v.complete?'<span class="tag green" style="flex-shrink:0">completo</span>':'';
+          return '<div class="admin-version-item"><span class="v-num">v'+(i+1)+'</span>'+
+                 '<span class="v-name">'+esc(desc)+'</span>'+chip+
+                 '<span class="v-date">'+fmtFechaHora(v.savedAt)+'</span></div>';
+        }).join('')+'</div>'
+      : '<div class="admin-empty-versions">Sin matrices guardadas todav\u00eda.</div>';
+
+    html+='<div class="admin-emp-card">'+
+      '<div class="admin-emp-head"><div><div class="admin-emp-name">'+esc(nombre)+'</div>'+
+      (info.b?'<div class="admin-emp-biz">'+esc(info.b)+'</div>':'')+'</div>'+
+      '<span class="tag '+(versions.length?'green':'gray')+'">'+versions.length+' '+(versions.length===1?'versi\u00f3n':'versiones')+'</span></div>'+
+      lista+
+      (versions.length
+        ? '<button class="cta" style="padding:8px 14px;font-size:12.5px" onclick="downloadVersionsFor(\''+dni+'\')">&#128190; Descargar todo lo de '+esc(String(nombre).split(' ')[0])+' (PDF + Word)</button>'
+        : '')+
+      '</div>';
+  });
+  $('adminTableBody').innerHTML=html;
+}
+
+// Genera PDF + Word de UNA version. Ambos se construyen desde el `entry`, asi
+// que el administrador no necesita "prestar" el estado de la pantalla.
+async function archivosDeVersionS7(entry,label){
+  const out=[];
+  const pdf=await exportResumenS7ToPdf(entry,label,true);
+  if(pdf) out.push(pdf);
+  try{
+    const conLabel=Object.assign({},entry,{__verLabel:label||''});
+    const word=buildMatrizDoc(conLabel,true);
+    if(word&&word.blob) out.push(word);
+  }catch(e){console.warn('[Word] no se pudo generar el de esta versi\u00f3n',e);}
+  return out;
+}
+
+async function downloadVersionsFor(dni){
+  const rec=await binRead(BIN_URL);
+  if(!rec){alert('Error de conexi\u00f3n.');return;}
+  const all=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  const versions=all.filter(e=>e.dni===dni).sort((a,b)=>new Date(a.savedAt||0)-new Date(b.savedAt||0));
+  if(!versions.length){alert('Esta emprendedora no tiene matrices guardadas.');return;}
+
+  const personName=(ROSTER[dni]||{}).n||dni;
+  $('adminBulkStatus').className='save-status loading';
+
+  const archivos=[];
+  for(let i=0;i<versions.length;i++){
+    $('adminBulkStatus').textContent='Generando '+(i+1)+' de '+versions.length+' \u2014 '+personName+'...';
+    const label=versions.length>1?('v'+(i+1)):'';
+    const fs=await archivosDeVersionS7(versions[i],label);
+    fs.forEach(f=>archivos.push(f));
+  }
+
+  if(!archivos.length){
+    $('adminBulkStatus').className='save-status err';
+    $('adminBulkStatus').textContent='\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  if(archivos.length===1){
+    triggerBlobDownload(archivos[0].blob,archivos[0].filename);
+  }else{
+    $('adminBulkStatus').textContent='Empaquetando '+archivos.length+' archivos...';
+    const zip=new JSZip();
+    archivos.forEach(f=>zip.file(f.filename,f.blob));
+    triggerBlobDownload(await zip.generateAsync({type:'blob'}),'MatrizDelegacion_'+String(personName).replace(/[^a-zA-Z0-9]/g,'_')+'.zip');
+  }
+  $('adminBulkStatus').className='save-status ok';
+  $('adminBulkStatus').textContent='\u2705 '+archivos.length+' archivo(s) descargado(s) de '+personName+'.';
+  setTimeout(()=>{$('adminBulkStatus').textContent='';$('adminBulkStatus').className='save-status';},5000);
+}
+
+async function downloadAllVersionsS7(){
+  const rec=await binRead(BIN_URL);
+  if(!rec){alert('Error de conexi\u00f3n.');return;}
+  const all=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  const byDni=new Map();
+  all.forEach(e=>{
+    if(!ROSTER[e.dni]||TEST_DNIS.has(e.dni)) return;
+    if(!byDni.has(e.dni)) byDni.set(e.dni,[]);
+    byDni.get(e.dni).push(e);
+  });
+  if(byDni.size===0){alert('A\u00fan no hay matrices guardadas.');return;}
+  if(!confirm('Se descargar\u00e1n los PDF y Word de '+byDni.size+' emprendedora(s) en un solo ZIP. Esto puede tomar un momento. \u00bfContinuar?')) return;
+
+  const btn=$('adminDownloadAllBtn');
+  btn.disabled=true;
+  const dnis=Array.from(byDni.keys());
+  const archivos=[];
+
+  for(let d=0;d<dnis.length;d++){
+    const dni=dnis[d];
+    const versions=byDni.get(dni).sort((a,b)=>new Date(a.savedAt||0)-new Date(b.savedAt||0));
+    const personName=(ROSTER[dni]||{}).n||dni;
+    // Una carpeta por emprendedora: con 25 personas y 2 archivos por version,
+    // un ZIP plano es inmanejable.
+    const carpeta=String(personName).replace(/[^a-zA-Z\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1 0-9]/g,'').trim().replace(/\s+/g,'_')||dni;
+    for(let i=0;i<versions.length;i++){
+      $('adminBulkStatus').className='save-status loading';
+      $('adminBulkStatus').textContent='Emprendedora '+(d+1)+'/'+dnis.length+' \u2014 versi\u00f3n '+(i+1)+'/'+versions.length+' \u2014 '+personName+'...';
+      const label=versions.length>1?('v'+(i+1)):'';
+      const fs=await archivosDeVersionS7(versions[i],label);
+      fs.forEach(f=>archivos.push({filename:carpeta+'/'+f.filename,blob:f.blob}));
+    }
+  }
+  btn.disabled=false;
+
+  if(!archivos.length){
+    $('adminBulkStatus').className='save-status err';
+    $('adminBulkStatus').textContent='\u26a0\ufe0f No se pudo generar ning\u00fan archivo.';
+    return;
+  }
+  $('adminBulkStatus').textContent='Empaquetando '+archivos.length+' archivos en un ZIP...';
+  const zip=new JSZip();
+  archivos.forEach(f=>zip.file(f.filename,f.blob));
+  triggerBlobDownload(await zip.generateAsync({type:'blob'}),'Matrices_S7_todas.zip');
+  $('adminBulkStatus').className='save-status ok';
+  $('adminBulkStatus').textContent='\u2705 '+archivos.length+' archivo(s) de '+dnis.length+' emprendedora(s) en un ZIP.';
+  setTimeout(()=>{$('adminBulkStatus').textContent='';$('adminBulkStatus').className='save-status';},6000);
+}
+
+$('adminDownloadAllBtn').onclick=downloadAllVersionsS7;
 
 let clearArmed=false;
 $('clearBtn').onclick=()=>{
@@ -770,8 +1433,10 @@ async function loadDocData(){
   $('docAlerts').innerHTML='';$('docPending').innerHTML='';
   const rec=await binRead(BIN_URL+'/latest');
   if(rec===null){$('docTableBody').innerHTML='<tr><td colspan="4" style="padding:16px"><div class="alert-box amber"><b>Error de conexión.</b> Verifica BIN_ID e internet.</div></td></tr>';return;}
-  docEntries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
-  const total=docEntries.length,rosterSize=Object.keys(ROSTER).length,pct=Math.round(total/rosterSize*100);
+  // Una fila por emprendedora: su version mas reciente.
+  docEntries=latestPerDni(Array.isArray(rec)?rec:((rec&&rec.entries)||[]));
+  docEntries=docEntries.filter(e=>!TEST_DNIS.has(e.dni));
+  const total=docEntries.length,rosterSize=Object.keys(ROSTER).length-TEST_DNIS.size,pct=Math.round(total/rosterSize*100);
   const completas=docEntries.filter(e=>e.complete).length;
   let ya=0,fin=0;
   docEntries.forEach(e=>{ya+=(e.counts&&e.counts['1'])||0;fin+=(e.counts&&e.counts['4'])||0;});
@@ -798,7 +1463,7 @@ async function loadDocData(){
     $('docTableBody').innerHTML=rows;
   }
   const reg=new Set(docEntries.map(e=>e.dni));
-  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d));
+  const pend=Object.entries(ROSTER).filter(([d])=>!reg.has(d)&&!TEST_DNIS.has(d));
   if(pend.length===0)$('docPending').innerHTML='<div class="alert-box green"><b>¡Todas armaron su matriz!</b></div>';
   else{let ph='<p style="font-size:12px;color:var(--muted);margin-bottom:10px">'+pend.length+' sin guardar:</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
     pend.forEach(([,v])=>{ph+='<span style="background:#F1F5F9;border-radius:20px;padding:4px 10px;font-size:12px">'+esc(v.n.split(' ')[0])+'</span>';});ph+='</div>';$('docPending').innerHTML=ph;}

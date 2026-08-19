@@ -427,8 +427,8 @@ function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
     <button class="claude-btn-s3 no-print" id="btnAnalisisIA">
       <div class="cb3-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div>
       <div class="cb3-text">
-        <div class="cb3-main">Analizar mi Ishikawa con IA</div>
-        <div class="cb3-sub">Lectura fina de TUS causas &middot; por d&oacute;nde empezar</div>
+        <div class="cb3-main">Analizar y guardar mi diagn&oacute;stico</div>
+        <div class="cb3-sub">Lectura fina de TUS causas &middot; se guarda en la nube</div>
       </div>
       <div class="cb3-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div>
     </button>
@@ -454,7 +454,6 @@ function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
         <div id="analisisCierreBody" class="ac-body"></div>
       </div>
     </div>
-    <button class="cta navy full no-print" id="saveCloudBtn" style="margin-bottom:10px">&#9729; Guardar mi diagnóstico</button>
     <button class="cta full no-print" id="printBtn" style="margin-bottom:10px">&#128438; Descargar PDF</button>
     <button class="ghost no-print" id="clearBtn" style="margin-bottom:10px">Limpiar mis datos de este dispositivo</button>
     <div class="save-status" id="saveStatus"></div>
@@ -617,6 +616,36 @@ async function binRead(){
 async function binWrite(data){
   try{ const r = await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(data)}); return r.ok; }
   catch(e){ return false; }
+}
+
+// ── GUARDADO APPEND-ONLY CON VERIFICACIÓN ───────────────────────────────────
+// JSONBin no tiene escritura atómica: cada PUT reemplaza el documento completo.
+// Con 25 emprendedoras guardando a la vez, dos lecturas simultáneas pueden
+// pisarse. Por eso: (1) cada payload lleva un id único e irrepetible,
+// (2) siempre se hace push sobre la lectura MÁS FRESCA — nunca sobre una copia
+// en memoria, (3) tras escribir se RELEE y se verifica que el id esté presente;
+// si no está, significa que otra escritura ganó la carrera y se reintenta.
+// Ninguna versión anterior se borra jamás: el array solo crece.
+async function guardarVersion(payload){
+  for(let intento = 0; intento < 4; intento++){
+    if(intento > 0) await new Promise(r => setTimeout(r, 400 + Math.random()*900));
+
+    const rec = await binRead();
+    if(!rec) continue;                                  // sin lectura, no escribimos
+
+    const entries = Array.isArray(rec.entries) ? rec.entries : [];
+    if(entries.some(e => e && e.id === payload.id)) return true;  // ya quedó grabado
+
+    const nuevo = Object.assign({}, rec, { entries: entries.concat([payload]) });
+    const ok = await binWrite(nuevo);
+    if(!ok) continue;
+
+    // Verificación: releer y confirmar que MI entrada sobrevivió al PUT
+    const check = await binRead();
+    const ce = check && Array.isArray(check.entries) ? check.entries : null;
+    if(ce && ce.some(e => e && e.id === payload.id)) return true;
+  }
+  return false;
 }
 
 // Leer el flujograma de una emprendedora desde el BIN de la Sesion 2 (nube)
@@ -1394,6 +1423,13 @@ function restaurarAnalisisS3(v){
     fuente: v.analisisFuente || 'reglas'
   };
   pintarAnalisisS3(analisisS3);
+  // Ya tiene un diagnóstico guardado: el botón refleja que volver a tocarlo
+  // genera una VERSIÓN NUEVA, no reemplaza la anterior.
+  const b = $('btnAnalisisIA');
+  if(b){
+    b.querySelector('.cb3-main').textContent = 'Volver a analizar y guardar';
+    b.querySelector('.cb3-sub').textContent  = 'Cada análisis se guarda como versión nueva';
+  }
 }
 
 // Genera el analisis. usarIA=true consulta a Claude (2 llamadas en paralelo).
@@ -1426,16 +1462,20 @@ async function generarAnalisisS3(usarIA){
 }
 
 
-// ── BOTÓN: ANALIZAR CON IA ──────────────────────────────────────────────────
+// ── BOTÓN ÚNICO: ANALIZAR + GUARDAR ─────────────────────────────────────────
+// Antes eran dos botones. El de IA no persistía nada, así que quien analizaba,
+// descargaba su PDF y cerraba la pestaña quedaba como "pendiente" en el panel
+// docente. Ahora una sola acción: analiza con Claude y guarda en la nube.
 $('btnAnalisisIA').addEventListener('click', async () => {
   if(!semSteps.length){ showStatus('Marca al menos un paso en el semáforo antes de analizar.','err'); return; }
   const totalC = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
   if(!totalC){ showStatus('Agrega al menos una causa en tu Ishikawa antes de analizar.','err'); return; }
 
   const btn  = $('btnAnalisisIA');
+  if(btn.disabled) return;                 // doble clic: no dispara dos guardados
   const main = btn.querySelector('.cb3-main');
   const sub  = btn.querySelector('.cb3-sub');
-  const sub0 = sub.textContent;
+  const main0 = main.textContent, sub0 = sub.textContent;
 
   btn.disabled = true;
   main.textContent = 'Leyendo tus ' + totalC + ' causas...';
@@ -1449,45 +1489,21 @@ $('btnAnalisisIA').addEventListener('click', async () => {
   dots($('analisisCierreBody'));
   $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
 
+  // 1) Análisis (si la IA falla, generarAnalisisS3 cae al motor de reglas:
+  //    nadie se queda sin análisis y, sobre todo, nadie se queda sin guardar)
   const a = await generarAnalisisS3(true);
 
-  btn.disabled = false;
-  main.textContent = 'Volver a analizar con IA';
-  sub.textContent  = sub0;
-  if(a.fuente !== 'ia'){
-    showStatus('No pude conectar con la IA — te dejé el análisis base. Vuelve a intentar en un momento.','err');
-  } else {
-    showStatus('✅ Análisis listo. Revísalo y luego guarda tu diagnóstico.','ok');
-    setTimeout(()=>showStatus('',''),6000);
-  }
-});
-
-$('saveCloudBtn').addEventListener('click', async () => {
-  if(!semSteps.length){ showStatus('Marca al menos un paso en el semáforo.', 'err'); return; }
-  const totalC = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].length,0);
-  if(!totalC){ showStatus('Agrega al menos una causa en el Ishikawa antes de guardar.', 'err'); return; }
-
-  const btn = $('saveCloudBtn');
-  btn.disabled=true;
-  const sintoma = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
-
-  // Si todavía no analizó con el botón de IA, se genera aquí antes de guardar:
-  // así nadie guarda un diagnóstico sin su lectura.
-  let a = analisisS3;
-  if(!a){
-    btn.textContent='\u23f3 Generando análisis con IA...';
-    showStatus('Leyendo tu Ishikawa con IA...','loading');
-    a = await generarAnalisisS3(true);
-    $('analisisWrap').scrollIntoView({behavior:'smooth',block:'start'});
-  }
-
-  // ── Guardar en JSONBin ─────────────────────────────────────────────────────
+  // 2) Guardado en la nube — SIEMPRE, venga de IA o de reglas
+  main.textContent = 'Guardando tu diagnóstico...';
+  sub.textContent  = 'No cierres la página todavía';
   showStatus('Guardando en la nube...','loading');
-  const rec = await binRead();
-  if(!rec){ showStatus('Error de conexión.','err'); btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico'; return; }
-  const entries = Array.isArray(rec.entries)?rec.entries:[];
+
+  const sintoma   = $('symptomInput').value.trim() || 'cuello de botella en mi proceso';
   const rootCount = M_CATEGORIES.reduce((n,c)=>n+causes[c.m].filter(ca=>ca.root).length,0);
   const payload = {
+    // id único e irrepetible: identifica ESTA versión y permite verificar
+    // que sobrevivió a la escritura. Nunca se reutiliza ni se pisa.
+    id: currentDNI + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
     dni:currentDNI, name:currentName,
     semaforo:semSteps, symptom:sintoma, causes:causes,
     rojoCount:semSteps.filter(s=>s.light==='red').length,
@@ -1499,14 +1515,24 @@ $('saveCloudBtn').addEventListener('click', async () => {
     puntoPartida:a.puntoPartida, preguntas:a.preguntas, analisisFuente:a.fuente,
     savedAt:new Date().toISOString()
   };
-  // Cada guardado crea una VERSIÓN NUEVA (no se sobrescribe la anterior).
-  payload.id = currentDNI + '_' + Date.now();
-  entries.push(payload);
-  const ok = await binWrite({entries});
-  showStatus(ok?'✅ Diagnóstico y análisis guardados.':'⚠️ Error al guardar. Intenta de nuevo.',ok?'ok':'err');
-  if(ok) setTimeout(()=>showStatus('',''),5000);
-  btn.disabled=false; btn.textContent='☁ Guardar mi diagnóstico';
+
+  const ok = await guardarVersion(payload);
+
+  // 3) Estado final
+  btn.disabled = false;
+  main.textContent = ok ? 'Volver a analizar y guardar' : main0;
+  sub.textContent  = ok ? 'Cada análisis se guarda como versión nueva' : sub0;
+
+  if(!ok){
+    showStatus('⚠️ No pude guardar en la nube. Revisa tu conexión y vuelve a tocar el botón.','err');
+  } else if(a.fuente !== 'ia'){
+    showStatus('Guardado ✅ — pero no pude conectar con la IA, te dejé el análisis base. Puedes volver a analizar en un momento.','err');
+  } else {
+    showStatus('✅ Análisis y diagnóstico guardados.','ok');
+    setTimeout(()=>showStatus('',''),6000);
+  }
 });
+
 function showStatus(msg, cls){ $('saveStatus').textContent = msg; $('saveStatus').className = 'save-status ' + (cls||''); }
 
 // ── DOCENTE ──

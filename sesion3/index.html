@@ -609,13 +609,78 @@ let causes = {};
 let docEntries = [];
 
 // ── JSONBIN ──
+// Diagnóstico: guardamos SIEMPRE el motivo real del último fallo, en vez de
+// tragarlo con un catch vacío. Sin esto, "no pude guardar" no dice nada.
+let ultimoErrorBin = '';
+
 async function binRead(){
-  try{ const r = await fetch(BIN_URL,{headers:HEADERS_R}); if(!r.ok) return null; const j = await r.json(); return j.record||null; }
-  catch(e){ return null; }
+  try{
+    const r = await fetch(BIN_URL,{headers:HEADERS_R});
+    if(!r.ok){
+      ultimoErrorBin = 'LECTURA ' + r.status;
+      console.error('[BIN] read', r.status, await r.text().catch(()=>''));
+      return null;
+    }
+    const j = await r.json();
+    return j.record || null;
+  }catch(e){
+    ultimoErrorBin = 'LECTURA sin-red';
+    console.error('[BIN] read excepcion', e);
+    return null;
+  }
 }
+
 async function binWrite(data){
-  try{ const r = await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:JSON.stringify(data)}); return r.ok; }
-  catch(e){ return false; }
+  let body;
+  try{ body = JSON.stringify(data); }
+  catch(e){ ultimoErrorBin = 'JSON invalido'; console.error('[BIN] stringify', e); return false; }
+
+  // Tamaño: el plan gratuito de JSONBin corta los bins grandes. Si el PUT
+  // revienta por peso, este número lo delata al toque en consola.
+  const kb = Math.round(body.length/1024);
+  console.log('[BIN] escribiendo ' + kb + ' KB');
+
+  try{
+    const r = await fetch(BIN_URL,{method:'PUT',headers:HEADERS_W,body:body});
+    if(!r.ok){
+      const txt = await r.text().catch(()=>'');
+      ultimoErrorBin = 'ESCRITURA ' + r.status + (kb > 90 ? ' (bin ' + kb + 'KB)' : '');
+      console.error('[BIN] write', r.status, txt, kb + 'KB');
+      return false;
+    }
+    return true;
+  }catch(e){
+    ultimoErrorBin = 'ESCRITURA sin-red';
+    console.error('[BIN] write excepcion', e);
+    return false;
+  }
+}
+
+// ── RESPALDO LOCAL ──────────────────────────────────────────────────────────
+// Si la nube falla, el diagnóstico NO se pierde: queda en este dispositivo y
+// se reintenta solo la próxima vez que la emprendedora abra la app.
+const PEND_PREFIX = 'bcp_s3_pend_';
+
+function guardarPendiente(payload){
+  try{ localStorage.setItem(PEND_PREFIX + payload.dni, JSON.stringify(payload)); }catch(e){}
+}
+function leerPendiente(dni){
+  try{ const v = localStorage.getItem(PEND_PREFIX + dni); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+}
+function borrarPendiente(dni){
+  try{ localStorage.removeItem(PEND_PREFIX + dni); }catch(e){}
+}
+
+// Reintenta en silencio el guardado que quedó pendiente en este dispositivo.
+async function reintentarPendiente(dni){
+  const p = leerPendiente(dni);
+  if(!p) return;
+  const ok = await guardarVersion(p, true);
+  if(ok){
+    borrarPendiente(dni);
+    showStatus('✅ Tu diagnóstico anterior terminó de guardarse en la nube.','ok');
+    setTimeout(()=>showStatus('',''),6000);
+  }
 }
 
 // ── GUARDADO APPEND-ONLY CON VERIFICACIÓN ───────────────────────────────────
@@ -626,7 +691,9 @@ async function binWrite(data){
 // en memoria, (3) tras escribir se RELEE y se verifica que el id esté presente;
 // si no está, significa que otra escritura ganó la carrera y se reintenta.
 // Ninguna versión anterior se borra jamás: el array solo crece.
-async function guardarVersion(payload){
+async function guardarVersion(payload, silencioso){
+  ultimoErrorBin = '';
+
   for(let intento = 0; intento < 4; intento++){
     if(intento > 0) await new Promise(r => setTimeout(r, 400 + Math.random()*900));
 
@@ -644,7 +711,13 @@ async function guardarVersion(payload){
     const check = await binRead();
     const ce = check && Array.isArray(check.entries) ? check.entries : null;
     if(ce && ce.some(e => e && e.id === payload.id)) return true;
+
+    // El PUT respondió OK pero la relectura no lo confirma: puede ser cache de
+    // JSONBin. No lo damos por perdido — el siguiente intento vuelve a revisar.
+    if(!ce) ultimoErrorBin = ultimoErrorBin || 'VERIFICACION sin-lectura';
   }
+
+  if(!silencioso) guardarPendiente(payload);
   return false;
 }
 
@@ -864,6 +937,9 @@ async function cargarDatos(){
   }
   renderMGrid();
   restaurarAnalisisS3(savedParaAnalisis);
+  // Si en una sesión anterior el guardado no llegó a la nube, lo reintenta
+  // en silencio ahora que hay conexión.
+  reintentarPendiente(currentDNI);
 }
 
 // ── SEMAFORO ──
@@ -1517,6 +1593,7 @@ $('btnAnalisisIA').addEventListener('click', async () => {
   };
 
   const ok = await guardarVersion(payload);
+  if(ok) borrarPendiente(currentDNI);
 
   // 3) Estado final
   btn.disabled = false;
@@ -1524,7 +1601,9 @@ $('btnAnalisisIA').addEventListener('click', async () => {
   sub.textContent  = ok ? 'Cada análisis se guarda como versión nueva' : sub0;
 
   if(!ok){
-    showStatus('⚠️ No pude guardar en la nube. Revisa tu conexión y vuelve a tocar el botón.','err');
+    showStatus('⚠️ Guardé tu diagnóstico en este dispositivo, pero no llegó a la nube ('
+               + (ultimoErrorBin || 'motivo desconocido')
+               + '). Vuelve a tocar el botón o avisa a la facilitadora.','err');
   } else if(a.fuente !== 'ia'){
     showStatus('Guardado ✅ — pero no pude conectar con la IA, te dejé el análisis base. Puedes volver a analizar en un momento.','err');
   } else {

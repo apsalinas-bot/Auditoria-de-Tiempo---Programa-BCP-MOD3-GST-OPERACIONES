@@ -683,6 +683,88 @@ async function reintentarPendiente(dni){
   }
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+//  PRESUPUESTO DE TAMAÑO DEL BIN
+//  JSONBin (plan gratuito) rechaza con 403 cualquier documento > 100 KB.
+//  25 diagnósticos completos pesan ~144 KB, así que NO caben todos enteros.
+//  Estrategia: el diagnóstico que se está guardando AHORA va siempre completo;
+//  los anteriores se van aligerando de atrás hacia adelante (del más viejo al
+//  más nuevo) hasta que el documento entra en el presupuesto.
+//  Nadie desaparece del panel docente: aun en el nivel máximo queda la fila
+//  con sus contadores, su síntoma y su diagnóstico en síntesis.
+// ════════════════════════════════════════════════════════════════════════════
+
+const BIN_BUDGET   = 90 * 1024;   // margen de 10 KB bajo el tope real de 100 KB
+const MAX_VERSIONES = 2;          // versiones por DNI cuando hay espacio de sobra
+
+function pesoBytes(obj){
+  const s = JSON.stringify(obj);
+  return new TextEncoder().encode(s).length;
+}
+
+function tsDe(e){ const t = new Date((e && e.savedAt) || 0).getTime(); return isNaN(t) ? 0 : t; }
+
+// Niveles de aligerado. Cada nivel conserva lo del panel docente y va soltando
+// lo que la emprendedora ya tiene en su PDF y en su propio dispositivo.
+function aligerar(e, nivel){
+  if(nivel <= 0) return e;
+  const c = Object.assign({}, e);
+  c.aligerado = nivel;
+  if(nivel >= 1) delete c.analisisPorM;                          // 6 bloques por M
+  if(nivel >= 2) delete c.preguntas;                             // 4-5 preguntas
+  if(nivel >= 3){ delete c.analisisGlobal; delete c.puntoPartida; } // se conserva el cierre
+  if(nivel >= 4){ delete c.causes; delete c.semaforo; }          // quedan los contadores
+  return c;
+}
+
+// Deja como máximo `max` versiones por DNI, siempre las más recientes.
+function limitarVersiones(lista, max){
+  const cuenta = new Map();
+  const out = [];
+  for(const e of lista){
+    const n = (cuenta.get(e.dni) || 0);
+    if(n < max){ out.push(e); cuenta.set(e.dni, n + 1); }
+  }
+  return out;
+}
+
+// Devuelve el array `entries` listo para escribir, garantizando que el
+// documento completo (rec + entries) entra en el presupuesto.
+function construirEntries(rec, nuevo){
+  const previas = (Array.isArray(rec.entries) ? rec.entries : [])
+    .filter(e => e && e.id !== nuevo.id)
+    .sort((a, b) => tsDe(b) - tsDe(a));          // más nuevo primero
+
+  const base = [nuevo].concat(previas);          // el nuevo siempre encabeza
+
+  const cabe = arr => pesoBytes(Object.assign({}, rec, { entries: arr })) <= BIN_BUDGET;
+
+  // 1) Con holgura: hasta MAX_VERSIONES por DNI, todo completo.
+  let cand = limitarVersiones(base, MAX_VERSIONES);
+  if(cabe(cand)) return cand;
+
+  // 2) Una sola versión por DNI, todo completo.
+  const unaPorDni = limitarVersiones(base, 1);
+  if(cabe(unaPorDni)) return unaPorDni;
+
+  // 3) Aligerar progresivamente, del más viejo al más nuevo.
+  //    El índice 0 (el que se está guardando) nunca se toca.
+  const original = unaPorDni.slice();
+  const actual   = unaPorDni.slice();
+  for(let nivel = 1; nivel <= 4; nivel++){
+    for(let i = actual.length - 1; i >= 1; i--){
+      actual[i] = aligerar(original[i], nivel);
+      if(cabe(actual)) return actual;
+    }
+  }
+
+  // 4) Último recurso (no debería alcanzarse: en nivel 4 cada entrada pesa
+  //    ~300 bytes). Se descartan las más antiguas antes que fallar el guardado.
+  const fin = actual.slice();
+  while(fin.length > 1 && !cabe(fin)) fin.pop();
+  return fin;
+}
+
 // ── GUARDADO APPEND-ONLY CON VERIFICACIÓN ───────────────────────────────────
 // JSONBin no tiene escritura atómica: cada PUT reemplaza el documento completo.
 // Con 25 emprendedoras guardando a la vez, dos lecturas simultáneas pueden
@@ -703,7 +785,17 @@ async function guardarVersion(payload, silencioso){
     const entries = Array.isArray(rec.entries) ? rec.entries : [];
     if(entries.some(e => e && e.id === payload.id)) return true;  // ya quedó grabado
 
-    const nuevo = Object.assign({}, rec, { entries: entries.concat([payload]) });
+    // Poda adaptativa: garantiza que el documento entra en el tope de 100 KB
+    // antes de intentar el PUT. Sin esto, JSONBin devuelve 403 y se pierde todo.
+    const nuevo = Object.assign({}, rec, { entries: construirEntries(rec, payload) });
+
+    const peso = pesoBytes(nuevo);
+    if(peso > 100*1024){                       // red de seguridad: no debería pasar
+      ultimoErrorBin = 'DEMASIADO GRANDE ' + Math.round(peso/1024) + 'KB';
+      console.error('[BIN] poda insuficiente', peso);
+      break;
+    }
+
     const ok = await binWrite(nuevo);
     if(!ok) continue;
 
@@ -2332,6 +2424,13 @@ function openModal(src,idx){
     }
   });
   bh += '</div>';
+  if(e.aligerado){
+    bh += '<div class="alert-box amber" style="margin-top:12px;font-size:12px">'
+       +  '<b>Versión aligerada.</b> Para que el bin no superara el límite de 100 KB, '
+       +  'de este registro antiguo se conservaron los contadores y el diagnóstico en síntesis. '
+       +  'El detalle completo está en el PDF que descargó la emprendedora.'
+       +  '</div>';
+  }
   $('modalBody').innerHTML = bh;
   $('detailModal').classList.add('on');
   document.body.style.overflow = 'hidden';

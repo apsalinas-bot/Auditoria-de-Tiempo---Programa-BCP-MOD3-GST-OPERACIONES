@@ -710,10 +710,17 @@ function aligerar(e, nivel){
   if(nivel <= 0) return e;
   const c = Object.assign({}, e);
   c.aligerado = nivel;
-  if(nivel >= 1) delete c.analisisPorM;                          // 6 bloques por M
-  if(nivel >= 2) delete c.preguntas;                             // 4-5 preguntas
-  if(nivel >= 3){ delete c.analisisGlobal; delete c.puntoPartida; } // se conserva el cierre
-  if(nivel >= 4){ delete c.causes; delete c.semaforo; }          // quedan los contadores
+  // ORDEN DE SACRIFICIO. Antes el nivel 4 borraba causes+semaforo pero CONSERVABA
+  // analisisCierre: justo al reves de lo que hace falta. El semaforo es el dato
+  // que la Sesion 4 necesita para mostrarle su cuello de botella; el analisis es
+  // texto que solo se usa en el PDF de esta sesion. Ahora el texto muere primero
+  // y los datos operativos son lo ultimo que se suelta.
+  if(nivel >= 1) delete c.analisisPorM;                             // 6 bloques por M
+  if(nivel >= 2) delete c.preguntas;                                // 4-5 preguntas
+  if(nivel >= 3){ delete c.analisisGlobal; delete c.puntoPartida; }
+  if(nivel >= 4) delete c.analisisCierre;                           // ya no queda texto
+  if(nivel >= 5) delete c.causes;                                   // quedan los contadores
+  if(nivel >= 6) delete c.semaforo;                                 // ultimo recurso
   return c;
 }
 
@@ -730,6 +737,41 @@ function limitarVersiones(lista, max){
 
 // Devuelve el array `entries` listo para escribir, garantizando que el
 // documento completo (rec + entries) entra en el presupuesto.
+// ── INDICE DE CUELLOS (lo que consume la Sesion 4) ──────────────────────────
+// El problema de fondo: el BIN de la S3 tiene tope de 100 KB y con 28
+// emprendedoras las entradas completas suman ~200 KB, asi que la poda SIEMPRE
+// entra en accion. Por muy bien que se ordene el sacrificio, en el peor caso ni
+// siquiera caben 28 semaforos pelados (126 KB). Resultado: la S4 se quedaba sin
+// el cuello de botella de mas de la mitad del grupo.
+//
+// La solucion es dejar de depender de `entries` para eso. Este indice vive como
+// clave de primer nivel del registro (`rec.cuellos`), la poda solo toca
+// `entries`, y pesa ~700 bytes por persona: 28 emprendedoras entran en ~20 KB y
+// no se pierden nunca. Guarda solo lo que la S4 necesita: pasos en rojo,
+// sintoma y causa raiz.
+function construirCuellos(rec, payload){
+  const prev = (rec && rec.cuellos && typeof rec.cuellos === 'object') ? rec.cuellos : {};
+  const rojos = (payload.semaforo || [])
+    .filter(s => s && s.light === 'red')
+    .map(s => ({ t: String(s.text || '').slice(0, 160), l: 'red' }));
+
+  let raiz = null;
+  const cs = payload.causes || {};
+  Object.keys(cs).forEach(m => {
+    (cs[m] || []).forEach(c => { if(c && c.root && !raiz) raiz = { t: String(c.text || '').slice(0,160), m: m }; });
+  });
+
+  const out = Object.assign({}, prev);
+  out[payload.dni] = {
+    n: payload.name || '',
+    s: String(payload.symptom || '').slice(0, 200),
+    r: rojos,
+    c: raiz,
+    ts: payload.savedAt || new Date().toISOString()
+  };
+  return out;
+}
+
 function construirEntries(rec, nuevo){
   const previas = (Array.isArray(rec.entries) ? rec.entries : [])
     .filter(e => e && e.id !== nuevo.id)
@@ -751,7 +793,7 @@ function construirEntries(rec, nuevo){
   //    El índice 0 (el que se está guardando) nunca se toca.
   const original = unaPorDni.slice();
   const actual   = unaPorDni.slice();
-  for(let nivel = 1; nivel <= 4; nivel++){
+  for(let nivel = 1; nivel <= 6; nivel++){
     for(let i = actual.length - 1; i >= 1; i--){
       actual[i] = aligerar(original[i], nivel);
       if(cabe(actual)) return actual;
@@ -787,7 +829,12 @@ async function guardarVersion(payload, silencioso){
 
     // Poda adaptativa: garantiza que el documento entra en el tope de 100 KB
     // antes de intentar el PUT. Sin esto, JSONBin devuelve 403 y se pierde todo.
-    const nuevo = Object.assign({}, rec, { entries: construirEntries(rec, payload) });
+    // El indice de cuellos se actualiza SIEMPRE y queda fuera de `entries`:
+    // asi la poda no puede borrarlo y la Sesion 4 nunca se queda sin el dato.
+    const nuevo = Object.assign({}, rec, {
+      cuellos: construirCuellos(rec, payload),
+      entries: construirEntries(rec, payload)
+    });
 
     const peso = pesoBytes(nuevo);
     if(peso > 100*1024){                       // red de seguridad: no debería pasar
@@ -802,7 +849,8 @@ async function guardarVersion(payload, silencioso){
     // Verificación: releer y confirmar que MI entrada sobrevivió al PUT
     const check = await binRead();
     const ce = check && Array.isArray(check.entries) ? check.entries : null;
-    if(ce && ce.some(e => e && e.id === payload.id)) return true;
+    const idxOk = !!(check && check.cuellos && check.cuellos[payload.dni]);
+    if(ce && ce.some(e => e && e.id === payload.id) && idxOk) return true;
 
     // El PUT respondió OK pero la relectura no lo confirma: puede ser cache de
     // JSONBin. No lo damos por perdido — el siguiente intento vuelve a revisar.

@@ -378,6 +378,7 @@ const EJEMPLOS = {"40165543": {"nombre": "KAREN PILAR", "rubro": "Servicios para
       </div>
       <textarea class="action-plan" id="actionPlan" placeholder="Escribe tu plan concreto: qu&eacute; har&aacute;s, qui&eacute;n, cu&aacute;ndo..."></textarea>
       <button class="ghost no-print" id="reloadS3Btn" style="margin-top:10px">&#8635; Recargar mi cuello de la Sesi&oacute;n 3</button>
+      <button class="ghost no-print" id="reloadMineBtn" style="margin-top:6px">&#128229; Traer mis &uacute;ltimos datos guardados</button>
 
       <div class="analisis-plan-s4" id="analisisPlanS4" style="margin-top:12px"></div>
       <button class="claude-btn-s4 no-print" id="btnAnalisisPlan" style="margin-top:12px"><div class="cb4-icon"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg></div><div class="cb4-text"><div class="cb4-main">Analizar mi plan de mejora</div><div class="cb4-sub">Diagnóstico personalizado con IA</div></div><div class="cb4-badge"><svg width="11" height="11" viewBox="0 0 28 28" fill="none"><path d="M14 3L14 25M3 14L25 14M5.5 5.5L22.5 22.5M22.5 5.5L5.5 22.5" stroke="#FF6B2B" stroke-width="3.5" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="#FF6B2B"/></svg><span>Claude</span></div></button>
@@ -793,20 +794,100 @@ document.getElementById('reloadS3Btn').addEventListener('click', async ()=>{
   msg.textContent='Buscando tu diagn\u00f3stico de la Sesi\u00f3n 3 en la nube...';
   msg.className='source-msg';
   const s3=await getCuelloS3(currentDNI);
-  if(s3 && s3.cuello){
-    showCuello(s3.cuello, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
+
+  // DOS BUGS que hacian que este boton fallara justo cuando mas se usa:
+  //
+  // 1) La condicion era `if(s3 && s3.cuello)`. Pero getCuelloS3 devuelve
+  //    cuello:null A PROPOSITO cuando hay MAS DE UN paso en rojo (porque
+  //    entonces hay que dejar que ella elija). Resultado: en cuanto marcaba un
+  //    segundo rojo en la S3, este boton mostraba "Aun no encontramos tu
+  //    diagnostico" aunque los hubiera encontrado todos. Ahora se comprueba la
+  //    lista de rojos, no el atajo de uno solo.
+  //
+  // 2) Dentro se usaba `data.cuellos`, una variable que no existe en este
+  //    ambito (se llama s3). Lanzaba ReferenceError y mataba el resto del
+  //    handler: nunca se mostraba el selector ni se llegaba a save().
+  const rojos = (s3 && Array.isArray(s3.cuellos)) ? s3.cuellos : [];
+
+  if(rojos.length || (s3 && s3.cuello)){
     const raizTxt = s3.root ? (' Su causa ra\u00edz fue: "'+s3.root.text+'" ('+s3.root.m+').') : '';
-    if(data.cuellos&&data.cuellos.length>1){
-      mostrarSelectorCuellos(data.cuellos,raizTxt);
-      msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b>'+raizTxt+' Elige cu\u00e1l vas a atacar hoy.';
+    const primero = rojos.length ? rojos[0].text : s3.cuello;
+    showCuello(primero, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
+    if(rojos.length>1){
+      mostrarSelectorCuellos(rojos, raizTxt);
+      msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b>'+raizTxt+' Tienes '+rojos.length+' pasos en rojo \u2014 elige cu\u00e1l vas a atacar hoy.';
     } else {
       msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b> Este es el cuello que marcaste en rojo.'+raizTxt;
     }
     msg.className='source-msg';
     save();
+  } else if(s3 && s3.symptom){
+    // Sin rojos pero con sintoma: igual sirve como punto de partida.
+    showCuello(s3.symptom, s3.root ? s3.root.text+' ('+s3.root.m+')' : '');
+    msg.innerHTML='\u2713 <b>Recargado desde la Sesi\u00f3n 3.</b> No marcaste ning\u00fan paso en rojo, as\u00ed que usamos el s\u00edntoma que describiste.';
+    msg.className='source-msg';
+    save();
   } else {
     msg.innerHTML='A\u00fan no encontramos tu diagn\u00f3stico de S3. Verifica que lo guardaste en la nube en la app de la Sesi\u00f3n 3, o escribe tu cuello manualmente en el plan de abajo.';
     msg.className='source-msg warn';
+  }
+});
+
+// ── TRAER MIS ULTIMOS DATOS GUARDADOS ───────────────────────────────────────
+// Busca en la nube UNICAMENTE la ultima version de ESTA emprendedora y
+// repuebla el formulario: accion, plan, productos, recurso limitante,
+// resultados del Solver y los tres bloques de analisis. Sirve cuando cambia de
+// equipo, borra el navegador o entra desde el celular.
+document.getElementById('reloadMineBtn').addEventListener('click', async ()=>{
+  const btn=$('reloadMineBtn');
+  const orig=btn.innerHTML;
+  const msg=$('sourceMsg');
+
+  // Aviso si hay trabajo en pantalla que se va a reemplazar.
+  const hayTrabajo = (action) ||
+    ($('actionPlan') && $('actionPlan').value.trim()) ||
+    (products||[]).some(p=>p && (p.name||p.price));
+  if(hayTrabajo && !confirm('Esto reemplaza lo que tienes en pantalla por tu \u00faltima versi\u00f3n guardada en la nube. \u00bfContinuar?')) return;
+
+  btn.disabled=true; btn.innerHTML='\u23f3 Buscando en la nube...';
+  showStatus('Buscando tus datos guardados...','loading');
+  try{
+    const rec=await binRead();
+    if(rec===null){
+      showStatus('Error de conexi\u00f3n. Intenta de nuevo en un momento.','err');
+      return;
+    }
+    const entries=Array.isArray(rec.entries)?rec.entries:[];
+    // Solo lo suyo, y de ahi la version mas reciente.
+    const mia=latestEntryFor(entries,currentDNI);
+    if(!mia){
+      showStatus('Todav\u00eda no tienes nada guardado en la nube en esta sesi\u00f3n.','err');
+      return;
+    }
+
+    const cuelloPrevio = $('cuelloBox') ? ($('cuelloBox')._cuello||'') : '';
+    const causaPrevia  = $('cuelloCause') ? $('cuelloCause').textContent : '';
+    loadEntryIntoStateS4(mia);
+    // El cuello viene de la S3, no del guardado: si la version guardada no lo
+    // trae, se conserva el que ya estaba en pantalla en vez de borrarlo.
+    if(!mia.cuello && cuelloPrevio) showCuello(cuelloPrevio, causaPrevia);
+    save();
+
+    const f=mia.savedAt?new Date(mia.savedAt):null;
+    // Se recorta el punto final: en es-PE la hora sale como "05:20 p. m." y
+    // al concatenar el punto de la frase quedaba "p. m..".
+    const cuando=f&&!isNaN(f)
+      ? (f.toLocaleDateString('es-PE',{day:'2-digit',month:'long'})+' a las '+
+         f.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})).replace(/\.$/,'')
+      : '';
+    showStatus('\u2705 Listo \u2014 recuperamos lo que guardaste'+(cuando?(' el '+cuando):'')+'.','ok');
+    setTimeout(()=>showStatus('',''),7000);
+    if(msg && msg.style.display!=='none'){ /* no tocar el mensaje de la S3 */ }
+  }catch(e){
+    console.error('reloadMine',e);
+    showStatus('No se pudo recuperar. Intenta de nuevo.','err');
+  }finally{
+    btn.disabled=false; btn.innerHTML=orig;
   }
 });
 function markAction(a){ document.querySelectorAll('.action-opt').forEach(o=>o.classList.toggle('sel',o.dataset.action===a)); }

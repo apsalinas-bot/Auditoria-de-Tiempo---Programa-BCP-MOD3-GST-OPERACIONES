@@ -587,6 +587,11 @@ function rosterName(dni){ return ROSTER[dni] ? ROSTER[dni].n : null; }
 <script>
 const $ = id => document.getElementById(id);
 const BIN_URL      = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+
+// Marca de compilacion: permite verificar en 2 segundos que version esta
+// realmente desplegada (F12 -> Console al abrir la app).
+const BUILD_S3 = 'S3 v20 \u00b7 indice de cuellos + autorreparacion';
+console.log('%c[BUILD] ' + BUILD_S3, 'color:#002A8D;font-weight:700');
 const HEADERS_R    = { 'X-Master-Key': BIN_KEY };
 const HEADERS_W    = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
 const S2_PREFIX    = 'bcp_s2_flujo_';
@@ -749,26 +754,41 @@ function limitarVersiones(lista, max){
 // `entries`, y pesa ~700 bytes por persona: 28 emprendedoras entran en ~20 KB y
 // no se pierden nunca. Guarda solo lo que la S4 necesita: pasos en rojo,
 // sintoma y causa raiz.
-function construirCuellos(rec, payload){
-  const prev = (rec && rec.cuellos && typeof rec.cuellos === 'object') ? rec.cuellos : {};
-  const rojos = (payload.semaforo || [])
+// Convierte UNA entrada (o el payload que se esta guardando) al formato compacto.
+function fichaCuello(e){
+  if(!e || !e.dni) return null;
+  const rojos = (e.semaforo || [])
     .filter(s => s && s.light === 'red')
     .map(s => ({ t: String(s.text || '').slice(0, 160), l: 'red' }));
-
   let raiz = null;
-  const cs = payload.causes || {};
+  const cs = e.causes || {};
   Object.keys(cs).forEach(m => {
     (cs[m] || []).forEach(c => { if(c && c.root && !raiz) raiz = { t: String(c.text || '').slice(0,160), m: m }; });
   });
+  if(!rojos.length && !e.symptom) return null;
+  return { n: e.name || '', s: String(e.symptom || '').slice(0, 200), r: rojos, c: raiz,
+           ts: e.savedAt || new Date().toISOString() };
+}
 
+function construirCuellos(rec, payload){
+  const prev = (rec && rec.cuellos && typeof rec.cuellos === 'object') ? rec.cuellos : {};
   const out = Object.assign({}, prev);
-  out[payload.dni] = {
-    n: payload.name || '',
-    s: String(payload.symptom || '').slice(0, 200),
-    r: rojos,
-    c: raiz,
-    ts: payload.savedAt || new Date().toISOString()
-  };
+
+  // AUTORREPARACION: cada vez que alguien guarda, se rellena el indice de
+  // cualquier companera que todavia conserve su semaforo en `entries` pero no
+  // figure en el indice (o figure con datos mas viejos). Asi el indice converge
+  // solo, sin que las 28 tengan que volver a guardar una por una.
+  const previas = (rec && Array.isArray(rec.entries)) ? rec.entries : [];
+  previas.slice().sort((a,b) => tsDe(a) - tsDe(b)).forEach(e => {
+    const f = fichaCuello(e);
+    if(!f) return;
+    const actual = out[e.dni];
+    if(!actual || new Date(f.ts||0) >= new Date(actual.ts||0)) out[e.dni] = f;
+  });
+
+  // La persona que guarda AHORA siempre gana: su ficha es la mas fresca.
+  const mia = fichaCuello(payload);
+  if(mia) out[payload.dni] = mia;
   return out;
 }
 
@@ -831,10 +851,13 @@ async function guardarVersion(payload, silencioso){
     // antes de intentar el PUT. Sin esto, JSONBin devuelve 403 y se pierde todo.
     // El indice de cuellos se actualiza SIEMPRE y queda fuera de `entries`:
     // asi la poda no puede borrarlo y la Sesion 4 nunca se queda sin el dato.
-    const nuevo = Object.assign({}, rec, {
-      cuellos: construirCuellos(rec, payload),
-      entries: construirEntries(rec, payload)
-    });
+    //
+    // ORDEN IMPORTANTE: primero se arma el indice y se mete en el registro, y
+    // RECIEN entonces se calcula `entries`. La poda mide el peso del documento
+    // completo; si se le pasara el `rec` viejo, no contaria los ~20 KB del
+    // indice recien crecido y el PUT se iria por encima de los 100 KB (403).
+    const recConIdx = Object.assign({}, rec, { cuellos: construirCuellos(rec, payload) });
+    const nuevo = Object.assign({}, recConIdx, { entries: construirEntries(recConIdx, payload) });
 
     const peso = pesoBytes(nuevo);
     if(peso > 100*1024){                       // red de seguridad: no debería pasar

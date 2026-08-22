@@ -578,9 +578,33 @@ async function getCuelloS3(dni){
     const r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID_S3+'/latest',{headers:HEADERS_R});
     if(!r.ok) return null;
     const j = await r.json();
-    const entries = (j.record && j.record.entries) || [];
-    const e = entries.find(x => x.dni===dni);
+    const rec = j.record || {};
+
+    // 1) Indice compacto de la S3 (`rec.cuellos`). Es la fuente principal: la
+    //    poda del BIN de la S3 solo toca `entries`, asi que este dato nunca se
+    //    pierde. Antes se leia directo de `entries` y, cuando el BIN pasaba de
+    //    los 100 KB, la S3 borraba el semaforo de las entradas mas antiguas:
+    //    la mitad del grupo se quedaba sin cuello de botella en esta sesion.
+    const idx = rec.cuellos && rec.cuellos[dni];
+    if(idx && Array.isArray(idx.r)){
+      const rojos = idx.r.map(function(x){ return {text:x.t, light:'red'}; });
+      const root  = idx.c ? {text:idx.c.t, m:idx.c.m} : null;
+      if(rojos.length || idx.s){
+        return {cuellos:rojos,
+                cuello: rojos.length===1 ? rojos[0].text : (rojos.length>1 ? null : (idx.s||null)),
+                root:root, symptom: idx.s||null};
+      }
+    }
+
+    // 2) Respaldo: la entrada mas reciente que TODAVIA conserve el semaforo.
+    //    No se usa find() a secas porque con el versionado hay varias entradas
+    //    por DNI y algunas pueden venir podadas.
+    const entries = Array.isArray(rec.entries) ? rec.entries : [];
+    const mias = entries.filter(function(x){ return x && x.dni===dni; })
+      .sort(function(a,b){ return new Date(b.savedAt||0) - new Date(a.savedAt||0); });
+    const e = mias.find(function(x){ return x.semaforo && x.semaforo.length; }) || mias[0];
     if(!e) return null;
+
     // el paso rojo del semaforo + la causa raiz del ishikawa
     var rojos=(e.semaforo||[]).filter(function(s){return s.light==='red';});
     var root=null;

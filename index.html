@@ -458,7 +458,9 @@ $("calcBtn").onclick=async()=>{
     if(c==="r"||c==="y"){ tasks[i]={txt:(inp.value.trim()||("Tarea de las "+HOURS[i])),color:c}; }
   });
   const lost=red+yel,costMonth=Math.round(lost*days*r);
-  myEntry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,rate:+r.toFixed(2),byHour,tasks,eis:{},ts:Date.now()};
+  myEntry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,
+           salary:+$("salary").value||0, hours:+$("hours").value||0,
+           rate:+r.toFixed(2),byHour,tasks,eis:Object.assign({},eisState),ts:Date.now()};
   renderEmpDash(myEntry);
 };
 
@@ -471,7 +473,7 @@ $("saveCloudBtn").onclick=async()=>{
   if(!sharedEnabled){ localBucket.push(myEntry); saveStatus("✅ Guardado localmente.","ok"); return; }
   const ok=await pushEntry(myEntry);
   if(ok){ saveStatus("✅ Datos guardados correctamente.","ok"); setTimeout(()=>saveStatus("",""),4000); }
-  else{ saveStatus("⚠️ No se pudo guardar. Revisa tu internet e intenta de nuevo.","err"); }
+  else{ saveStatus("⚠️ No se pudo guardar en la nube"+(lastStorageError?" ("+lastStorageError+")":"")+". Revisa tu internet e intenta de nuevo.","err"); }
 };
 function saveStatus(msg,cls){ const el=$("saveStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
 
@@ -496,8 +498,13 @@ function doLogout(){
 function restoreForm(e){
   // restaurar días
   if(e.days)$("days").value=e.days;
-  // restaurar sueldo y horas a partir del rate guardado (horas base 208 si no hay dato)
-  if(e.rate){
+  // restaurar sueldo y horas reales; si es una auditoria antigua que no los guardo,
+  // se reconstruyen a partir del rate con base 208 h
+  if(e.salary&&e.hours){
+    $("salary").value=e.salary;
+    $("hours").value=e.hours;
+    refreshRate();
+  }else if(e.rate){
     const h = 208;
     $("hours").value = h;
     $("salary").value = Math.round(e.rate*h);
@@ -523,9 +530,15 @@ function restoreForm(e){
 $("loadBtn").onclick=async()=>{
   if(!currentUser){ toast("Primero entra con tu DNI"); return; }
   loadStatus("Buscando tus datos...","loading");
-  const all=await readAll();
+  let all;
+  try{ all=await readAllOrThrow(); }
+  catch(err){
+    // Antes este caso se mostraba como "no hay datos", que era el mensaje equivocado.
+    loadStatus("⚠️ No pudimos conectarnos para traer tus datos ("+(err.message||err)+"). Revisa tu internet e intenta de nuevo.","err");
+    return;
+  }
   const mine=all.filter(e=>e.dni===currentUser.dni).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
-  if(!mine){ loadStatus("No encontramos datos guardados con tu DNI.","err"); return; }
+  if(!mine){ loadStatus("Nos conectamos bien, pero no hay ninguna auditoría guardada con tu DNI.","err"); return; }
   myEntry=mine;
   restoreForm(mine);
   renderEmpDash(mine);
@@ -567,28 +580,54 @@ _clearBtn.addEventListener("click",()=>{
 
 /* ---------- storage ---------- */
 let localBucket=[];
+let lastStorageError="";   // ultimo error real de la nube (para mostrarlo al usuario)
+
+/* Lectura ESTRICTA: si falla, lanza el error en vez de devolver [].
+   Antes readAll() se tragaba cualquier fallo y devolvia el bucket local vacio,
+   asi que "no hay datos" y "no pude conectarme" se veian igual. */
+async function readAllOrThrow(){
+  if(!sharedEnabled) return localBucket.slice();
+  // ?_=timestamp + cache:no-store => evita que el navegador sirva una copia vieja
+  const res=await fetch(API+"/latest?_="+Date.now(),{
+    cache:"no-store",
+    headers:{"X-Master-Key":BIN_KEY,"X-Bin-Meta":"false"}
+  });
+  if(!res.ok) throw new Error("HTTP "+res.status+" al leer la nube");
+  const j=await res.json();
+  const rec=(j&&j.record!==undefined)?j.record:j;
+  const arr=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+  if(!Array.isArray(arr)) throw new Error("Formato inesperado en la nube");
+  return arr;
+}
+/* Lectura TOLERANTE: solo para pantallas que refrescan solas (docente). */
 async function readAll(){
-  if(!sharedEnabled)return localBucket;
-  try{const res=await fetch(API+"/latest",{headers:{"X-Master-Key":BIN_KEY,"X-Bin-Meta":"false"}});
-    if(!res.ok)throw new Error("HTTP "+res.status);
-    const j=await res.json();const rec=(j&&j.record!==undefined)?j.record:j;return Array.isArray(rec)?rec:((rec&&rec.entries)||[]);}
-  catch(e){return localBucket;}
+  try{ lastStorageError=""; return await readAllOrThrow(); }
+  catch(e){ lastStorageError=e.message||String(e); console.warn("readAll:",e); return localBucket.slice(); }
 }
 async function pushEntry(entry){
+  lastStorageError="";
   for(let intento=1;intento<=3;intento++){
-    try{const all=await readAll();
-      // Cada guardado crea una VERSION NUEVA. Antes hacia
-      // all.filter(e=>e.dni!==entry.dni), es decir borraba la anterior: si una
-      // emprendedora corregia su auditoria, la primera se perdia para siempre.
-      const others=all.slice();
+    try{
+      // CRITICO: si la lectura falla NO se escribe. Antes, con la lectura caida
+      // el PUT mandaba solo esta entrada y BORRABA el bin completo (por eso
+      // "se guardaba" pero luego nadie encontraba sus datos).
+      const all=await readAllOrThrow();
+      // Cada guardado crea una VERSION NUEVA (no se borra la anterior).
+      const others=all.filter(e=>!(e&&e.dni===entry.dni&&e.ts===entry.ts));
       others.push(entry);
       const res=await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":BIN_KEY,"X-Bin-Versioning":"false"},body:JSON.stringify({entries:others})});
-      if(!res.ok)throw new Error("HTTP "+res.status);
-      return true; // guardado en la nube OK
+      if(!res.ok)throw new Error("HTTP "+res.status+" al guardar");
+      // Verificacion: releer y confirmar que la entrada quedo realmente grabada.
+      const check=await readAllOrThrow();
+      if(!check.some(e=>e&&e.dni===entry.dni&&e.ts===entry.ts))
+        throw new Error("La nube no confirmo el guardado");
+      return true; // guardado en la nube OK y verificado
     }catch(e){
+      lastStorageError=e.message||String(e);
+      console.warn("pushEntry intento "+intento+":",e);
       if(intento<3){ await new Promise(r=>setTimeout(r,700*intento)); continue; }
       toast("Guardado local (sin conexión)");
-      const j=localBucket.findIndex(e=>e.dni===entry.dni); if(j>=0)localBucket.splice(j,1);
+      const j=localBucket.findIndex(e=>e.dni===entry.dni&&e.ts===entry.ts); if(j>=0)localBucket.splice(j,1);
       localBucket.push(entry);
       return false;
     }
@@ -1297,7 +1336,14 @@ let ADM_ALL_S1=[];
 async function loadAdminData(){
   $("admList").innerHTML='<div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div>';
   admStatus("","");
-  ADM_ALL_S1=await readAll();
+  try{
+    ADM_ALL_S1=await readAllOrThrow();
+  }catch(err){
+    ADM_ALL_S1=[];
+    $("admList").innerHTML="";
+    admStatus("⚠️ No se pudo leer la nube ("+(err.message||err)+"). La lista está vacía por un problema de conexión, no porque no haya datos.","err");
+    return;
+  }
 
   const byDni=new Map();
   (ADM_ALL_S1||[]).forEach(e=>{

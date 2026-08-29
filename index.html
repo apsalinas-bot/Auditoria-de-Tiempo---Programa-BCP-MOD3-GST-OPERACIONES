@@ -314,6 +314,8 @@ const ROSTER={'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecno
       <div class="adm-kpi"><div class="v" id="kAdmVer">-</div><div class="l">Versiones totales guardadas</div></div>
     </div>
     <button class="cta navy" id="admAllBtn" style="margin-bottom:6px">&#128190; Descargar TODAS las auditor&iacute;as (PDF)</button>
+    <button class="clearbtn" id="admDiagBtn" style="margin-bottom:6px">&#128269; Diagn&oacute;stico de la nube</button>
+    <pre id="admDiag" style="display:none;white-space:pre-wrap;word-break:break-word;font-size:11px;background:#f4f5f7;border-radius:10px;padding:10px;max-height:320px;overflow:auto"></pre>
     <div id="admStatus" class="save-status"></div>
     <div id="admList" style="margin-top:12px"><div style="text-align:center;padding:22px;color:var(--muted);font-style:italic">Cargando...</div></div>
   </div>
@@ -414,10 +416,19 @@ $("dniBtn").onclick=async()=>{
   currentUser={dni,...ROSTER[dni]};
   $("empHi").textContent="Hola, "+currentUser.n.split(" ")[0];
   // if she already answered, show her dashboard directly
+  // si ya tiene una auditoria guardada, se recupera COMPLETA (formulario + tablero).
+  // Antes solo se pintaba el tablero y el formulario quedaba vacio.
   const all=await readAll();
-  const mine=all.filter(e=>e.dni===dni).sort((a,b)=>b.ts-a.ts)[0];
+  const mine=all.filter(e=>e&&String(e.dni).trim()===dni).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
   show("scEmp");
-  if(mine){ myEntry=mine; renderEmpDash(mine); }
+  if(mine){
+    myEntry=mine;
+    const pintadas=restoreForm(mine);
+    renderEmpDash(mine,{scroll:false});
+    loadStatus("✅ Recuperamos tu auditoría del "+fmtFechaHoraS1(mine.ts)+" ("+pintadas+" horas marcadas). Puedes editarla y volver a guardar.","ok");
+  }else{
+    loadStatus("","");
+  }
 };
 $("dni").addEventListener("keydown",e=>{if(e.key==="Enter")$("dniBtn").click();});
 $("pwBtn").onclick=()=>{ if($("pw").value===DOCENTE_PW){show("scDoc");startDoc();} else toast("Contraseña incorrecta"); };
@@ -446,33 +457,43 @@ function lockForm(){$("calcBtn").disabled=true;$("calcBtn").textContent="Ya envi
 
 /* ---------- submit ---------- */
 let myEntry=null; // entrada actual de la emprendedora (para guardar en la nube)
-$("calcBtn").onclick=async()=>{
+
+/* Construye la entrada leyendo SIEMPRE el formulario en vivo.
+   Devuelve null (y avisa) si falta el Paso 1 o el semaforo esta vacio. */
+function buildEntry(){
+  if(!currentUser){ toast("Primero entra con tu DNI"); return null; }
   const r=rate(),days=+$("days").value||26;
-  if(r<=0){toast("Completa tu sueldo y horas del Paso 1");return;}
+  if(r<=0){toast("Completa tu sueldo y horas del Paso 1");return null;}
   let red=0,yel=0,grn=0;const byHour={};const tasks={};
-  Object.entries(state).forEach(([i,c])=>{byHour[i]=c;if(c==="r")red++;else if(c==="y")yel++;else if(c==="g")grn++;});
-  if(red+yel+grn===0){toast("Marca al menos una hora con color");return;}
+  Object.keys(state).forEach(i=>{const c=state[i];byHour[i]=c;if(c==="r")red++;else if(c==="y")yel++;else if(c==="g")grn++;});
+  if(red+yel+grn===0){toast("Marca al menos una hora con color");return null;}
   // capturar el texto de las tareas rojas/amarillas (las que se clasifican en Eisenhower)
   $("hoursList").querySelectorAll(".htask").forEach(inp=>{
     const i=inp.dataset.i, c=state[i];
     if(c==="r"||c==="y"){ tasks[i]={txt:(inp.value.trim()||("Tarea de las "+HOURS[i])),color:c}; }
   });
   const lost=red+yel,costMonth=Math.round(lost*days*r);
-  myEntry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,
-           salary:+$("salary").value||0, hours:+$("hours").value||0,
-           rate:+r.toFixed(2),byHour,tasks,eis:Object.assign({},eisState),ts:Date.now()};
+  return {dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,costMonth,red,yel,grn,lost,days,
+          salary:+$("salary").value||0, hours:+$("hours").value||0,
+          rate:+r.toFixed(2),byHour,tasks,eis:Object.assign({},eisState),ts:Date.now()};
+}
+$("calcBtn").onclick=async()=>{
+  const e=buildEntry(); if(!e)return;
+  myEntry=e;
   renderEmpDash(myEntry);
 };
 
 /* ---------- guardar en la nube (botón explícito, como Sesión 2) ---------- */
 $("saveCloudBtn").onclick=async()=>{
-  if(!myEntry){ toast("Primero calcula tu resultado"); return; }
+  // Se reconstruye desde el formulario: si edito el semaforo despues de calcular,
+  // antes se guardaba la version vieja sin darse cuenta.
+  const fresh=buildEntry();
+  if(!fresh){ if(!myEntry) toast("Primero calcula tu resultado"); return; }
+  myEntry=fresh;
   saveStatus("Guardando...","loading");
-  myEntry.eis=Object.assign({},eisState); // incluir clasificación Eisenhower si la hizo
-  myEntry.ts=Date.now();
   if(!sharedEnabled){ localBucket.push(myEntry); saveStatus("✅ Guardado localmente.","ok"); return; }
   const ok=await pushEntry(myEntry);
-  if(ok){ saveStatus("✅ Datos guardados correctamente.","ok"); setTimeout(()=>saveStatus("",""),4000); }
+  if(ok){ saveStatus("✅ Guardado ("+Object.keys(myEntry.byHour).length+" horas marcadas). Con «Traer datos guardados» las recuperas.","ok"); setTimeout(()=>saveStatus("",""),6000); }
   else{ saveStatus("⚠️ No se pudo guardar en la nube"+(lastStorageError?" ("+lastStorageError+")":"")+". Revisa tu internet e intenta de nuevo.","err"); }
 };
 function saveStatus(msg,cls){ const el=$("saveStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
@@ -495,6 +516,43 @@ function doLogout(){
 }
 
 /* ---------- traer datos guardados (recuperar última auditoría) ---------- */
+
+/* Normaliza el semaforo guardado a {indiceHora: "r"|"y"|"g"}.
+   Acepta objeto {"0":"r"}, array ["r",null,"y"], claves numericas o de texto,
+   y valores tipo "rojo"/"amarillo"/"verde" o "R"/"Y"/"G". Si el registro no
+   trae byHour, lo reconstruye desde tasks (que guarda color por hora). */
+function normColor(v){
+  if(v===null||v===undefined)return null;
+  const c=String(v).trim().toLowerCase();
+  if(!c)return null;
+  if(c==="r"||c[0]==="r")return "r";                       // r / rojo / red
+  if(c==="y"||c[0]==="y"||c[0]==="a")return "y";           // y / yellow / amarillo
+  if(c==="g"||c[0]==="g"||c[0]==="v")return "g";           // g / green / verde
+  return null;
+}
+function normByHour(e){
+  const out={};
+  const src=(e&&(e.byHour||e.horas||e.state))||null;
+  if(Array.isArray(src)){
+    src.forEach((v,i)=>{const c=normColor(v); if(c)out[String(i)]=c;});
+  }else if(src&&typeof src==="object"){
+    Object.keys(src).forEach(k=>{
+      const c=normColor(src[k]); if(!c)return;
+      const i=parseInt(k,10); if(isNaN(i))return;
+      out[String(i)]=c;
+    });
+  }
+  // respaldo: reconstruir desde las tareas si el semaforo vino vacio
+  if(Object.keys(out).length===0 && e && e.tasks && typeof e.tasks==="object"){
+    Object.keys(e.tasks).forEach(k=>{
+      const t=e.tasks[k]; const c=t&&normColor(t.color); if(!c)return;
+      const i=parseInt(k,10); if(isNaN(i))return;
+      out[String(i)]=c;
+    });
+  }
+  return out;
+}
+/* Devuelve cuantas horas quedaron realmente pintadas en pantalla. */
 function restoreForm(e){
   // restaurar días
   if(e.days)$("days").value=e.days;
@@ -503,29 +561,35 @@ function restoreForm(e){
   if(e.salary&&e.hours){
     $("salary").value=e.salary;
     $("hours").value=e.hours;
-    refreshRate();
   }else if(e.rate){
-    const h = 208;
-    $("hours").value = h;
-    $("salary").value = Math.round(e.rate*h);
-    refreshRate();
+    $("hours").value = 208;
+    $("salary").value = Math.round(e.rate*208);
   }
+  refreshRate();
   // restaurar colores del día
   for(const k in state) delete state[k];
   $("hoursList").querySelectorAll(".dot").forEach(d=>d.classList.remove("on"));
-  if(e.byHour){
-    Object.entries(e.byHour).forEach(([i,c])=>{
-      state[i]=c;
-      $("hoursList").querySelectorAll('.dot[data-i="'+i+'"]').forEach(d=>d.classList.toggle("on",d.dataset.c===c));
-    });
-  }
+  const bh=normByHour(e);
+  let pintadas=0;
+  Object.keys(bh).forEach(i=>{
+    const c=bh[i];
+    const dots=$("hoursList").querySelectorAll('.dot[data-i="'+i+'"]');
+    if(!dots.length) return;              // hora fuera de rango: se ignora
+    state[i]=c;
+    dots.forEach(d=>d.classList.toggle("on",d.dataset.c===c));
+    pintadas++;
+  });
   // restaurar textos de las tareas
-  if(e.tasks){
-    Object.entries(e.tasks).forEach(([i,t])=>{
+  if(e.tasks&&typeof e.tasks==="object"){
+    Object.keys(e.tasks).forEach(i=>{
+      const t=e.tasks[i];
       const inp=$("hoursList").querySelector('.htask[data-i="'+i+'"]');
-      if(inp&&t&&t.txt&&!t.txt.startsWith("Tarea de las "))inp.value=t.txt;
+      if(inp&&t&&t.txt&&!String(t.txt).startsWith("Tarea de las "))inp.value=t.txt;
     });
   }
+  // el boton de calcular vuelve a estar disponible sobre los datos recuperados
+  $("calcBtn").disabled=false; $("calcBtn").textContent="Ver mi resultado";
+  return pintadas;
 }
 $("loadBtn").onclick=async()=>{
   if(!currentUser){ toast("Primero entra con tu DNI"); return; }
@@ -537,13 +601,24 @@ $("loadBtn").onclick=async()=>{
     loadStatus("⚠️ No pudimos conectarnos para traer tus datos ("+(err.message||err)+"). Revisa tu internet e intenta de nuevo.","err");
     return;
   }
-  const mine=all.filter(e=>e.dni===currentUser.dni).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
+  const mias=all.filter(e=>e&&String(e.dni).trim()===String(currentUser.dni).trim())
+                .sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const mine=mias[0];
   if(!mine){ loadStatus("Nos conectamos bien, pero no hay ninguna auditoría guardada con tu DNI.","err"); return; }
+  console.log("Auditoría recuperada:",mine);   // diagnostico en consola
   myEntry=mine;
-  restoreForm(mine);
-  renderEmpDash(mine);
-  loadStatus("✅ Datos recuperados. Puedes seguir editando o descargar tu PDF.","ok");
-  setTimeout(()=>loadStatus("",""),5000);
+  const pintadas=restoreForm(mine);
+  renderEmpDash(mine,{scroll:false});
+  if(pintadas===0){
+    // caso raro: el registro existe pero llego sin semaforo utilizable
+    loadStatus("Encontramos tu auditoría del "+fmtFechaHoraS1(mine.ts)+", pero venía sin horas marcadas. Vuelve a marcar el Paso 2 y guarda de nuevo.","err");
+  }else{
+    loadStatus("✅ Recuperado ("+fmtFechaHoraS1(mine.ts)+"): "+pintadas+" horas marcadas en el semáforo"+
+               (mias.length>1?" · versión más reciente de "+mias.length:"")+". Revisa los Pasos 1, 2 y 3 abajo.","ok");
+    // quedarse en el formulario para que se VEA el semaforo restaurado
+    $("hoursList").scrollIntoView({behavior:"smooth",block:"start"});
+    setTimeout(()=>loadStatus("",""),9000);
+  }
 };
 function loadStatus(msg,cls){ const el=$("loadStatus"); el.textContent=msg; el.className="save-status "+(cls||""); }
 
@@ -649,7 +724,7 @@ function pieText(r,y,g){
 
 /* ---------- EMPRENDEDORA dashboard ---------- */
 let ePie;
-function renderEmpDash(e){
+function renderEmpDash(e,opts){
   $("myBig").textContent=fmt(e.costMonth);
   $("mySub").innerHTML=e.lost+" horas al día en tareas que no hacen crecer tu negocio,<br>por "+e.days+" días, a S/ "+e.rate.toFixed(2)+" tu hora.";
   $("eLost").textContent=e.lost;
@@ -665,7 +740,7 @@ function renderEmpDash(e){
     "El mayor peso está en lo repetitivo y en apagar incendios — justamente lo que se puede ordenar y delegar. "+
     "Si recuperas aunque sea la mitad de esas horas, ese dinero vuelve a tu bolsillo. Como "+hint+", ahí está tu oportunidad más clara para las próximas semanas.";
   $("empDash").style.display="block";
-  $("empDash").scrollIntoView({behavior:"smooth",block:"start"});
+  if(!(opts&&opts.scroll===false)) $("empDash").scrollIntoView({behavior:"smooth",block:"start"});
   renderEis(e);
 }
 
@@ -1393,6 +1468,27 @@ function admStatus(msg,cls){
   el.textContent=msg||"";
   el.className="save-status "+(cls||"");
 }
+
+/* ---------- diagnostico: que hay REALMENTE en el bin ---------- */
+$("admDiagBtn").onclick=async()=>{
+  const box=$("admDiag");
+  box.style.display="block";
+  box.textContent="Consultando "+API+" ...";
+  let arr,err=null;
+  try{ arr=await readAllOrThrow(); }catch(e){ err=e; }
+  if(err){ box.textContent="❌ ERROR DE LECTURA\n"+(err.message||err)+"\n\nBIN: "+BIN_ID; return; }
+  const porDni={};
+  arr.forEach(e=>{const d=e&&e.dni;porDni[d]=(porDni[d]||0)+1;});
+  const ult=arr.slice().sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
+  box.textContent=
+    "BIN: "+BIN_ID+"\n"+
+    "Registros en la nube: "+arr.length+"\n"+
+    "DNIs: "+JSON.stringify(porDni,null,1)+"\n\n"+
+    "ÚLTIMO REGISTRO GUARDADO:\n"+
+    (ult?JSON.stringify({dni:ult.dni,name:ult.name,fecha:fmtFechaHoraS1(ult.ts),
+      salary:ult.salary,hours:ult.hours,days:ult.days,rate:ult.rate,
+      byHour:ult.byHour,tasks:ult.tasks,eis:ult.eis},null,1):"(vacío)");
+};
 
 async function downloadAuditoriaDe(dni){
   const vs=(ADM_ALL_S1||[]).filter(e=>e.dni===dni).sort((a,b)=>(a.ts||0)-(b.ts||0));

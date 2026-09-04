@@ -482,7 +482,7 @@ const HEADERS_W={'Content-Type':'application/json','X-Master-Key':BIN_KEY,'X-Bin
 // Clave de sesion PROPIA de la S7. Antes decia 'bcp_s4_session' (copia-pega de
 // la Sesion 4): al compartir clave, entrar en una app pisaba la sesion de la otra.
 const SESSION_KEY='bcp_s7_session';
-const DATA_PREFIX='bcp_s4_data_';
+const DATA_PREFIX='bcp_s7_data_'; // antes decia bcp_s4_data_ y chocaba con la Sesion 4
 const QLABEL={1:'Delega ya',2:'Delega con guía',3:'Hazlo tú',4:'Elimina / Automatiza'};
 
 let currentDNI=null,currentName=null;
@@ -594,6 +594,16 @@ async function cargarDatos(){
   bindInputs();
 }
 
+/* ¿el txt es solo el rotulo automatico que pone la Sesion 1? */
+function esRotulo(txt){ return !txt || /^Tarea de las /.test(txt.trim()); }
+/* ¿la emprendedora escribio algo de verdad?
+   Entradas nuevas traen .raw; las viejas no, y ahi caemos al rotulo. */
+function conTextoReal(t){
+  if(!t) return false;
+  if(typeof t.raw==='string') return t.raw.trim().length>0;
+  return !esRotulo(t.txt);
+}
+
 async function loadYellowFromS1(){
   const ld=$('semLoad');
   ld.textContent='Cargando tus actividades amarillas de la Sesión 1...';ld.className='sem-load';
@@ -606,11 +616,21 @@ async function loadYellowFromS1(){
     const entries=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
     const mine=entries.filter(e=>e.dni===currentDNI).sort((a,b)=>(b.ts||0)-(a.ts||0))[0];
     if(mine&&mine.tasks){
-      const yellow=Object.entries(mine.tasks).filter(([i,t])=>t.color==='y');
+      const todosAmarillos=Object.entries(mine.tasks).filter(([i,t])=>t.color==='y');
+      // Solo jalamos los amarillos CON texto escrito. La Sesion 1 rellena los
+      // vacios con "Tarea de las 10:00", que no sirve para delegar.
+      const yellow=todosAmarillos.filter(([i,t])=>conTextoReal(t));
+      const sinTexto=todosAmarillos.length-yellow.length;
+      // limpiar chips 'y' sin texto util que hayan quedado de cargas anteriores
+      pool=pool.filter(t=>!(t.id.indexOf('y')===0 && !t.quad && esRotulo(t.txt)));
       const existingIds=new Set(pool.map(t=>t.id));
-      yellow.forEach(([i,t])=>{const id='y'+i;if(!existingIds.has(id)){pool.push({id,txt:t.txt,quad:null,who:''});}});
+      yellow.forEach(([i,t])=>{const id='y'+i;if(!existingIds.has(id)){pool.push({id,txt:(t.raw||t.txt),quad:null,who:''});}});
       if(yellow.length){
-        ld.textContent='✓ Se cargaron '+yellow.length+' actividades amarillas de tu Sesión 1.';ld.className='sem-load';
+        ld.textContent='✓ Se cargaron '+yellow.length+' actividades amarillas de tu Sesión 1.'
+          +(sinTexto?' ('+sinTexto+' amarillo'+(sinTexto>1?'s':'')+' sin descripción no se cargaron.)':'');
+        ld.className='sem-load';
+      }else if(todosAmarillos.length){
+        ld.textContent='Marcaste '+todosAmarillos.length+' hora(s) en amarillo pero sin escribir qué hacías. Agrégalas abajo ↓';ld.className='sem-load warn';
       }else{
         ld.textContent='En tu Sesión 1 no marcaste actividades en amarillo. Agrega las que quieras delegar abajo ↓';ld.className='sem-load warn';
       }

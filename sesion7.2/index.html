@@ -472,6 +472,8 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
       <div style="margin-top:4px">
         <button class="btn gold full" id="saveBtn">Guardar mi perfil</button>
         <div class="save-status" id="saveStatus"></div>
+        <button class="btn ghost full no-print" id="retryBtn" style="display:none;margin-top:8px" onclick="reintentarSubidaS72()">☁️ Subir al servidor</button>
+        <button class="btn ghost full no-print" id="bkBtn" style="margin-top:8px" onclick="descargarRespaldoS72()">⬇️ Descargar respaldo (.json)</button>
         <button class="btn navy full" id="pdfBtn" style="margin-top:10px">✦ Descargar mi perfil (PDF)</button>
         <button class="clearbtn" id="clearKilBtn">¿Te equivocaste? Borrar y repetir solo esta parte</button>
         <button class="clearbtn" id="clearBtn">Reiniciar test (borra ambas partes)</button>
@@ -491,6 +493,8 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
   <div class="gold-bar"></div>
   <div class="logout-row no-print">
     <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="refresh-btn" onclick="$('admImp').click()">&#128193; Cargar respaldos</button>
+    <input type="file" id="admImp" accept="application/json,.json" multiple style="display:none" onchange="importarRespaldosS72(this)">
     <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
   </div>
   <div class="wrap">
@@ -585,7 +589,15 @@ const MKEY     = '$2a$10$VVamFF0tCNmKSO2PXIniTO6Fon3nSJ.E8t9YcevqFPurueX/mDOlm';
 const DOC_PW   = '70003700';
 const ADMIN_DNI= '70003700';   // acceso de administrador (descarga de PDFs)
 const API      = `https://api.jsonbin.io/v3/b/${BIN_S7P2}`;
-const s7ok     = BIN_S7P2 && !BIN_S7P2.startsWith('REEMPLAZA');
+
+// Opción recomendada: Cloudflare Worker + KV (una clave por guardado).
+// Con estas dos líneas llenas, JSONBin deja de usarse y desaparece tanto el
+// techo de 100 KB como el riesgo de que una emprendedora pise a otra.
+const STORE_URL = '';                    // ej: 'https://bcp-s72-storage.apsalinas.workers.dev'
+const APP_TOKEN = 'CAMBIA_ESTE_TOKEN';   // debe coincidir con el secret del Worker
+const USA_WORKER = !!(STORE_URL && STORE_URL.indexOf('http')===0);
+
+const s7ok     = USA_WORKER || (BIN_S7P2 && !BIN_S7P2.startsWith('REEMPLAZA'));
 
 const ROSTER = {'40165543':{n:'Karen Pilar Aquino Salas',b:'PC Ya Soluciones Tecnológicas'},'73765671':{n:'Nelida Lizbeth Ari Mamani',b:'Limnea Lencería'},'29722177':{n:'Sandra Lourdes Calderon Cornejo',b:'El Secreto de la Abuela EIRL'},'41623431':{n:'Ana María Cané García',b:'Mandarina producciones'},'45352138':{n:'Marisabel Yesenia Casanova Quezada',b:'Corporación Casanova'},'70403483':{n:'Yulisa Choquehuanca Huamani',b:'GRUPO CHOHUA'},'46761514':{n:'María Lucero Condori Rivera',b:''},'75892740':{n:'Andrea Córdova Juarez',b:'Funeraria El Edén'},'43748147':{n:'Luz Marina Cuello Cora',b:'Lovelia Boutique Floral'},'29651879':{n:'Selene Gloria Esquia Becerra',b:'Comercial Ferretera Julissa'},'45941843':{n:'Isabel Lizbeth Fuentes Sucantaype',b:'Clarart Arequipa'},'70571367':{n:'Yomelly Bertha Gordillo Vilca',b:'Corporación Delgado y Gordillo'},'74486847':{n:'Edith Ysabel Guzmán Mamani',b:'Comercial Bamy'},'72891102':{n:'Sol Maria Humpiri Pari',b:'Mhera'},'72942216':{n:'Flor De María Hurtado Condorena',b:'Arkalta'},'40013470':{n:'Kathia Lucia Lizarraga Macedo',b:'SULLAY DEL MAR'},'47685045':{n:'Ruth Raquel Nuñez Ccoscco',b:'Plazza Market'},'43668612':{n:'María Del Pilar Ochoa Velarde',b:'La tertulia del chef'},'29616486':{n:'Mónica Paola Pajuelo Macedo',b:'Activa Salud'},'40826509':{n:'Jessica Jacqueline Palomino De La Cruz',b:'Proselmin-Peru Eirl'},'72463147':{n:'Jenyfer Steysi Pineda Zapana',b:'YAKUFIL Ecoingeniería SRL'},'41929947':{n:'Silvana Angela Riveros Chávez',b:'Posada La Merced'},'72772991':{n:'Jessica Jenny Romero Torres',b:'CER PERU'},'29646340':{n:'Patricia Del Pilar Tinta Chambi',b:'Isolutions Consulting SAC'},'74943408':{n:'Dayana Vargas Arizaca',b:'Cataleya Mirador SRL'},'46884965':{n:'Silvia',b:'Ingeniería y Servicios ALBA S.A.C.'},'71509678':{n:'Franchesca',b:'Aprenda'},'74250220':{n:'Beatriz',b:'BCP'}};
 // DNIs de prueba: pueden ingresar y ver su propio resultado, pero se excluyen de todo el tablero docente (conteos, %, gráficas, lista, pendientes)
@@ -759,6 +771,152 @@ $('pwBtn').onclick=()=>{if($('pw').value===DOC_PW){show('scDoc');startDoc();}els
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('pwBtn').click();});
 $('admBtn').onclick=()=>{if($('adm').value.trim()===ADMIN_DNI){show('scAdmin');loadAdminData();}else $('admErr').textContent='DNI de administrador incorrecto.';};
 $('adm').addEventListener('keydown',e=>{if(e.key==='Enter')$('admBtn').click();});
+// ═══ ALMACENAMIENTO: EQUIPO PRIMERO, NUBE DESPUÉS ═══
+// Antes, "Guardar mi perfil" era una sola operación contra la nube: bajar el
+// array completo de todas, agregarle la entrada propia y volver a subirlo
+// entero. Dos emprendedoras guardando con pocos segundos de diferencia lean
+// la misma versión y la segunda subía un array que ya no contenía a la
+// primera: el perfil desaparecía sin que nadie viera un error. Y el fallback
+// local (localBin) vivía solo en memoria, así que al cerrar la página se
+// perdía también.
+// Ahora: (1) se guarda primero en el equipo, siempre; (2) la subida a la nube
+// se verifica releyendo, y si alguien nos pisó se reintenta; (3) lo que no
+// suba queda en una cola que se reintenta sola.
+const LS_MIAS = 's72:guardados';   // { dni: [entradas] } guardadas en este equipo
+const LS_PEND = 's72:pendientes';  // [entradas] que todavía no están en la nube
+
+function lsGet(k,def){ try{ const t=localStorage.getItem(k); return t?JSON.parse(t):def; }catch(e){ return def; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ console.error('[LOCAL]',e); return false; } }
+
+function guardarLocal(entry){
+  const m=lsGet(LS_MIAS,{});
+  const arr=m[entry.dni]||[];
+  arr.push(entry);
+  m[entry.dni]=arr.slice(-10);           // 10 versiones por persona es de sobra
+  return lsSet(LS_MIAS,m);
+}
+function entradasLocales(){
+  const m=lsGet(LS_MIAS,{});
+  return Object.keys(m).reduce((acc,d)=>acc.concat(m[d]||[]),[]);
+}
+function pendAll(){ return lsGet(LS_PEND,[]); }
+function pendAdd(entry){ const q=pendAll(); if(!q.some(e=>e.id===entry.id)){ q.push(entry); lsSet(LS_PEND,q); } }
+function pendDel(id){ lsSet(LS_PEND, pendAll().filter(e=>e.id!==id)); }
+
+function dedupPorId(lista){
+  const m=new Map();
+  (lista||[]).forEach(e=>{ if(e&&e.id!==undefined) m.set(e.id,e); else if(e) m.set(JSON.stringify(e),e); });
+  return Array.from(m.values());
+}
+
+const dormir = ms => new Promise(r=>setTimeout(r,ms));
+
+// ── Lectura de la nube (sin tocar lo local) ─────────────────────────────────
+async function leerNube(){
+  if(USA_WORKER){
+    const r=await fetch(STORE_URL+'/list',{headers:{'X-App-Token':APP_TOKEN}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    return Array.isArray(j.entries)?j.entries:[];
+  }
+  const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json(); const rec=(j.record!==undefined)?j.record:j;
+  return Array.isArray(rec)?rec:(rec.entries||[]);
+}
+
+// ── Subir UNA entrada, verificando que realmente quedó ─────────────────────
+async function subirEntrada(entry){
+  if(USA_WORKER){
+    const r=await fetch(STORE_URL+'/save',{method:'POST',
+      headers:{'Content-Type':'application/json','X-App-Token':APP_TOKEN},
+      body:JSON.stringify({entry:entry})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }
+  // JSONBin: leer todo, agregar, reescribir todo... y comprobar que sobrevivió.
+  for(let i=1;i<=3;i++){
+    const all=await leerNube();
+    if(all.some(e=>e.id===entry.id)) return true;          // ya estaba
+    const nuevo=all.slice(); nuevo.push(entry);
+    const wr=await fetch(API,{method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':MKEY,'X-Bin-Versioning':'false'},
+      body:JSON.stringify({entries:nuevo})});
+    if(!wr.ok) throw new Error('HTTP '+wr.status+(wr.status===403?' (bin lleno o llave inv\u00e1lida)':''));
+    await dormir(500+500*i);
+    const check=await leerNube();
+    if(check.some(e=>e.id===entry.id)) return true;
+    // Si no está, otra emprendedora escribió encima entre nuestra lectura y
+    // nuestra escritura. Reintentamos con la foto nueva.
+  }
+  throw new Error('otra usuaria escribi\u00f3 encima');
+}
+
+// ── Vaciar la cola de pendientes ────────────────────────────────────────────
+let subiendo=false;
+async function subirPendientes(){
+  if(subiendo) return {subidas:0,error:'en curso'};
+  const q=pendAll();
+  if(!q.length) return {subidas:0};
+  if(!s7ok) return {subidas:0,error:'sin servidor configurado'};
+  if(!navigator.onLine) return {subidas:0,error:'sin conexi\u00f3n'};
+  subiendo=true;
+  let subidas=0, error='';
+  for(const entry of q){
+    try{ await subirEntrada(entry); pendDel(entry.id); subidas++; }
+    catch(e){ error=e.message||'error'; break; }
+  }
+  subiendo=false;
+  pintarPendientes();
+  return {subidas,error};
+}
+function pintarPendientes(){
+  const n=pendAll().length;
+  const b=$('retryBtn');
+  if(b) b.style.display = n? 'block':'none';
+  if(b) b.textContent = '☁️ Subir al servidor ('+n+' pendiente'+(n===1?'':'s')+')';
+}
+window.addEventListener('online',()=>{ subirPendientes(); });
+setInterval(()=>{ if(pendAll().length && navigator.onLine) subirPendientes(); }, 45000);
+
+// ── Respaldo manual (.json) ─────────────────────────────────────────────────
+function descargarRespaldoS72(){
+  if(!currentUser) return;
+  const m=lsGet(LS_MIAS,{});
+  const mias=(m[currentUser.dni]||[]);
+  if(!mias.length){ toast('Todav\u00eda no tienes nada guardado en este equipo.'); return; }
+  const payload={app:'S7.2',dni:currentUser.dni,nombre:currentUser.n,fecha:new Date().toISOString(),entries:mias};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  triggerBlobDownload(blob,'Respaldo_S7p2_'+String(currentUser.n||currentUser.dni).replace(/[^a-zA-Z0-9]/g,'_')+'.json');
+  toast('✓ Respaldo descargado');
+}
+// Para el panel de administrador: cargar respaldos que lleguen por WhatsApp.
+let IMPORTADAS=[];
+function importarRespaldosS72(inp){
+  const files=Array.from(inp.files||[]); if(!files.length) return;
+  let hechos=0, fallidos=0;
+  files.forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      try{
+        const j=JSON.parse(e.target.result);
+        const ents=j.entries||(j.entry?[j.entry]:null)||(Array.isArray(j)?j:null);
+        if(!ents) throw new Error('formato');
+        ents.forEach(en=>{ if(en&&en.dni) IMPORTADAS.push(en); });
+        hechos++;
+      }catch(err){ fallidos++; }
+      if(hechos+fallidos===files.length){
+        IMPORTADAS=dedupPorId(IMPORTADAS);
+        loadAdminData();
+        const st=$('adminBulkStatus');
+        if(st){ st.textContent='✅ '+hechos+' respaldo(s) cargado(s)'+(fallidos?' · '+fallidos+' con error':''); st.className='save-status ok'; }
+      }
+    };
+    rd.readAsText(f);
+  });
+  inp.value='';
+}
+
 // De un array con varias versiones por DNI, deja solo la mas reciente (por ts).
 function latestPerDni(entries){
   const map=new Map();
@@ -780,6 +938,7 @@ function doLogout(){currentUser=null;phase=1;qi=0;commAns={};kilAns={};commScore
 $('resumeInlineBtn').onclick=async()=>{
   if(!currentUser)return;
   toast('Buscando tu última respuesta guardada…');
+  // readAll ya une equipo + nube, así que esto funciona incluso sin internet.
   const all=await readAll();
   const mine=all.filter(en=>en.dni===currentUser.dni).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const entry=mine[0];
@@ -1080,24 +1239,32 @@ function renderKilResult(dom,commDom){
 $('saveBtn').onclick=async()=>{
   if(!results){toast('Completa ambas partes primero.');return;}
   const entry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,commDom:results.commDom,kilDom:results.kilDom,commScores:results.commScores,kilScores:results.kilScores,ts:Date.now(),id:currentUser.dni+'_'+Date.now()};
-  setSave('Guardando…','loading');
-  if(!s7ok){localBin.push(entry);setSave('✅ Guardado localmente.','ok');return;}
-  for(let i=1;i<=3;i++){
-    try{
-      const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});
-      const rec=r.ok?(await r.json()):null;
-      const all=rec?Array.isArray(rec.record)?rec.record:(rec.record?.entries||[]):localBin;
-      // Cada guardado crea una VERSION NUEVA. Antes hacia
-      // all.filter(e=>e.dni!==entry.dni), es decir borraba la anterior.
-      const others=all.slice();others.push(entry);
-      const wr=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MKEY,'X-Bin-Versioning':'false'},body:JSON.stringify({entries:others})});
-      if(!wr.ok)throw new Error('HTTP '+wr.status);
-      setSave('✅ Perfil guardado correctamente.','ok');setTimeout(()=>setSave('',''),4500);return;
-    }catch(e){if(i<3){await new Promise(r=>setTimeout(r,700*i));continue;}}
+
+  // 1) El equipo primero: esto no depende de la red y no puede fallar por otra
+  //    usuaria. A partir de aquí el perfil ya no se pierde.
+  const okLocal=guardarLocal(entry);
+  localBin.push(entry);
+  pendAdd(entry);
+  pintarPendientes();
+  setSave(okLocal?'✅ Guardado en este equipo. Subiendo al servidor…'
+                 :'⚠️ No se pudo guardar en este equipo. Subiendo al servidor…','loading');
+
+  // 2) La nube después, con verificación.
+  const res=await subirPendientes();
+  if(res.subidas && !pendAll().length){
+    setSave('✅ Perfil guardado y subido al servidor.','ok');
+    setTimeout(()=>setSave('',''),5000);
+  }else{
+    setSave('✅ Guardado en este equipo. Falta subirlo ('+(res.error||'sin conexi\u00f3n')+') — se reintenta solo.','err');
   }
-  setSave('⚠️ No se pudo guardar. Revisa tu internet.','err');
 };
 function setSave(m,c){const el=$('saveStatus');el.textContent=m;el.className='save-status '+(c||'');}
+async function reintentarSubidaS72(){
+  setSave('Subiendo al servidor…','loading');
+  const res=await subirPendientes();
+  if(!pendAll().length) setSave('✅ Todo subido al servidor.','ok');
+  else setSave('⚠️ No subió: '+(res.error||'error')+'. Tu perfil sigue guardado en este equipo.','err');
+}
 $('pdfBtn').onclick=async()=>{
   if(!results){toast('Completa los tests primero.');return;}
   const b=$('pdfBtn');const orig=b.textContent;
@@ -1478,7 +1645,13 @@ function triggerBlobDownload(blob,filename){
 async function loadAdminData(){
   $('adminTableBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-style:italic">Cargando...</div>';
   $('adminBulkStatus').textContent='';
+  ultimoErrorNube='';
   const all=await readAll();
+  if(ultimoErrorNube){
+    const st=$('adminBulkStatus');
+    st.textContent='⚠️ El servidor no respondió ('+ultimoErrorNube+'). Se muestra lo guardado en este equipo y los respaldos cargados.';
+    st.className='save-status err';
+  }
 
   const byDni=new Map();
   (all||[]).forEach(e=>{
@@ -1645,10 +1818,19 @@ $('clearBtn').addEventListener('click',()=>{
 });
 
 // ═══ DOCENTE ═══
+// Une lo de la nube con lo guardado en este equipo y con los respaldos que el
+// profesor haya cargado a mano. Así el tablero nunca queda vacío por un fallo
+// de red, y una entrada que no llegó a subir igual se ve en el equipo donde se
+// hizo el test.
 async function readAll(){
-  if(!s7ok)return localBin;
-  try{const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});if(!r.ok)return localBin;const j=await r.json();const rec=j.record!==undefined?j.record:j;return Array.isArray(rec)?rec:(rec.entries||[]);}catch(e){return localBin;}
+  let nube=[];
+  if(s7ok){
+    try{ nube=await leerNube(); }
+    catch(e){ console.error('[NUBE]',e); ultimoErrorNube=e.message||'error'; }
+  }
+  return dedupPorId([].concat(nube, entradasLocales(), pendAll(), IMPORTADAS, localBin));
 }
+let ultimoErrorNube='';
 const COMM_LABELS={DI:'⚡ Directo',VI:'🔥 Vigoroso',CO:'🤝 Considerado',SI:'📊 Sistemático'};
 const KIL_LABELS={COM:'⚔️ Competitivo',COL:'🤝 Colaborativo',NEG:'⚖️ Negociador',EV:'🚪 Evitativo',CED:'🕊️ Adaptativo'};
 const COMM_CHART_COLORS={DI:'#E85D2F',VI:'#C9972B',CO:'#2F9E5F',SI:'#002A8D'};

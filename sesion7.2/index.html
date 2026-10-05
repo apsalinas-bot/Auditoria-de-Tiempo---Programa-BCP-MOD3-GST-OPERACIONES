@@ -491,6 +491,7 @@ label.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 7px}
   <div class="gold-bar"></div>
   <div class="logout-row no-print">
     <button class="refresh-btn" onclick="loadAdminData()">&#8635; Actualizar</button>
+    <button class="refresh-btn" id="recoverBtn" onclick="recoverFromVersions()">&#128735; Recuperar perfiles perdidos</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesi&oacute;n</button>
   </div>
   <div class="wrap">
@@ -753,6 +754,7 @@ $('dniBtn').onclick=()=>{
   $('empHi').textContent='Hola, '+currentUser.n.split(' ')[0]+' ✦';
   $('empBiz').textContent=currentUser.b||'';
   show('scEmp');startCommTest();
+  resyncLocalBackup(d);
 };
 $('dni').addEventListener('keydown',e=>{if(e.key==='Enter')$('dniBtn').click();});
 $('pwBtn').onclick=()=>{if($('pw').value===DOC_PW){show('scDoc');startDoc();}else $('pwErr').textContent='Contraseña incorrecta.';};
@@ -1077,29 +1079,77 @@ function renderKilResult(dom,commDom){
 }
 
 // ═══ SAVE ═══
+// Guardado a prueba de pérdidas:
+//  1) Nunca escribe si no pudo leer lo que ya hay (no borra a las demás).
+//  2) Siempre SUMA: une lo que hay en la nube + lo nuevo, sin repetir (por id).
+//  3) Después de escribir, vuelve a leer y confirma que el perfil quedó. Si dos personas
+//     guardaron al mismo tiempo y una pisó a la otra, lo detecta y lo vuelve a subir.
+//  4) Deja una copia en el dispositivo; al volver a entrar, si su perfil no está en la nube, se resube solo.
+function binRecordToEntries(j){
+  const rec=(j&&j.record!==undefined)?j.record:j;
+  return Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
+}
+function entryKey(e){return e.id||(e.dni+'_'+(e.ts||0));}
+function mergeEntries(base,extra){
+  const map=new Map();
+  (base||[]).forEach(e=>{if(e&&e.dni)map.set(entryKey(e),e);});
+  (extra||[]).forEach(e=>{if(e&&e.dni&&!map.has(entryKey(e)))map.set(entryKey(e),e);});
+  return Array.from(map.values()).sort((a,b)=>(a.ts||0)-(b.ts||0));
+}
+async function readRemoteStrict(){
+  const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'},cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return binRecordToEntries(await r.json());
+}
+const sleepMs=ms=>new Promise(r=>setTimeout(r,ms));
+// Sube una o varias entradas sin borrar nada. Devuelve true si quedaron confirmadas en la nube.
+async function pushEntriesSafe(newEntries){
+  if(!s7ok){localBin=mergeEntries(localBin,newEntries);return true;}
+  const keys=newEntries.map(entryKey);
+  for(let i=1;i<=6;i++){
+    try{
+      await sleepMs(Math.random()*900);                       // evita choques si varias guardan a la vez
+      const current=await readRemoteStrict();
+      const have=new Set(current.map(entryKey));
+      if(keys.every(k=>have.has(k))){
+        await sleepMs(2500);                                   // segunda confirmación por si alguien pisó justo después
+        const again=new Set((await readRemoteStrict()).map(entryKey));
+        if(keys.every(k=>again.has(k)))return true;
+        continue;
+      }
+      const merged=mergeEntries(current,newEntries);
+      const wr=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MKEY,'X-Bin-Versioning':'false'},body:JSON.stringify({entries:merged})});
+      if(!wr.ok)throw new Error('HTTP '+wr.status);
+      await sleepMs(500);
+    }catch(e){await sleepMs(800*i);}
+  }
+  return false;
+}
+// Copia local de respaldo (por dispositivo)
+const LS_KEY='s72_respaldo_perfiles';
+function localBackupGet(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(e){return [];}}
+function localBackupAdd(entry){try{localStorage.setItem(LS_KEY,JSON.stringify(mergeEntries(localBackupGet(),[entry])));}catch(e){}}
+// Al entrar: si sus perfiles guardados en este dispositivo no están en la nube, se resuben en silencio.
+async function resyncLocalBackup(dni){
+  const mine=localBackupGet().filter(e=>e.dni===dni);
+  if(!mine.length||!s7ok)return;
+  try{
+    const have=new Set((await readRemoteStrict()).map(entryKey));
+    const missing=mine.filter(e=>!have.has(entryKey(e)));
+    if(missing.length)await pushEntriesSafe(missing);
+  }catch(e){}
+}
+
 $('saveBtn').onclick=async()=>{
   if(!results){toast('Completa ambas partes primero.');return;}
   const entry={dni:currentUser.dni,name:currentUser.n,biz:currentUser.b,commDom:results.commDom,kilDom:results.kilDom,commScores:results.commScores,kilScores:results.kilScores,ts:Date.now(),id:currentUser.dni+'_'+Date.now()};
-  setSave('Guardando…','loading');
-  if(!s7ok){localBin.push(entry);setSave('✅ Guardado localmente.','ok');return;}
-  for(let i=1;i<=3;i++){
-    try{
-      const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});
-      // Si no se pudo leer lo ya guardado, NO escribimos: evitaría borrar los perfiles de las demás.
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const j=await r.json();
-      // Con X-Bin-Meta:false JSONBin devuelve el contenido directo (sin envoltura "record").
-      const rec=(j&&j.record!==undefined)?j.record:j;
-      const all=Array.isArray(rec)?rec:((rec&&rec.entries)||[]);
-      // Cada guardado crea una VERSION NUEVA. Antes hacia
-      // all.filter(e=>e.dni!==entry.dni), es decir borraba la anterior.
-      const others=all.slice();others.push(entry);
-      const wr=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MKEY,'X-Bin-Versioning':'false'},body:JSON.stringify({entries:others})});
-      if(!wr.ok)throw new Error('HTTP '+wr.status);
-      setSave('✅ Perfil guardado correctamente.','ok');setTimeout(()=>setSave('',''),4500);return;
-    }catch(e){if(i<3){await new Promise(r=>setTimeout(r,700*i));continue;}}
-  }
-  setSave('⚠️ No se pudo guardar. Revisa tu internet.','err');
+  localBackupAdd(entry);
+  const btn=$('saveBtn');btn.disabled=true;
+  setSave('Guardando… no cierres esta página','loading');
+  const ok=await pushEntriesSafe([entry]);
+  btn.disabled=false;
+  if(ok){setSave(s7ok?'✅ Perfil guardado correctamente.':'✅ Guardado localmente.','ok');setTimeout(()=>setSave('',''),4500);}
+  else setSave('⚠️ No se pudo confirmar el guardado. Revisa tu internet y toca "Guardar" otra vez.','err');
 };
 function setSave(m,c){const el=$('saveStatus');el.textContent=m;el.className='save-status '+(c||'');}
 $('pdfBtn').onclick=async()=>{
@@ -1648,10 +1698,52 @@ $('clearBtn').addEventListener('click',()=>{
   $('kilResultSection').style.display='none';startCommTest();
 });
 
+// ═══ RECUPERACIÓN ═══
+// Revisa el historial de versiones de JSONBin (si existe), junta todos los perfiles que alguna vez
+// se guardaron y los devuelve a la base actual sin borrar nada.
+async function recoverFromVersions(){
+  if(!s7ok){toast('Modo local: no hay nube que recuperar.');return;}
+  if(!confirm('Se revisará el historial de la base de datos y se devolverán los perfiles que se hayan perdido. No se borra nada. ¿Continuar?'))return;
+  const b=$('recoverBtn');const orig=b.innerHTML;b.disabled=true;
+  try{
+    b.textContent='Revisando historial…';
+    const before=await readRemoteStrict();
+    let count=0;
+    try{
+      const rc=await fetch(API+'/versions/count',{headers:{'X-Master-Key':MKEY},cache:'no-store'});
+      if(rc.ok){
+        const j=await rc.json();
+        const find=o=>{if(!o||typeof o!=='object')return null;for(const k in o){if(/version/i.test(k)&&typeof o[k]==='number')return o[k];const v=find(o[k]);if(v!=null)return v;}return null;};
+        count=find(j)||0;
+      }
+    }catch(e){}
+    let found=[];
+    // v0 = estado original del bin; 1..count = versiones guardadas
+    for(let v=0;v<=count;v++){
+      b.textContent='Revisando versión '+v+' de '+count+'…';
+      try{
+        const r=await fetch(API+'/'+v,{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'},cache:'no-store'});
+        if(r.ok)found=mergeEntries(found,binRecordToEntries(await r.json()));
+      }catch(e){}
+    }
+    found=mergeEntries(found,localBackupGet());
+    const have=new Set(before.map(entryKey));
+    const missing=found.filter(e=>!have.has(entryKey(e)));
+    if(!missing.length){
+      alert(count>0?'Revisé '+(count+1)+' versiones del historial y no encontré perfiles perdidos.':'Esta base no tiene historial de versiones guardado, así que no hay perfiles anteriores que recuperar desde la nube. Desde ahora los guardados ya no se borran.');
+    }else{
+      b.textContent='Recuperando '+missing.length+'…';
+      const ok=await pushEntriesSafe(missing);
+      alert(ok?'✅ Se recuperaron '+missing.length+' registro(s) de '+new Set(missing.map(e=>e.dni)).size+' persona(s).':'⚠️ Encontré '+missing.length+' registro(s) pero no se pudieron subir. Intenta de nuevo.');
+    }
+  }catch(e){alert('No se pudo leer la base de datos. Revisa tu internet e intenta de nuevo.');}
+  b.disabled=false;b.innerHTML=orig;loadAdminData();
+}
+
 // ═══ DOCENTE ═══
 async function readAll(){
   if(!s7ok)return localBin;
-  try{const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'}});if(!r.ok)return localBin;const j=await r.json();const rec=j.record!==undefined?j.record:j;return Array.isArray(rec)?rec:(rec.entries||[]);}catch(e){return localBin;}
+  try{const r=await fetch(API+'/latest',{headers:{'X-Master-Key':MKEY,'X-Bin-Meta':'false'},cache:'no-store'});if(!r.ok)return localBin;const j=await r.json();const rec=j.record!==undefined?j.record:j;return Array.isArray(rec)?rec:(rec.entries||[]);}catch(e){return localBin;}
 }
 const COMM_LABELS={DI:'⚡ Directo',VI:'🔥 Vigoroso',CO:'🤝 Considerado',SI:'📊 Sistemático'};
 const KIL_LABELS={COM:'⚔️ Competitivo',COL:'🤝 Colaborativo',NEG:'⚖️ Negociador',EV:'🚪 Evitativo',CED:'🕊️ Adaptativo'};
